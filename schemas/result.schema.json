@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hcs-materials.local/result/1.0.0",
+  "title": "ResultBundle",
+  "description": "Structured scientific result. Every numeric output carries an explicit unit. Convergence and limitations are mandatory.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "result_id",
+    "job_id",
+    "input_hash",
+    "fidelity_level",
+    "engine_id",
+    "status",
+    "quantities",
+    "convergence",
+    "limitations",
+    "provenance_ref"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "result_id": { "type": "string", "minLength": 1 },
+    "job_id": { "type": "string" },
+    "input_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "fidelity_level": { "type": "string" },
+    "engine_id": { "type": "string" },
+    "model_id": { "type": "string" },
+    "status": { "enum": ["complete", "incomplete", "invalid"] },
+    "quantities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value", "unit"],
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": ["number", "string", "boolean"] },
+          "unit": { "type": "string" },
+          "method": { "type": "string" },
+          "uncertainty": { "type": "number" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "x_unit", "y_unit", "x", "y"],
+        "properties": {
+          "name": { "type": "string" },
+          "x_label": { "type": "string" },
+          "y_label": { "type": "string" },
+          "x_unit": { "type": "string" },
+          "y_unit": { "type": "string" },
+          "x": { "type": "array", "items": { "type": "number" } },
+          "y": { "type": "array", "items": { "type": "number" } },
+          "method": { "type": "string" }
+        }
+      }
+    },
+    "convergence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["converged", "criterion"],
+      "properties": {
+        "converged": { "type": "boolean" },
+        "criterion": { "type": "string" },
+        "iterations": { "type": "integer", "minimum": 0 },
+        "final_value": { "type": "number" },
+        "threshold": { "type": "number" },
+        "residuals": { "type": "array", "items": { "type": "number" } }
+      }
+    },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "result_structure": { "$ref": "https://schemas.hcs-materials.local/structure/1.0.0" },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "path", "media_type"],
+        "properties": {
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "media_type": { "type": "string" },
+          "sha256": { "type": "string" },
+          "bytes": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "provenance_ref": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

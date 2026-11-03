@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hcs-materials.local/structure/1.0.0",
+  "title": "Structure",
+  "description": "Canonical periodic atomic structure. Fractional positions in the given lattice basis, length unit always explicit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "structure_id", "length_unit", "lattice", "pbc", "sites"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "structure_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "display_name": { "type": "string", "maxLength": 200 },
+    "length_unit": { "enum": ["angstrom", "nanometer", "bohr"] },
+    "lattice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vectors"],
+      "properties": {
+        "vectors": {
+          "description": "Three lattice vectors a, b, c as rows, in length_unit.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "pbc": {
+      "type": "array",
+      "items": { "type": "boolean" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "sites": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["species", "fractional_position"],
+        "properties": {
+          "species": {
+            "type": "string",
+            "pattern": "^[A-Z][a-z]?([0-9]+)?$",
+            "description": "Element symbol, optional count suffix for pseudo-species labels."
+          },
+          "label": { "type": "string", "maxLength": 64 },
+          "fractional_position": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "cartesian_position": {
+            "description": "Optional redundant cartesian copy; canonical source is fractional_position.",
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "occupancy": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "charge": { "type": "number" },
+          "mobility": { "type": "array", "items": { "type": "boolean" }, "minItems": 3, "maxItems": 3 }
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reduced_formula", "elements", "amounts"],
+      "properties": {
+        "reduced_formula": { "type": "string" },
+        "elements": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "amounts": {
+          "type": "object",
+          "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+        },
+        "total_atoms": { "type": "number" }
+      }
+    },
+    "space_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["symbol"],
+      "properties": {
+        "symbol": { "type": "string" },
+        "number": { "type": "integer", "minimum": 1, "maximum": 230 },
+        "symmetry_tolerance_angstrom": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format"],
+      "properties": {
+        "format": { "enum": ["cif", "poscar", "xyz", "extxyz", "hcs-json", "generated"] },
+        "uri": { "type": "string" },
+        "filename": { "type": "string" },
+        "retrieved_at": { "type": "string", "format": "date-time" },
+        "provider": { "type": "string" },
+        "provider_record_id": { "type": "string" },
+        "license": { "type": "string" },
+        "notes": { "type": "string", "maxLength": 2000 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks"],
+      "properties": {
+        "status": { "enum": ["valid", "warning", "invalid", "unchecked"] },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "status", "message"],
+            "properties": {
+              "id": { "type": "string" },
+              "status": { "enum": ["pass", "warning", "fail"] },
+              "message": { "type": "string" },
+              "details": { "type": "object" }
+            }
+          }
+        }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

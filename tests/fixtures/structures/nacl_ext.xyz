@@ -1,0 +1,6 @@
+4
+Lattice="4.0 0.0 0.0 0.0 4.0 0.0 0.0 0.0 4.0" pbc="T T T" properties=species:S:1:pos:R:3
+Na 0.0 0.0 0.0
+Na 0.0 2.0 2.0
+Cl 2.0 0.0 2.0
+Cl 2.0 2.0 0.0

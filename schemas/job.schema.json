@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hcs-materials.local/job/1.0.0",
+  "title": "JobRecord",
+  "description": "Mutable lifecycle record of one simulation job. Input spec is immutable and referenced by hash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_id",
+    "project_id",
+    "task_type",
+    "state",
+    "created_at",
+    "updated_at",
+    "input_hash",
+    "spec_ref",
+    "events"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "job_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string" },
+    "task_type": { "type": "string" },
+    "engine_id": { "type": "string" },
+    "fidelity_level": { "type": "string" },
+    "state": {
+      "enum": [
+        "created",
+        "validated",
+        "queued",
+        "preparing",
+        "running",
+        "checkpointing",
+        "completed",
+        "failed",
+        "cancelled",
+        "interrupted"
+      ]
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "input_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "spec_ref": { "type": "string" },
+    "progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "phase": { "type": "string" },
+        "fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+        "message": { "type": "string" }
+      }
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "state", "message"],
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "state": { "type": "string" },
+          "message": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" },
+          "severity": { "enum": ["info", "warning", "error"] }
+        }
+      }
+    },
+    "cancel_requested": { "type": "boolean" },
+    "checkpoint_refs": { "type": "array", "items": { "type": "string" } },
+    "output_refs": { "type": "array", "items": { "type": "string" } },
+    "result_ref": { "type": "string" },
+    "resource_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "wall_time_seconds": { "type": "number", "minimum": 0 },
+        "compute_time_seconds": { "type": "number", "minimum": 0 },
+        "peak_memory_mb": { "type": "number", "minimum": 0 },
+        "backend": { "type": "string" },
+        "device": { "type": "string" }
+      }
+    },
+    "engine_capability_snapshot": { "type": "object" }
+  }
+}

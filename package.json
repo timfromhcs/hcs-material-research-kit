@@ -1,0 +1,31 @@
+{
+  "name": "hcs-material-research-kit",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local-first virtual materials research studio: structures, reproducible classical simulations, provenance.",
+  "license": "MIT",
+  "author": "hcsmedia and timfromhcs",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/web"
+  ],
+  "scripts": {
+    "build": "npm run build -w @hcs-materials/contracts && npm run build -w @hcs-materials/core && npm run build -w @hcs-materials/ui && npm run build -w @hcs-materials/visualization && npm run build -w @hcs-materials/web",
+    "typecheck": "npm run typecheck -w @hcs-materials/contracts && npm run typecheck -w @hcs-materials/core && npm run typecheck -w @hcs-materials/ui && npm run typecheck -w @hcs-materials/visualization && npm run typecheck -w @hcs-materials/web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "npm run dev -w @hcs-materials/web",
+    "fmt": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
+    "fmt:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
