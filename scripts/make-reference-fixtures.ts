@@ -75,7 +75,14 @@ console.log(
 );
 
 // --- Cross-language identity fixture ---------------------------------------
-const rocksalt = createCrystal({ prototype: "rocksalt", a: 5.64, species: ["Na", "Cl"] });
+// The identity fixture must be byte-stable: ids and timestamps are pinned so a
+// regeneration in CI cannot produce a spurious diff.
+const rocksalt = {
+  ...createCrystal({ prototype: "rocksalt", a: 5.64, species: ["Na", "Cl"] }),
+  structure_id: "struct_reference_nacl",
+  created_at: "2026-01-01T00:00:00.000Z",
+  updated_at: "2026-01-01T00:00:00.000Z",
+};
 const identity = {
   _comment:
     "Canonical structure identity produced by @hcs-materials/core. The Python package " +

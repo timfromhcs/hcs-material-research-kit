@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -18,8 +19,8 @@ jobs:
     name: TypeScript, unit tests and studio build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -28,19 +29,37 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Benchmark parity gate (fails on CPU/WASM disagreement)
+        run: node benchmarks/lj-benchmark.mjs
       - name: Upload studio bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hcs-studio-dist
           path: apps/web/dist
           retention-days: 7
+          if-no-files-found: error
+
+  node24:
+    name: Node 24 compatibility (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm install -g npm@$NPM_VERSION
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
 
   rust:
     name: Rust kernels and cross-language parity
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -64,13 +83,17 @@ jobs:
           git diff --exit-code packages/wasm/wasm
 
   python:
-    name: Python package, CLI and MCP
+    name: Python ${{ matrix.python-version }}, CLI and MCP
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: pip
       - name: Install package with test and MCP extras
         run: |
@@ -84,8 +107,8 @@ jobs:
     name: End-to-end acceptance workflow (Chromium)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -98,7 +121,7 @@ jobs:
           PW_CHANNEL: chromium
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
