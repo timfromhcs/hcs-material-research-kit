@@ -49,6 +49,10 @@ First development preview: a tested vertical slice, not a mock interface.
 - **Benchmark harness**: `benchmarks/lj-benchmark.mjs` measures energy, MD and relaxation for the
   CPU and WASM kernels, aborts on parity failure, and records environment, warm-up, sample count
   and dispersion in `benchmarks/results/latest.json`.
+- **Node simulation CLI** (`@hcs-materials/cli`, binary `hcs-sim`): `inspect`, `engines`,
+  `run`; validates the structure/spec hash, runs the job with the CPU or WASM kernel, and writes
+  `status.json`, `result.json`, `provenance.json`, `report.html`, `run.log` plus trajectory or
+  relaxed structure when produced.
 - **WebAssembly kernel**: `crates/compute-wasm` compiles the Rust kernel to
   `wasm32-unknown-unknown` with a C ABI and no imports; `@hcs-materials/wasm` loads it with ABI
   validation. The solver worker uses it for energy evaluation, FIRE relaxation and NVE MD, records

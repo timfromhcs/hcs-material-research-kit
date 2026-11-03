@@ -6,7 +6,7 @@ research record with provenance.
 
 > Made with love by **hcsmedia** and **timfromhcs**.
 
-[![tests](https://img.shields.io/badge/TypeScript%20tests-115%20passing-4fd6c4)](#verification)
+[![tests](https://img.shields.io/badge/TypeScript%20tests-121%20passing-4fd6c4)](#verification)
 [![rust](https://img.shields.io/badge/Rust%20tests-8%20passing-4fd6c4)](#verification)
 [![python](https://img.shields.io/badge/Python%2FMCP-36%20passing-4fd6c4)](#verification)
 [![e2e](https://img.shields.io/badge/Playwright%20E2E-7%20passing-4fd6c4)](#verification)
@@ -31,6 +31,7 @@ A working vertical slice, not a mock-up:
 | Browser studio (EN/DE/FR, dark/light, responsive) | Implemented | Vite build, Playwright E2E |
 | Rust CPU kernel with cross-language parity | Implemented | 1e-10 eV agreement with TS |
 | WASM backend for energy, relax, MD | Implemented | 11 parity tests, E2E asserts backend `wasm` |
+| Node simulation CLI (`hcs-sim`) | Implemented | 6 CLI tests, writes result/provenance/report |
 | Python CLI | Implemented | 32 tests |
 | MCP v2 stdio server | Implemented (subset) | official SDK client tests |
 | Automated acceptance workflow | Implemented | 7 Playwright tests on the production bundle |
@@ -71,8 +72,18 @@ uv venv && uv pip install -e ".[dev]"
 .venv/Scripts/python.exe -m pytest        # Windows
 ```
 
-## A two-minute real workflow
+Simulation CLI (Node, CPU or WASM kernel):
 
+```bash
+npm run build:packages
+node packages/cli/dist/index.js inspect tests/fixtures/structures/silicon.cif
+node packages/cli/dist/index.js run --structure ar.json --spec spec.json --out ./run-001
+node packages/cli/dist/index.js engines --planned
+```
+
+See `docs/tutorials/cli.md`.
+
+## A two-minute real workflow
 1. Open the studio and choose **Argon (fcc, LJ reference)** — this creates a 3×3×3 cell
    (108 atoms) so the pair cutoff has real interactions.
 2. Go to **Simulation Workbench**, choose **NVE molecular dynamics**, keep the default
@@ -94,6 +105,7 @@ packages/core            Domain model, IO, kernels, jobs, archives, reports
 packages/ui              Design tokens + accessible primitives (hand-written CSS)
 packages/visualization    Three.js structure viewer, accessible SVG plots
 packages/wasm            WASM loader + committed hcs_compute.wasm (+ manifest)
+packages/cli             hcs-sim: local simulation runner (CPU/WASM), reports and records
 crates/compute-core      Rust CPU kernel, parity-tested against the TS reference
 crates/compute-wasm      C-ABI entry points for wasm32-unknown-unknown
 python/hcs_materials     CLI, project archives, MCP server (official v2 SDK)
@@ -123,7 +135,7 @@ docs/                    Science, architecture, decisions, security, tutorials
 
 Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96):
 ```text
-TypeScript 115 tests passing   vitest run (includes 11 TS ↔ WASM tests)
+TypeScript 121 tests passing   vitest run (includes 11 TS ↔ WASM tests)
 Rust         8 tests passing   cargo test -p hcs-compute-core -p hcs-compute-wasm
 Python      36 tests passing   pytest (includes real MCP client/server round-trip)
 Playwright   7 tests passing   production bundle, Chrome channel, WASM backend

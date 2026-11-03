@@ -35,7 +35,10 @@ export interface WasmManifest {
 
 export interface WasmKernel {
   readonly abiVersion: number;
-  readonly bytes: number;
+  /** Size of the .wasm artifact that was instantiated (0 when a Module was passed). */
+  readonly moduleBytes: number;
+  /** Initial linear-memory size of the instance. */
+  readonly memoryBytes: number;
   /** Evaluates energy and forces exactly like `computeEnergyForces`. */
   energyForces(structure: Structure, model: LJModel, options?: { cutoff?: number }): EnergyForces;
 }
@@ -90,7 +93,8 @@ export async function instantiateWasmKernel(
     );
   }
 
-  const bytes = exports.memory.buffer.byteLength;
+  const moduleBytes = source instanceof WebAssembly.Module ? 0 : source.byteLength;
+  const memoryBytes = exports.memory.buffer.byteLength;
 
   const energyForces: WasmKernel["energyForces"] = (structure, model, options = {}) => {
     assertAngstrom(structure);
@@ -211,5 +215,5 @@ export async function instantiateWasmKernel(
     }
   };
 
-  return { abiVersion: abi, bytes, energyForces };
+  return { abiVersion: abi, moduleBytes, memoryBytes, energyForces };
 }

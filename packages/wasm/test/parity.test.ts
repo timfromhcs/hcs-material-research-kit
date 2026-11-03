@@ -60,7 +60,7 @@ describe("WASM kernel", () => {
   it("exports the expected ABI and loads without imports", async () => {
     const wasm = await kernel();
     expect(wasm.abiVersion).toBe(WASM_ABI_VERSION);
-    expect(wasm.bytes).toBeGreaterThan(10_000);
+    expect(wasm.moduleBytes).toBeGreaterThan(10_000);
   });
 
   it("matches the TypeScript reference on argon within 1e-10 eV", async () => {

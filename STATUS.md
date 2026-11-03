@@ -22,6 +22,8 @@
   integrity check.
 - **Python CLI** (`hcs-materials`): doctor, hardware, engines list/inspect, structure
   validate/convert, project create/validate, report build.
+- **Node simulation CLI** (`hcs-sim`): inspect, engines, run with CPU/WASM backend; writes
+  status/result/provenance/report/log and an optional trajectory or relaxed structure.
 - **MCP server** (`hcs-materials-mcp`, stdio): engines_list, structures_validate,
   structures_convert, project_validate, simulations_validate_spec (validation only) and
   results_summarize (read-only) + 2 resources + 2 prompts.

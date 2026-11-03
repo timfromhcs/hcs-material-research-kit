@@ -16,6 +16,7 @@
 | Security and privacy | [`security/threat-model.md`](security/threat-model.md) |
 | Benchmarks | [`../benchmarks/README.md`](../benchmarks/README.md) |
 | Tutorial | [`tutorials/first-calculation.md`](tutorials/first-calculation.md) |
+| CLI tutorial | [`tutorials/cli.md`](tutorials/cli.md) |
 | Research baseline and verification | [`research/baseline.md`](research/baseline.md) |
 
 ## Architecture decision records

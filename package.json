@@ -15,9 +15,9 @@
     "apps/web"
   ],
   "scripts": {
-    "build:packages": "npm run build -w @hcs-materials/contracts && npm run build -w @hcs-materials/core && npm run build -w @hcs-materials/ui && npm run build -w @hcs-materials/visualization && npm run build -w @hcs-materials/wasm",
+    "build:packages": "npm run build -w @hcs-materials/contracts && npm run build -w @hcs-materials/core && npm run build -w @hcs-materials/ui && npm run build -w @hcs-materials/visualization && npm run build -w @hcs-materials/wasm && npm run build -w @hcs-materials/cli",
     "build": "npm run build:packages && npm run build -w @hcs-materials/web",
-    "typecheck": "npm run typecheck -w @hcs-materials/contracts && npm run typecheck -w @hcs-materials/core && npm run typecheck -w @hcs-materials/ui && npm run typecheck -w @hcs-materials/visualization && npm run typecheck -w @hcs-materials/wasm && npm run typecheck -w @hcs-materials/web",
+    "typecheck": "npm run typecheck -w @hcs-materials/contracts && npm run typecheck -w @hcs-materials/core && npm run typecheck -w @hcs-materials/ui && npm run typecheck -w @hcs-materials/visualization && npm run typecheck -w @hcs-materials/wasm && npm run typecheck -w @hcs-materials/cli && npm run typecheck -w @hcs-materials/web",
     "test": "npm run build:packages && vitest run",
     "test:watch": "vitest",
     "test:rust": "cargo test -p hcs-compute-core -p hcs-compute-wasm",
