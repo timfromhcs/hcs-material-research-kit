@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from . import __version__
 from .contracts import ContractViolation, validate_contract
@@ -29,6 +31,20 @@ from .structure import (
     structure_hash,
     validate_structure,
 )
+
+#: Hard workload ceilings for `simulations_run`. The O(N^2) reference kernel and
+#: a stdio agent must not be able to start an unbounded job by accident.
+SIMULATION_BUDGET: dict[str, tuple[int, int]] = {
+    "energy.evaluate": (20_000, 0),
+    "structure.validate": (20_000, 0),
+    "analysis.rdf": (20_000, 0),
+    "md.run": (5_000, 2_000),
+    "structure.relax": (20_000, 5_000),
+}
+
+#: Environment variables forwarded to the simulation CLI. Everything else
+#: (tokens, API keys, cloud credentials) stays out of the child process.
+FORWARDED_ENV = ("PATH", "SystemRoot", "ComSpec", "PATHEXT", "TEMP", "TMP", "HOME", "USERPROFILE")
 
 
 class Workspace:
@@ -48,7 +64,7 @@ class Workspace:
         return candidate
 
 
-def create_server(root: str | Path):
+def create_server(root: str | Path, sim_cli: Sequence[str] | str | None = None):
     """Builds the MCPServer. Imported lazily so the base package stays light."""
     try:
         from mcp.server import MCPServer
@@ -58,6 +74,16 @@ def create_server(root: str | Path):
         ) from error
 
     workspace = Workspace(root)
+    if sim_cli is None:
+        configured = os.environ.get("HCS_SIM_CLI", "hcs-sim").strip()
+        sim_command: tuple[str, ...] = (configured,) if configured else ("hcs-sim",)
+    elif isinstance(sim_cli, str):
+        sim_command = (sim_cli,)
+    else:
+        sim_command = tuple(sim_cli)
+    if not sim_command or not sim_command[0]:
+        raise ValueError("sim_cli must name an executable")
+
     server = MCPServer("HCS Material Research Kit")
 
     @server.tool()
@@ -257,6 +283,206 @@ def create_server(root: str | Path):
             "note": "Read-only summary. Missing fields are reported as missing, never filled in.",
         }
 
+    @server.tool()
+    def simulations_run(
+        spec: dict[str, Any],
+        structure: dict[str, Any],
+        out_dir: str,
+        approve: bool = False,
+        backend: str = "auto",
+    ) -> dict[str, Any]:
+        """Run one local simulation with the hcs-sim CLI after explicit approval.
+
+        This starts a real, bounded computation on this machine and writes its
+        record into the workspace. It is not a simulation service and it never
+        invents a result: if the CLI fails, the failure is returned verbatim.
+        Call `simulations_validate_spec` first to fix inputs cheaply.
+        """
+        if approve is not True:
+            return {
+                "ok": False,
+                "error_code": "approval_required",
+                "error": (
+                    "simulations_run starts a real computation. Repeat the call with "
+                    "approve=true only after the user approved this specific run."
+                ),
+            }
+        if backend not in ("auto", "cpu", "wasm"):
+            return {
+                "ok": False,
+                "error_code": "invalid_backend",
+                "error": f"backend must be auto, cpu or wasm (got '{backend}')",
+            }
+
+        task_type = str(spec.get("task_type", ""))
+        if task_type not in SIMULATION_BUDGET:
+            return {
+                "ok": False,
+                "error_code": "unsupported_task",
+                "error": (
+                    f"The MCP runner does not start task '{task_type}'. "
+                    f"Allowed: {', '.join(sorted(SIMULATION_BUDGET))}."
+                ),
+            }
+
+        atoms = len(structure.get("sites") or [])
+        max_atoms, max_steps = SIMULATION_BUDGET[task_type]
+        if atoms == 0:
+            return {
+                "ok": False,
+                "error_code": "invalid_structure",
+                "error": "structure.sites is empty",
+            }
+        if atoms > max_atoms:
+            return {
+                "ok": False,
+                "error_code": "budget_exceeded",
+                "error": (
+                    f"{atoms} atoms exceeds the MCP budget for {task_type} ({max_atoms}). "
+                    "Build a smaller cell or run the CLI directly."
+                ),
+            }
+        raw_steps = (spec.get("parameters") or {}).get("steps", 0)
+        steps = raw_steps if isinstance(raw_steps, int) and not isinstance(raw_steps, bool) else 0
+        if max_steps and steps > max_steps:
+            return {
+                "ok": False,
+                "error_code": "budget_exceeded",
+                "error": (
+                    f"{steps} steps exceeds the MCP budget for {task_type} ({max_steps}). "
+                    "Split the run or use the CLI with a deliberate checkpoint."
+                ),
+            }
+
+        try:
+            validate_contract("structure", structure)
+            validate_contract("simulation", spec)
+        except ContractViolation as error:
+            return {
+                "ok": False,
+                "error_code": "invalid_input",
+                "error": str(error),
+                "errors": error.errors,
+            }
+
+        from .io import read_hcs_json
+
+        try:
+            parsed = read_hcs_json(json.dumps(structure))
+        except (StructureIOError, ValueError) as error:
+            return {"ok": False, "error_code": "invalid_input", "error": str(error)}
+
+        reference = spec.get("structure_ref") or {}
+        expected_hash = str(reference.get("structure_hash", ""))
+        actual_hash = structure_hash(parsed)
+        if expected_hash != actual_hash:
+            return {
+                "ok": False,
+                "error_code": "structure_hash_mismatch",
+                "error": (
+                    "structure_ref.structure_hash does not match the supplied structure "
+                    f"(expected {expected_hash[:16]}…, actual {actual_hash[:16]}…)"
+                ),
+            }
+
+        try:
+            target = workspace.resolve(out_dir)
+        except ValueError as error:
+            return {"ok": False, "error_code": "path_rejected", "error": str(error)}
+        if target == workspace.root:
+            return {
+                "ok": False,
+                "error_code": "path_rejected",
+                "error": "out_dir must be a dedicated directory inside the workspace root",
+            }
+
+        target.mkdir(parents=True, exist_ok=True)
+        structure_path = target / "structure.json"
+        spec_path = target / "spec.json"
+        structure_path.write_text(json.dumps(structure, indent=2) + "\n", encoding="utf-8")
+        spec_path.write_text(json.dumps(spec, indent=2) + "\n", encoding="utf-8")
+
+        command = [
+            *sim_command,
+            "run",
+            "--structure",
+            str(structure_path),
+            "--spec",
+            str(spec_path),
+            "--out",
+            str(target),
+            "--backend",
+            backend,
+            "--json",
+        ]
+        env = {name: os.environ[name] for name in FORWARDED_ENV if name in os.environ}
+        try:
+            completed = subprocess.run(
+                command,
+                cwd=str(workspace.root),
+                env=env,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=180,
+                check=False,
+            )
+        except (FileNotFoundError, NotADirectoryError, PermissionError) as error:
+            return {
+                "ok": False,
+                "error_code": "sim_cli_unavailable",
+                "error": (
+                    f"Simulation CLI '{sim_command[0]}' is not available ({error}). "
+                    "Build and install it, or set --sim-cli / HCS_SIM_CLI to the executable."
+                ),
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                "ok": False,
+                "error_code": "sim_timeout",
+                "error": (
+                    "The simulation CLI did not finish within 180 s and was terminated. "
+                    "No result is claimed."
+                ),
+            }
+
+        stdout = (completed.stdout or "").strip()
+        try:
+            summary = json.loads(stdout)
+        except json.JSONDecodeError:
+            return {
+                "ok": False,
+                "error_code": "sim_cli_invalid_output",
+                "error": (
+                    "The simulation CLI did not return a JSON summary. "
+                    f"exit={completed.returncode} stdout={stdout[:400]!r} "
+                    f"stderr={(completed.stderr or '')[:400]!r}"
+                ),
+            }
+        if not isinstance(summary, dict):
+            return {
+                "ok": False,
+                "error_code": "sim_cli_invalid_output",
+                "error": "The simulation CLI returned JSON that is not an object.",
+            }
+
+        artifacts = sorted(path.name for path in target.iterdir() if path.is_file())
+        return {
+            "ok": bool(summary.get("ok")),
+            "state": summary.get("state"),
+            "job_id": summary.get("job_id"),
+            "out_dir": out_dir,
+            "artifacts": artifacts,
+            "result": summary.get("result"),
+            "error": summary.get("error"),
+            "exit_code": completed.returncode,
+            "note": (
+                "Started by an explicitly approved request. The record in out_dir is the "
+                "result of record; this summary is a convenience copy."
+            ),
+        }
+
     @server.resource("hcs://engine-registry")
     def engine_registry() -> str:
         """The engine registry with honest installation states."""
@@ -307,6 +533,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hcs-materials-mcp", description="HCS MCP server (stdio)")
     parser.add_argument("--root", default=".", help="workspace root for project access")
     parser.add_argument(
+        "--sim-cli",
+        default=os.environ.get("HCS_SIM_CLI", "hcs-sim"),
+        help="hcs-sim executable used by simulations_run (default: hcs-sim or $HCS_SIM_CLI)",
+    )
+    parser.add_argument(
         "--transport",
         default="stdio",
         choices=["stdio"],
@@ -314,7 +545,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
-        server = create_server(args.root)
+        server = create_server(args.root, sim_cli=args.sim_cli)
     except Exception as error:  # noqa: BLE001
         print(f"error: {error}", file=sys.stderr)
         return 4

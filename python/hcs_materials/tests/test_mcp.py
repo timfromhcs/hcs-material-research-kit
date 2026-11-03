@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -38,6 +39,7 @@ def test_tools_are_listed_and_documented(tmp_path: Path) -> None:
         "engines_list",
         "project_validate",
         "results_summarize",
+        "simulations_run",
         "simulations_validate_spec",
         "structures_convert",
         "structures_validate",
@@ -276,4 +278,132 @@ def test_results_summarize_reads_an_archive(tmp_path: Path) -> None:
     assert summary["quantities"][0]["unit"] == "eV"
     assert summary["limitations"] == ["Pairwise model only."]
     assert "never filled in" in payload["note"]
+
+
+STUB_CLI = r'''
+import json
+import pathlib
+import sys
+
+args = sys.argv[1:]
+out = pathlib.Path(args[args.index("--out") + 1])
+out.mkdir(parents=True, exist_ok=True)
+(out / "result.json").write_text(json.dumps({"status": "complete"}), encoding="utf-8")
+print(
+    json.dumps(
+        {
+            "ok": True,
+            "state": "completed",
+            "job_id": "job_stub",
+            "result": {"quantities": [{"name": "total_potential_energy", "value": -1.0, "unit": "eV"}]},
+            "error": None,
+        }
+    )
+)
+'''
+
+
+def stub_server(tmp_path: Path):
+    stub = tmp_path / "stub_cli.py"
+    stub.write_text(STUB_CLI, encoding="utf-8")
+    return create_server(tmp_path, sim_cli=[sys.executable, str(stub)])
+
+
+def call_simulations_run(server, arguments: dict):
+    async def scenario():
+        async with Client(server) as client:
+            return await client.call_tool("simulations_run", arguments)
+
+    return json.loads(run(scenario()).content[0].text)
+
+
+def test_simulations_run_requires_explicit_approval(tmp_path: Path) -> None:
+    structure = argon_structure()
+    server = stub_server(tmp_path)
+    payload = call_simulations_run(
+        server,
+        {
+            "spec": valid_spec(structure),
+            "structure": json.loads(structure.to_json()),
+            "out_dir": "runs/unapproved",
+        },
+    )
+    assert payload["ok"] is False
+    assert payload["error_code"] == "approval_required"
+    assert not (tmp_path / "runs" / "unapproved").exists()
+
+
+def test_simulations_run_enforces_the_workload_budget(tmp_path: Path) -> None:
+    structure = argon_structure()
+    spec = valid_spec(structure)
+    spec["task_type"] = "md.run"
+    server = stub_server(tmp_path)
+    payload = call_simulations_run(
+        server,
+        {
+            "spec": spec,
+            "structure": {"sites": [{}] * 6001},
+            "out_dir": "runs/too-big",
+            "approve": True,
+        },
+    )
+    assert payload["ok"] is False
+    assert payload["error_code"] == "budget_exceeded"
+    assert "5000" in payload["error"]
+
+
+def test_simulations_run_rejects_paths_outside_the_workspace(tmp_path: Path) -> None:
+    structure = argon_structure()
+    server = stub_server(tmp_path)
+    payload = call_simulations_run(
+        server,
+        {
+            "spec": valid_spec(structure),
+            "structure": json.loads(structure.to_json()),
+            "out_dir": "../escape",
+            "approve": True,
+        },
+    )
+    assert payload["ok"] is False
+    assert payload["error_code"] == "path_rejected"
+
+
+def test_simulations_run_reports_a_missing_cli(tmp_path: Path) -> None:
+    structure = argon_structure()
+    server = create_server(tmp_path, sim_cli=["hcs-sim-does-not-exist-xyz"])
+    payload = call_simulations_run(
+        server,
+        {
+            "spec": valid_spec(structure),
+            "structure": json.loads(structure.to_json()),
+            "out_dir": "runs/missing-cli",
+            "approve": True,
+        },
+    )
+    assert payload["ok"] is False
+    assert payload["error_code"] == "sim_cli_unavailable"
+    assert "HCS_SIM_CLI" in payload["error"]
+
+
+def test_simulations_run_passes_through_the_cli_record(tmp_path: Path) -> None:
+    structure = argon_structure()
+    server = stub_server(tmp_path)
+    payload = call_simulations_run(
+        server,
+        {
+            "spec": valid_spec(structure),
+            "structure": json.loads(structure.to_json()),
+            "out_dir": "runs/approved",
+            "approve": True,
+        },
+    )
+    assert payload["ok"] is True
+    assert payload["state"] == "completed"
+    assert payload["job_id"] == "job_stub"
+    assert payload["out_dir"] == "runs/approved"
+    assert "result.json" in payload["artifacts"]
+    assert "structure.json" in payload["artifacts"]
+    assert payload["result"]["quantities"][0]["unit"] == "eV"
+    assert "explicitly approved" in payload["note"]
+
 
