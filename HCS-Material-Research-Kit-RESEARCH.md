@@ -2,7 +2,7 @@
 
 **Research date:** 3 November 2026  
 **Proposed project:** HCS Material Research Kit (working title)  
-**Brand line:** *Made with love by hcsmedia and timfromhcs*  
+**Brand line:** _Made with love by hcsmedia and timfromhcs_  
 **Purpose:** Research basis for a local-first, cross-platform virtual materials research studio with native Windows/Linux and Vercel-hosted browser editions.
 
 ---
@@ -18,7 +18,7 @@ The strongest architecture is **not** a single universal physics engine. It is a
 - an MCP interface for agentic research;
 - a shared UX and job/result contract across desktop and browser execution profiles.
 
-The project should distinguish a *shared research workflow* from *identical solver capability*. A browser can run meaningful local simulations using WebAssembly and WebGPU, but it cannot honestly promise that every full desktop DFT, ab-initio molecular dynamics, large-scale molecular dynamics, and multiphysics workload is available at the same scale. The web edition should provide the same project model, workflow, visualisation, parameter interface, and export formats, while declaring which execution engines are available in the browser. Heavy engines can be enabled in the native app or through a separately installed local companion.
+The project should distinguish a _shared research workflow_ from _identical solver capability_. A browser can run meaningful local simulations using WebAssembly and WebGPU, but it cannot honestly promise that every full desktop DFT, ab-initio molecular dynamics, large-scale molecular dynamics, and multiphysics workload is available at the same scale. The web edition should provide the same project model, workflow, visualisation, parameter interface, and export formats, while declaring which execution engines are available in the browser. Heavy engines can be enabled in the native app or through a separately installed local companion.
 
 No result should be described as “1:1 real” in an unrestricted sense. Simulation output is conditional on the physical model, approximations, training domain, numerical settings, reference data, boundary conditions, and convergence. The product should target **scientifically defensible, reproducible, benchmarked virtual experiments**, with explicit fidelity labels and validation evidence.
 
@@ -63,7 +63,7 @@ A separate Microsoft Foundry Labs page describes newer MatterSim capabilities, b
 
 ### 2.4 Discovery at scale and its limits
 
-Google DeepMind's GNoME work demonstrated large-scale graph-network-guided crystal discovery. Its paper reports 2.2 million candidate crystal structures stable with respect to earlier reference data and 381,000 entries on an updated convex hull. The paper also discusses remaining challenges such as polymorph competition, vibrational stability, configurational entropy, and synthesizability. This is a strong argument for HCS to separate *predicted thermodynamic stability* from *dynamical stability* and *experimental synthesizability*.
+Google DeepMind's GNoME work demonstrated large-scale graph-network-guided crystal discovery. Its paper reports 2.2 million candidate crystal structures stable with respect to earlier reference data and 381,000 entries on an updated convex hull. The paper also discusses remaining challenges such as polymorph competition, vibrational stability, configurational entropy, and synthesizability. This is a strong argument for HCS to separate _predicted thermodynamic stability_ from _dynamical stability_ and _experimental synthesizability_.
 
 - DeepMind overview: <https://deepmind.google/blog/millions-of-new-materials-discovered-with-deep-learning/>
 - Nature paper: <https://www.nature.com/articles/s41586-023-06735-9>
@@ -113,17 +113,17 @@ HCS should create its own public, deterministic benchmark suite with bounded com
 
 ## 3. Simulation engines and what each should do
 
-| Area | Candidate engine / library | Appropriate use | HCS integration stance |
-|---|---|---|---|
-| Atomistic data model and workflows | ASE | Build/manipulate structures; common calculator interface | Core Python integration layer |
-| Electronic structure / DFT | Quantum ESPRESSO | Plane-wave DFT, energies, forces, phonons, NEB workflows | Optional installed native engine; never pretend a simple web model is DFT |
-| DFT and ab-initio MD | CP2K | Solids, liquids, molecules, AIMD, mixed Gaussian/plane-wave workflows | Optional native engine; CPU route first, GPU availability documented separately |
-| Molecular dynamics | LAMMPS | Classical and ML-potential MD, transport and thermal workflows | Optional native engine; CPU baseline and supported accelerator packages |
-| ML interatomic potentials | MACE, MatterSim, MatGL, CHGNet, ORB | Fast force/energy predictions and relaxation in defined domains | Plugin adapters; model card, license, checkpoint hash and validity scope required |
-| Phase equilibria | pycalphad | CALPHAD thermodynamics and phase diagrams | Native optional Python module; browser subset only where dependency/data support is verified |
-| Phase field / multiphysics | MOOSE, FiPy, OpenPhase | Microstructure evolution, diffusion, phase transformations, mechanics/heat coupling | Native optional adapters; small validated browser solvers for simple models |
-| PDE / continuum models | FiPy; selected FEM/PDE solvers | Heat, diffusion, coupled fields | HCS Rust/WASM solver kernels for a carefully scoped subset |
-| Structure and symmetry | ASE, pymatgen, spglib | CIF/POSCAR/XYZ conversion, symmetry, defects, surfaces, supercells | Shared data contract with native implementations and browser WASM subset |
+| Area                               | Candidate engine / library          | Appropriate use                                                                     | HCS integration stance                                                                       |
+| ---------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Atomistic data model and workflows | ASE                                 | Build/manipulate structures; common calculator interface                            | Core Python integration layer                                                                |
+| Electronic structure / DFT         | Quantum ESPRESSO                    | Plane-wave DFT, energies, forces, phonons, NEB workflows                            | Optional installed native engine; never pretend a simple web model is DFT                    |
+| DFT and ab-initio MD               | CP2K                                | Solids, liquids, molecules, AIMD, mixed Gaussian/plane-wave workflows               | Optional native engine; CPU route first, GPU availability documented separately              |
+| Molecular dynamics                 | LAMMPS                              | Classical and ML-potential MD, transport and thermal workflows                      | Optional native engine; CPU baseline and supported accelerator packages                      |
+| ML interatomic potentials          | MACE, MatterSim, MatGL, CHGNet, ORB | Fast force/energy predictions and relaxation in defined domains                     | Plugin adapters; model card, license, checkpoint hash and validity scope required            |
+| Phase equilibria                   | pycalphad                           | CALPHAD thermodynamics and phase diagrams                                           | Native optional Python module; browser subset only where dependency/data support is verified |
+| Phase field / multiphysics         | MOOSE, FiPy, OpenPhase              | Microstructure evolution, diffusion, phase transformations, mechanics/heat coupling | Native optional adapters; small validated browser solvers for simple models                  |
+| PDE / continuum models             | FiPy; selected FEM/PDE solvers      | Heat, diffusion, coupled fields                                                     | HCS Rust/WASM solver kernels for a carefully scoped subset                                   |
+| Structure and symmetry             | ASE, pymatgen, spglib               | CIF/POSCAR/XYZ conversion, symmetry, defects, surfaces, supercells                  | Shared data contract with native implementations and browser WASM subset                     |
 
 Official sources:
 
@@ -345,4 +345,3 @@ Confirm package-name availability, ownership, package boundaries and license met
 8. **Auditable results:** every result includes input hashes, code/engine/model versions, units, precision, parameters, random seed, data source and validation status.
 9. **Staged scientific scope:** start with a small set of correct, tested workflows; add domains through adapters and benchmark gates.
 10. **Public releases:** PyPI/npm via OIDC, desktop binaries via GitHub Releases, web app on Vercel.
-

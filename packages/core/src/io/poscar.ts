@@ -78,11 +78,14 @@ export function readPoscar(text: string, filename?: string): PoscarImportResult 
     speciesNames = line5.split(/\s+/).filter(Boolean);
     countLineIndex = 6;
   }
-  const counts = lines[countLineIndex]!.trim().split(/\s+/).map((value) => {
-    const count = parseNumeric(value);
-    if (!Number.isInteger(count) || count < 0) throw new Error(`Invalid POSCAR atom count '${value}'`);
-    return count;
-  });
+  const counts = lines[countLineIndex]!.trim()
+    .split(/\s+/)
+    .map((value) => {
+      const count = parseNumeric(value);
+      if (!Number.isInteger(count) || count < 0)
+        throw new Error(`Invalid POSCAR atom count '${value}'`);
+      return count;
+    });
   if (speciesNames && speciesNames.length !== counts.length) {
     throw new Error(
       `POSCAR species line has ${speciesNames.length} names but ${counts.length} counts`,
@@ -123,7 +126,11 @@ export function readPoscar(text: string, filename?: string): PoscarImportResult 
     if (line === undefined) throw new Error(`POSCAR ends early: expected ${totalAtoms} atom lines`);
     const parts = line.trim().split(/\s+/);
     if (parts.length < 3) throw new Error(`POSCAR atom line ${i + 1} is malformed`);
-    const coords: Vec3 = [parseNumeric(parts[0]!), parseNumeric(parts[1]!), parseNumeric(parts[2]!)];
+    const coords: Vec3 = [
+      parseNumeric(parts[0]!),
+      parseNumeric(parts[1]!),
+      parseNumeric(parts[2]!),
+    ];
     let fractional: Vec3;
     if (direct) {
       fractional = coords;
@@ -135,9 +142,14 @@ export function readPoscar(text: string, filename?: string): PoscarImportResult 
       ];
       fractional = multiplyRow(cart, inverseRows);
     }
-    const mobility = selective && parts.length >= 6
-      ? [parts[3]!.toLowerCase().startsWith("t"), parts[4]!.toLowerCase().startsWith("t"), parts[5]!.toLowerCase().startsWith("t")]
-      : undefined;
+    const mobility =
+      selective && parts.length >= 6
+        ? [
+            parts[3]!.toLowerCase().startsWith("t"),
+            parts[4]!.toLowerCase().startsWith("t"),
+            parts[5]!.toLowerCase().startsWith("t"),
+          ]
+        : undefined;
     sites.push({
       species: speciesPerAtom[i]!,
       label: `${speciesPerAtom[i]}${i + 1}`,

@@ -2,16 +2,16 @@
 
 ## Canonical units
 
-| Quantity | Unit | Symbol |
-|---|---|---|
-| length | ångström | Å |
-| energy | electron-volt | eV |
-| force | eV per ångström | eV/Å |
-| mass | unified atomic mass unit | u |
-| time | picosecond | ps |
-| temperature | kelvin | K |
-| velocity | Å per ps | Å/ps |
-| acceleration | Å per ps² | Å/ps² |
+| Quantity     | Unit                     | Symbol |
+| ------------ | ------------------------ | ------ |
+| length       | ångström                 | Å      |
+| energy       | electron-volt            | eV     |
+| force        | eV per ångström          | eV/Å   |
+| mass         | unified atomic mass unit | u      |
+| time         | picosecond               | ps     |
+| temperature  | kelvin                   | K      |
+| velocity     | Å per ps                 | Å/ps   |
+| acceleration | Å per ps²                | Å/ps²  |
 
 The continuum solver uses SI (m, s, m²/s) because its parameters are material diffusivities.
 A record never mixes the two systems without an explicit conversion.

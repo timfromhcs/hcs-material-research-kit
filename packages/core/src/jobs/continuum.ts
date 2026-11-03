@@ -23,7 +23,8 @@ function num(params: Record<string, unknown>, key: string, fallback?: number): n
     if (fallback === undefined) throw new Error(`Missing required parameter '${key}'`);
     return fallback;
   }
-  if (typeof raw !== "number" || !Number.isFinite(raw)) throw new Error(`Parameter '${key}' must be finite`);
+  if (typeof raw !== "number" || !Number.isFinite(raw))
+    throw new Error(`Parameter '${key}' must be finite`);
   return raw;
 }
 

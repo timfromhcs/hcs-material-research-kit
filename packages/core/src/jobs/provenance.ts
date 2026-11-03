@@ -1,4 +1,10 @@
-import type { EngineRecord, FidelityLevel, ProvenanceRecord, SimulationSpec, Structure } from "../types.js";
+import type {
+  EngineRecord,
+  FidelityLevel,
+  ProvenanceRecord,
+  SimulationSpec,
+  Structure,
+} from "../types.js";
 import { SCHEMA_VERSION } from "../types.js";
 import { hashJson, structureHash } from "../index-internal.js";
 import { CANONICAL_UNITS } from "../units.js";
@@ -87,7 +93,10 @@ export function buildProvenance(input: ProvenanceInput): ProvenanceRecord {
     environment: {
       os: typeof navigator !== "undefined" ? "browser" : "node",
       architecture: "unknown",
-      runtime: typeof navigator !== "undefined" ? (navigator.userAgent ?? "browser") : `node ${process.version}`,
+      runtime:
+        typeof navigator !== "undefined"
+          ? (navigator.userAgent ?? "browser")
+          : `node ${process.version}`,
       backend: input.backend ?? "cpu",
       precision: "float64",
       device_name: input.deviceName,

@@ -101,7 +101,11 @@ interface WorkspaceApi extends WorkspaceState {
 const WorkspaceContext = createContext<WorkspaceApi | null>(null);
 
 function newProject(name: string): ProjectInfo {
-  return { project_id: `project_${crypto.randomUUID?.().slice(0, 8) ?? Date.now().toString(36)}`, name, created_at: new Date().toISOString() };
+  return {
+    project_id: `project_${crypto.randomUUID?.().slice(0, 8) ?? Date.now().toString(36)}`,
+    name,
+    created_at: new Date().toISOString(),
+  };
 }
 
 function initialState(): WorkspaceState {
@@ -131,8 +135,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
           setState({
             ...initialState(),
             ...stored,
-            jobs: stored.jobs.map((job) => ({ ...job, trajectoryLocation: job.trajectoryLocation ?? "none" })),
-            activeStructureId: stored.activeStructureId ?? stored.structures[0]?.structure_id ?? null,
+            jobs: stored.jobs.map((job) => ({
+              ...job,
+              trajectoryLocation: job.trajectoryLocation ?? "none",
+            })),
+            activeStructureId:
+              stored.activeStructureId ?? stored.structures[0]?.structure_id ?? null,
             activeJobId: stored.activeJobId ?? stored.jobs[0]?.job.job_id ?? null,
             loaded: true,
           });
@@ -217,7 +225,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
     const reports: Record<string, string> = {};
     for (const entry of state.jobs) {
       if (!entry.result || !entry.provenance) continue;
-      const structure = state.structures.find((s) => s.structure_id === entry.spec.structure_ref.structure_id);
+      const structure = state.structures.find(
+        (s) => s.structure_id === entry.spec.structure_ref.structure_id,
+      );
       reports[`${entry.job.job_id}.html`] = buildReproducibilityReport({
         result: entry.result,
         provenance: entry.provenance,
@@ -270,7 +280,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
       return {
         ...current,
         structures,
-        activeStructureId: current.activeStructureId === structureId ? (structures[0]?.structure_id ?? null) : current.activeStructureId,
+        activeStructureId:
+          current.activeStructureId === structureId
+            ? (structures[0]?.structure_id ?? null)
+            : current.activeStructureId,
       };
     });
   }, []);
@@ -291,7 +304,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
     }
     setState((current) => ({
       ...current,
-      jobs: [{ ...entry, trajectoryLocation }, ...current.jobs.filter((job) => job.job.job_id !== entry.job.job_id)],
+      jobs: [
+        { ...entry, trajectoryLocation },
+        ...current.jobs.filter((job) => job.job.job_id !== entry.job.job_id),
+      ],
       activeJobId: entry.job.job_id,
     }));
   }, []);
@@ -306,7 +322,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
   }, []);
 
   const getJob = useCallback(
-    (jobId: string | null) => (jobId ? state.jobs.find((job) => job.job.job_id === jobId) : undefined),
+    (jobId: string | null) =>
+      jobId ? state.jobs.find((job) => job.job.job_id === jobId) : undefined,
     [state.jobs],
   );
 
@@ -314,7 +331,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
     (jobId: string): string | null => {
       const entry = state.jobs.find((job) => job.job.job_id === jobId);
       if (!entry?.result || !entry.provenance) return null;
-      const structure = state.structures.find((s) => s.structure_id === entry.spec.structure_ref.structure_id);
+      const structure = state.structures.find(
+        (s) => s.structure_id === entry.spec.structure_ref.structure_id,
+      );
       return buildReproducibilityReport({
         result: entry.result,
         provenance: entry.provenance,

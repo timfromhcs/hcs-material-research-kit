@@ -260,12 +260,24 @@ export function runJob(options: RunJobOptions): JobOutcome {
           },
         ],
         convergence: { converged: true, criterion: "deterministic validation, no iteration" },
-        limitations: ["Structural validation checks geometry and input sanity only; it is not a physical stability test."],
+        limitations: [
+          "Structural validation checks geometry and input sanity only; it is not a physical stability test.",
+        ],
         created_at: now().toISOString(),
         provenance_ref: "",
       };
       controller.transition("completed", "Job completed");
-      return finish(controller, result, spec, structure, engine, undefined, options, now, undefined);
+      return finish(
+        controller,
+        result,
+        spec,
+        structure,
+        engine,
+        undefined,
+        options,
+        now,
+        undefined,
+      );
     }
 
     // ---- LJ-based tasks -------------------------------------------------
@@ -287,7 +299,9 @@ export function runJob(options: RunJobOptions): JobOutcome {
     // Preflight: a cell whose supported cutoff reaches no other atom has no
     // physics in it. Refusing is honest; returning E = 0 would look like data.
     const evaluate: EnergyForcesKernel =
-      options.energyKernel ?? ((candidate, candidateModel, evaluation) => computeEnergyForces(candidate, candidateModel, evaluation));
+      options.energyKernel ??
+      ((candidate, candidateModel, evaluation) =>
+        computeEnergyForces(candidate, candidateModel, evaluation));
     const preflight = evaluate(structure, model, { cutoff: effectiveCutoff });
     const backend = preflight.backend;
     if (preflight.pairCount === 0) {
@@ -314,7 +328,11 @@ export function runJob(options: RunJobOptions): JobOutcome {
         model_id: model.id,
         status: "complete",
         quantities: [
-          { name: "total_potential_energy", value: evaluatedNow.energy, unit: CANONICAL_UNITS.energy },
+          {
+            name: "total_potential_energy",
+            value: evaluatedNow.energy,
+            unit: CANONICAL_UNITS.energy,
+          },
           { name: "potential_energy_per_atom", value: evaluatedNow.energyPerAtom, unit: "eV/atom" },
           { name: "max_force", value: evaluatedNow.maxForce, unit: CANONICAL_UNITS.force },
           { name: "pair_count", value: evaluatedNow.pairCount, unit: "1" },
@@ -344,7 +362,11 @@ export function runJob(options: RunJobOptions): JobOutcome {
         cutoff: effectiveCutoff,
         energyKernel: evaluate,
         onStep: ({ step, energy, maxForce }) => {
-          report("relax", Math.min(0.95, 0.05 + 0.9 * (step / maxSteps)), `Step ${step}: E=${energy.toFixed(4)} eV, Fmax=${maxForce.toFixed(4)} eV/Å`);
+          report(
+            "relax",
+            Math.min(0.95, 0.05 + 0.9 * (step / maxSteps)),
+            `Step ${step}: E=${energy.toFixed(4)} eV, Fmax=${maxForce.toFixed(4)} eV/Å`,
+          );
           return !cancelled();
         },
       });
@@ -362,8 +384,16 @@ export function runJob(options: RunJobOptions): JobOutcome {
         model_id: model.id,
         status: "complete",
         quantities: [
-          { name: "final_potential_energy", value: relaxation.energy, unit: CANONICAL_UNITS.energy },
-          { name: "final_potential_energy_per_atom", value: relaxation.energyPerAtom, unit: "eV/atom" },
+          {
+            name: "final_potential_energy",
+            value: relaxation.energy,
+            unit: CANONICAL_UNITS.energy,
+          },
+          {
+            name: "final_potential_energy_per_atom",
+            value: relaxation.energyPerAtom,
+            unit: "eV/atom",
+          },
           { name: "max_force", value: relaxation.maxForce, unit: CANONICAL_UNITS.force },
           { name: "steps", value: relaxation.steps, unit: "1" },
           { name: "converged", value: relaxation.converged, unit: "1" },
@@ -404,9 +434,15 @@ export function runJob(options: RunJobOptions): JobOutcome {
         created_at: now().toISOString(),
         provenance_ref: "",
       };
-      controller.transition("completed", relaxation.converged ? "Relaxation converged" : "Relaxation stopped without convergence");
+      controller.transition(
+        "completed",
+        relaxation.converged ? "Relaxation converged" : "Relaxation stopped without convergence",
+      );
       if (!relaxation.converged) {
-        controller.warn("relax.not_converged", `Maximum force ${relaxation.maxForce.toFixed(4)} eV/Å did not reach the target within ${maxSteps} steps.`);
+        controller.warn(
+          "relax.not_converged",
+          `Maximum force ${relaxation.maxForce.toFixed(4)} eV/Å did not reach the target within ${maxSteps} steps.`,
+        );
       }
       return finish(controller, result, spec, structure, engine, model, options, now, undefined);
     }
@@ -537,11 +573,19 @@ export function runJob(options: RunJobOptions): JobOutcome {
         model_id: model.id,
         status: "complete",
         quantities: [
-          { name: "mean_temperature", value: md.meanTemperatureK, unit: CANONICAL_UNITS.temperature },
+          {
+            name: "mean_temperature",
+            value: md.meanTemperatureK,
+            unit: CANONICAL_UNITS.temperature,
+          },
           { name: "energy_drift_total", value: md.energyDriftEv, unit: CANONICAL_UNITS.energy },
           { name: "energy_drift_per_atom", value: driftPerAtom, unit: "eV/atom" },
           { name: "relative_energy_drift", value: md.relativeEnergyDrift, unit: "1" },
-          { name: "final_potential_energy", value: md.finalPotentialEv, unit: CANONICAL_UNITS.energy },
+          {
+            name: "final_potential_energy",
+            value: md.finalPotentialEv,
+            unit: CANONICAL_UNITS.energy,
+          },
           { name: "steps", value: md.steps, unit: "1" },
           { name: "steps_resumed_from", value: md.initialStep, unit: "1" },
           { name: "final_step", value: md.finalStep, unit: "1" },
@@ -576,10 +620,21 @@ export function runJob(options: RunJobOptions): JobOutcome {
         positions: md.finalPositions,
         velocities: md.finalVelocities,
       };
-      return finish(controller, result, spec, structure, engine, model, options, now, md.trajectory, {
-        mdCheckpoint,
-        ...(resume ? { resumedFrom: resume.steps_completed } : {}),
-      });
+      return finish(
+        controller,
+        result,
+        spec,
+        structure,
+        engine,
+        model,
+        options,
+        now,
+        md.trajectory,
+        {
+          mdCheckpoint,
+          ...(resume ? { resumedFrom: resume.steps_completed } : {}),
+        },
+      );
     }
 
     if (spec.task_type === "analysis.rdf") {
@@ -636,7 +691,11 @@ export function runJob(options: RunJobOptions): JobOutcome {
       return finish(controller, result, spec, structure, engine, model, options, now, undefined);
     }
 
-    if (spec.task_type === "analysis.msd" || spec.task_type === "continuum.diffusion_1d" || spec.task_type === "continuum.heat_1d") {
+    if (
+      spec.task_type === "analysis.msd" ||
+      spec.task_type === "continuum.diffusion_1d" ||
+      spec.task_type === "continuum.heat_1d"
+    ) {
       const message =
         spec.task_type === "analysis.msd"
           ? "MSD is computed from an md.run result inside the workbench (trajectory required), not as a standalone job."

@@ -22,7 +22,12 @@ import {
   validateStructure,
 } from "../structure.js";
 import { atomicMass } from "../elements.js";
-import { accelerationFromForce, KB_EV_PER_K, SQRT_EV_PER_U_TO_A_PER_PS, U_A2_PER_PS2_TO_EV } from "../units.js";
+import {
+  accelerationFromForce,
+  KB_EV_PER_K,
+  SQRT_EV_PER_U_TO_A_PER_PS,
+  U_A2_PER_PS2_TO_EV,
+} from "../units.js";
 
 export interface MdOptions {
   /** Number of integration steps to perform in this call. */

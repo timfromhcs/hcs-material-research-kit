@@ -53,7 +53,11 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(1200px 320px at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    radial-gradient(
+      1200px 320px at 0% 0%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 70%
+    ),
     var(--bg-raised);
   box-shadow: var(--shadow-panel);
 }
@@ -101,7 +105,9 @@
   font: inherit;
   color: inherit;
   text-align: left;
-  transition: border-color var(--motion-fast) ease, background var(--motion-fast) ease;
+  transition:
+    border-color var(--motion-fast) ease,
+    background var(--motion-fast) ease;
 }
 
 .quick-card:hover {

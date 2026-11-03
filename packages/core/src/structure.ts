@@ -1,7 +1,25 @@
-import { clamp, det3, dot, inverse3, matVec, norm, sub, vecMat, type Mat3, type Vec3 } from "./linalg.js";import { getElement, baseSymbol, isKnownElement } from "./elements.js";
+import {
+  clamp,
+  det3,
+  dot,
+  inverse3,
+  matVec,
+  norm,
+  sub,
+  vecMat,
+  type Mat3,
+  type Vec3,
+} from "./linalg.js";
+import { getElement, baseSymbol, isKnownElement } from "./elements.js";
 import { hashJson } from "./hash.js";
 import { fromAngstrom, toAngstrom } from "./units.js";
-import { SCHEMA_VERSION, type Composition, type Site, type Structure, type ValidationReport } from "./types.js";
+import {
+  SCHEMA_VERSION,
+  type Composition,
+  type Site,
+  type Structure,
+  type ValidationReport,
+} from "./types.js";
 
 export const LENGTH_TOLERANCE_ANGSTROM = 1e-6;
 
@@ -23,9 +41,7 @@ export function latticeVectorsAngstrom(structure: Structure): Mat3 {
 
 export function convertLengthUnit(structure: Structure, unit: Structure["length_unit"]): Structure {
   const scale = toAngstrom(1, structure.length_unit) / toAngstrom(1, unit);
-  const vectors = structure.lattice.vectors.map((row) =>
-    row.map((x) => x * scale),
-  ) as Mat3;
+  const vectors = structure.lattice.vectors.map((row) => row.map((x) => x * scale)) as Mat3;
   return {
     ...structure,
     length_unit: unit,
@@ -108,7 +124,10 @@ export function compositionOf(sites: readonly Site[]): Composition {
     reduced_formula: formulaFromAmounts(reduced),
     elements,
     amounts: roundAmounts(amounts),
-    total_atoms: roundTo(sites.reduce((sum, s) => sum + (s.occupancy ?? 1), 0), 6),
+    total_atoms: roundTo(
+      sites.reduce((sum, s) => sum + (s.occupancy ?? 1), 0),
+      6,
+    ),
   };
 }
 
@@ -220,7 +239,11 @@ export function validateStructure(
   if (latticeOk) {
     volume = Math.abs(det3(vectors));
     if (volume < 1e-6) {
-      add("lattice.volume", "fail", `Cell volume is ${volume.toExponential(3)} Å³; must exceed 1e-6 Å³.`);
+      add(
+        "lattice.volume",
+        "fail",
+        `Cell volume is ${volume.toExponential(3)} Å³; must exceed 1e-6 Å³.`,
+      );
     } else {
       add("lattice.volume", "pass", `Cell volume ${volume.toFixed(4)} Å³.`, { volume });
     }
@@ -236,7 +259,9 @@ export function validateStructure(
   );
 
   // 4. species known
-  const unknown = [...new Set(structure.sites.map((s) => s.species).filter((s) => !isKnownElement(s)))];
+  const unknown = [
+    ...new Set(structure.sites.map((s) => s.species).filter((s) => !isKnownElement(s))),
+  ];
   add(
     "sites.species",
     unknown.length === 0 ? "pass" : "warning",
@@ -266,14 +291,24 @@ export function validateStructure(
   add(
     "sites.occupancy",
     badOccupancy === 0 ? "pass" : "fail",
-    badOccupancy === 0 ? "Occupancies are within (0, 1]." : `${badOccupancy} site(s) have invalid occupancy.`,
+    badOccupancy === 0
+      ? "Occupancies are within (0, 1]."
+      : `${badOccupancy} site(s) have invalid occupancy.`,
   );
 
   // 6. pbc sanity
   if (!structure.pbc.some(Boolean)) {
-    add("cell.periodicity", "warning", "No periodic direction is active; the cell is treated as a finite cluster.");
+    add(
+      "cell.periodicity",
+      "warning",
+      "No periodic direction is active; the cell is treated as a finite cluster.",
+    );
   } else {
-    add("cell.periodicity", "pass", `Periodic axes: ${structure.pbc.map((p) => (p ? "1" : "0")).join("")}.`);
+    add(
+      "cell.periodicity",
+      "pass",
+      `Periodic axes: ${structure.pbc.map((p) => (p ? "1" : "0")).join("")}.`,
+    );
   }
 
   // 7. skew heuristic
@@ -284,7 +319,10 @@ export function validateStructure(
     for (let i = 0; i < 3; i++) {
       for (let j = i + 1; j < 3; j++) {
         const cos = dot(vectors[i]! as Vec3, vectors[j]! as Vec3) / (lengths[i]! * lengths[j]!);
-        worstAngle = Math.min(worstAngle, (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI);
+        worstAngle = Math.min(
+          worstAngle,
+          (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI,
+        );
       }
     }
     if (shortest < 1e-3) {
@@ -298,7 +336,11 @@ export function validateStructure(
         { smallestAngleDegrees: worstAngle },
       );
     } else {
-      add("cell.skew", "pass", `Cell geometry acceptable (smallest lattice angle ${worstAngle.toFixed(1)}°).`);
+      add(
+        "cell.skew",
+        "pass",
+        `Cell geometry acceptable (smallest lattice angle ${worstAngle.toFixed(1)}°).`,
+      );
     }
   }
 
@@ -410,7 +452,13 @@ export function emptyStructure(name = "New structure"): Structure {
     structure_id: newStructureId(),
     display_name: name,
     length_unit: "angstrom",
-    lattice: { vectors: [[5, 0, 0], [0, 5, 0], [0, 0, 5]] },
+    lattice: {
+      vectors: [
+        [5, 0, 0],
+        [0, 5, 0],
+        [0, 0, 5],
+      ],
+    },
     pbc: [true, true, true],
     sites: [{ species: "Si", fractional_position: [0, 0, 0], label: "Si1", occupancy: 1 }],
   };

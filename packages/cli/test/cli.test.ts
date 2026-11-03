@@ -66,7 +66,9 @@ describe("hcs-sim CLI", () => {
     expect(payload.engines.map((engine: { engine_id: string }) => engine.engine_id)).toContain(
       "hcs.lj-reference",
     );
-    expect(payload.planned.every((engine: { status: string }) => engine.status === "not_implemented")).toBe(true);
+    expect(
+      payload.planned.every((engine: { status: string }) => engine.status === "not_implemented"),
+    ).toBe(true);
   });
 
   it("runs a spec and writes status, result, provenance and report", () => {
@@ -107,9 +109,17 @@ describe("hcs-sim CLI", () => {
     const summary = JSON.parse(result.stdout);
     expect(summary.ok).toBe(true);
     expect(summary.state).toBe("completed");
-    expect(summary.result.quantities.some((q: { name: string }) => q.name === "total_potential_energy")).toBe(true);
+    expect(
+      summary.result.quantities.some((q: { name: string }) => q.name === "total_potential_energy"),
+    ).toBe(true);
 
-    for (const file of ["status.json", "result.json", "provenance.json", "report.html", "run.log"]) {
+    for (const file of [
+      "status.json",
+      "result.json",
+      "provenance.json",
+      "report.html",
+      "run.log",
+    ]) {
       expect(existsSync(join(out, file)), file).toBe(true);
     }
     const provenance = JSON.parse(readFileSync(join(out, "provenance.json"), "utf8"));
@@ -137,7 +147,15 @@ describe("hcs-sim CLI", () => {
         parameters: {},
       }),
     );
-    const result = run(["run", "--structure", structurePath, "--spec", specPath, "--out", join(dir, "out")]);
+    const result = run([
+      "run",
+      "--structure",
+      structurePath,
+      "--spec",
+      specPath,
+      "--out",
+      join(dir, "out"),
+    ]);
     expect(result.status).toBe(3);
     expect(result.stderr).toMatch(/does not match/);
   });
@@ -160,7 +178,15 @@ describe("hcs-sim CLI", () => {
         parameters: { steps: 10 },
       }),
     );
-    const result = run(["run", "--structure", structurePath, "--spec", specPath, "--out", join(dir, "out")]);
+    const result = run([
+      "run",
+      "--structure",
+      structurePath,
+      "--spec",
+      specPath,
+      "--out",
+      join(dir, "out"),
+    ]);
     expect(result.status).toBe(3);
     expect(result.stdout + result.stderr).toMatch(/planned but not implemented/);
   });
@@ -249,12 +275,15 @@ describe("hcs-sim CLI", () => {
       (entry: { name: string }) => entry.name === "final_potential_energy",
     ).value;
     expect(quantity("final_potential_energy")).toBe(continuousEnergy);
-    expect(resumedResult.result_structure.sites.map((site: { fractional_position: number[] }) => site.fractional_position))
-      .toEqual(
-        continuousResult.result_structure.sites.map(
-          (site: { fractional_position: number[] }) => site.fractional_position,
-        ),
-      );
+    expect(
+      resumedResult.result_structure.sites.map(
+        (site: { fractional_position: number[] }) => site.fractional_position,
+      ),
+    ).toEqual(
+      continuousResult.result_structure.sites.map(
+        (site: { fractional_position: number[] }) => site.fractional_position,
+      ),
+    );
   });
 
   it("refuses a checkpoint from a different structure", () => {

@@ -88,7 +88,10 @@ export async function instantiateWasmKernel(
   }
   const exports = instance.exports as unknown as WasmExports;
 
-  if (typeof exports.hcs_lj_energy_forces !== "function" || !(exports.memory instanceof WebAssembly.Memory)) {
+  if (
+    typeof exports.hcs_lj_energy_forces !== "function" ||
+    !(exports.memory instanceof WebAssembly.Memory)
+  ) {
     throw new WasmKernelError("WASM module does not export the HCS kernel", "abi");
   }
   const abi = exports.hcs_abi_version();
@@ -179,7 +182,8 @@ export async function instantiateWasmKernel(
     assertAngstrom(structure);
     const n = structure.sites.length;
     if (n === 0) throw new WasmKernelError("Cannot evaluate an empty structure", "argument");
-    if (n > 200_000) throw new WasmKernelError("Structure exceeds the 200000-atom WASM limit", "argument");
+    if (n > 200_000)
+      throw new WasmKernelError("Structure exceeds the 200000-atom WASM limit", "argument");
 
     const requested = options.cutoff ?? model.cutoff;
     if (!(requested > 0)) throw new WasmKernelError("Cutoff must be positive", "argument");

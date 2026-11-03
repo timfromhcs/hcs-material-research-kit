@@ -22,7 +22,11 @@ export function Panel({
   id?: string;
 }): JSX.Element {
   return (
-    <section className={cx("panel", className)} id={id} aria-label={typeof title === "string" ? title : undefined}>
+    <section
+      className={cx("panel", className)}
+      id={id}
+      aria-label={typeof title === "string" ? title : undefined}
+    >
       {(title || actions) && (
         <header className="panel-header">
           <div>
@@ -74,7 +78,11 @@ export function Stat({
         {value}
         {unit && <span className="unit">{unit}</span>}
       </dd>
-      {hint && <div className="tiny muted" style={{ marginTop: 6 }}>{hint}</div>}
+      {hint && (
+        <div className="tiny muted" style={{ marginTop: 6 }}>
+          {hint}
+        </div>
+      )}
     </dl>
   );
 }
@@ -108,7 +116,11 @@ export function Callout({
 }): JSX.Element {
   return (
     <div
-      className={cx("callout", tone === "error" && "callout-error", tone === "info" && "callout-info")}
+      className={cx(
+        "callout",
+        tone === "error" && "callout-error",
+        tone === "info" && "callout-info",
+      )}
       role={tone === "error" ? "alert" : "note"}
     >
       {children}

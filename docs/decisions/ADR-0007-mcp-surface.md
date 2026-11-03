@@ -12,14 +12,14 @@ compute — exactly what the operating contract forbids.
 
 The MCP server exposes only operations that are implemented, tested and side-effect bounded:
 
-| Tool | Effect |
-|---|---|
-| `engines_list` | read-only |
-| `structures_validate` | pure function, no filesystem |
-| `structures_convert` | pure function, returns text |
-| `project_validate` | reads one archive inside the configured root |
-| `simulations_validate_spec` | validates spec + structure against registry/rules; starts nothing |
-| `results_summarize` | reads recorded quantities/provenance from an archive in the configured root |
+| Tool                        | Effect                                                                      |
+| --------------------------- | --------------------------------------------------------------------------- |
+| `engines_list`              | read-only                                                                   |
+| `structures_validate`       | pure function, no filesystem                                                |
+| `structures_convert`        | pure function, returns text                                                 |
+| `project_validate`          | reads one archive inside the configured root                                |
+| `simulations_validate_spec` | validates spec + structure against registry/rules; starts nothing           |
+| `results_summarize`         | reads recorded quantities/provenance from an archive in the configured root |
 
 Resources: `hcs://engine-registry`, `hcs://science/fidelity-levels`.
 Prompts: `review_simulation_methodology`, `diagnose_convergence_failure`.

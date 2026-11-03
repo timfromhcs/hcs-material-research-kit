@@ -1,8 +1,4 @@
-import {
-  computeMsd,
-  type MdTrajectoryFrame,
-  type Structure,
-} from "@hcs-materials/core";
+import { computeMsd, type MdTrajectoryFrame, type Structure } from "@hcs-materials/core";
 
 export interface MsdSummary {
   lagPs: number[];
@@ -33,7 +29,9 @@ export function msdFromTrajectory(
       return { error: "Trajectory frame spacing is not uniform." };
     }
   }
-  const positions = frames.map((frame) => frame.positions.map((p) => [p[0], p[1], p[2]] as [number, number, number]));
+  const positions = frames.map((frame) =>
+    frame.positions.map((p) => [p[0], p[1], p[2]] as [number, number, number]),
+  );
   try {
     const result = computeMsd(positions, { frameTimePs: spacing });
     void structure;

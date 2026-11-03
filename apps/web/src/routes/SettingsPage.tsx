@@ -60,10 +60,18 @@ export function SettingsPage(): JSX.Element {
               <div className="field">
                 <label>{t("settings.theme")}</label>
                 <div className="row">
-                  <Button size="sm" variant={theme === "dark" ? "primary" : "default"} onClick={() => applyTheme("dark")}>
+                  <Button
+                    size="sm"
+                    variant={theme === "dark" ? "primary" : "default"}
+                    onClick={() => applyTheme("dark")}
+                  >
                     {t("common.dark")}
                   </Button>
-                  <Button size="sm" variant={theme === "light" ? "primary" : "default"} onClick={() => applyTheme("light")}>
+                  <Button
+                    size="sm"
+                    variant={theme === "light" ? "primary" : "default"}
+                    onClick={() => applyTheme("light")}
+                  >
                     {t("common.light")}
                   </Button>
                 </div>
@@ -80,11 +88,12 @@ export function SettingsPage(): JSX.Element {
                     <Badge tone="ok">{engine.installation_state}</Badge>
                   </div>
                   <div className="tiny muted mono">
-                    {engine.engine_id} · v{engine.version} · {engine.execution_backends.join("/")} · {engine.precision_modes?.join("/")}
+                    {engine.engine_id} · v{engine.version} · {engine.execution_backends.join("/")} ·{" "}
+                    {engine.precision_modes?.join("/")}
                   </div>
                   <div className="tiny secondary" style={{ marginTop: 6 }}>
-                    {t("workbench.fidelity")}: {(engine.fidelity_levels ?? []).join(", ")} · {t("studio.speciesCol")}:{" "}
-                    {(engine.supported_elements ?? []).join(", ") || "—"}
+                    {t("workbench.fidelity")}: {(engine.fidelity_levels ?? []).join(", ")} ·{" "}
+                    {t("studio.speciesCol")}: {(engine.supported_elements ?? []).join(", ") || "—"}
                   </div>
                   <ul className="tiny muted" style={{ margin: "8px 0 0", paddingLeft: 16 }}>
                     {(engine.known_limits ?? []).map((limit, index) => (
@@ -93,7 +102,9 @@ export function SettingsPage(): JSX.Element {
                   </ul>
                   {(engine.validation_cases ?? []).length > 0 && (
                     <p className="tiny muted" style={{ marginTop: 6 }}>
-                      {engine.validation_cases!.map((test) => `${test.id}: ${test.status}`).join(" · ")}
+                      {engine
+                        .validation_cases!.map((test) => `${test.id}: ${test.status}`)
+                        .join(" · ")}
                     </p>
                   )}
                 </div>
@@ -124,14 +135,32 @@ export function SettingsPage(): JSX.Element {
 
         <div className="stack">
           <Panel title={t("settings.hardware")}>
-            {error && <p className="small" style={{ color: "var(--danger)" }}>{error}</p>}
+            {error && (
+              <p className="small" style={{ color: "var(--danger)" }}>
+                {error}
+              </p>
+            )}
             {report ? (
               <div className="grid-2">
-                <Stat label={t("settings.backendSelected")} value={report.selectedBackend.toUpperCase()} hint={report.selectionReasons.join(" ")} />
+                <Stat
+                  label={t("settings.backendSelected")}
+                  value={report.selectedBackend.toUpperCase()}
+                  hint={report.selectionReasons.join(" ")}
+                />
                 <Stat label={t("settings.threads")} value={report.cpuThreads} />
-                <Stat label={t("settings.webgpu")} value={report.webgpu.available ? "WebGPU" : "—"} hint={report.webgpu.reason} />
-                <Stat label={t("settings.wasm")} value={`${report.wasm.available ? "yes" : "no"} · SIMD ${report.wasm.simd ? "yes" : "no"}`} />
-                <Stat label={t("settings.memory")} value={report.deviceMemoryGb ? `${report.deviceMemoryGb} GB` : "—"} />
+                <Stat
+                  label={t("settings.webgpu")}
+                  value={report.webgpu.available ? "WebGPU" : "—"}
+                  hint={report.webgpu.reason}
+                />
+                <Stat
+                  label={t("settings.wasm")}
+                  value={`${report.wasm.available ? "yes" : "no"} · SIMD ${report.wasm.simd ? "yes" : "no"}`}
+                />
+                <Stat
+                  label={t("settings.memory")}
+                  value={report.deviceMemoryGb ? `${report.deviceMemoryGb} GB` : "—"}
+                />
                 <Stat label={t("common.format")} value={report.platform} />
               </div>
             ) : (
@@ -142,9 +171,18 @@ export function SettingsPage(): JSX.Element {
           <Panel title={t("settings.storage")}>
             {report?.storage.supported ? (
               <div className="grid-2">
-                <Stat label={t("settings.storageQuota")} value={formatBytes(report.storage.quotaBytes)} />
-                <Stat label={t("settings.storageUsed")} value={formatBytes(report.storage.usageBytes)} />
-                <Stat label={t("dashboard.storage")} value={report.storage.persisted ? "persisted" : "best effort"} />
+                <Stat
+                  label={t("settings.storageQuota")}
+                  value={formatBytes(report.storage.quotaBytes)}
+                />
+                <Stat
+                  label={t("settings.storageUsed")}
+                  value={formatBytes(report.storage.usageBytes)}
+                />
+                <Stat
+                  label={t("dashboard.storage")}
+                  value={report.storage.persisted ? "persisted" : "best effort"}
+                />
                 <Stat
                   label="OPFS"
                   value={opfs ? (opfs.supported ? "available" : "unavailable") : "…"}
@@ -177,7 +215,11 @@ export function SettingsPage(): JSX.Element {
                 size="sm"
                 variant="danger"
                 onClick={() => {
-                  if (confirm("Start a new empty project? The current project stays exported only if you saved it.")) {
+                  if (
+                    confirm(
+                      "Start a new empty project? The current project stays exported only if you saved it.",
+                    )
+                  ) {
                     workspace.createProject("Untitled project");
                   }
                 }}

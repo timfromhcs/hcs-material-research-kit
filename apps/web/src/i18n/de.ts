@@ -187,7 +187,8 @@ export const de: Record<TranslationKey, string> = {
   "workbench.jobSaved": "Ergebnis im Projekt gespeichert.",
   "workbench.unsupportedElement":
     "Dieses Modell hat keine Parameter für das gewählte Element. HCS erfindet sie nicht.",
-  "workbench.runningHint": "Die Rechnung läuft lokal im Web Worker. Die Oberfläche bleibt bedienbar.",
+  "workbench.runningHint":
+    "Die Rechnung läuft lokal im Web Worker. Die Oberfläche bleibt bedienbar.",
   "workbench.cancelled": "Abgebrochen. Es wurde kein Teilergebnis gespeichert.",
 
   "jobs.title": "Aufträge",
@@ -261,8 +262,7 @@ export const de: Record<TranslationKey, string> = {
   "fidelity.benchmark_validated": "Benchmark-validiert",
   "fidelity.experiment_referenced": "Experimentbezug",
 
-  "fidelity.desc.illustrative":
-    "Bewusst vereinfachte Lehrphysik; keine Materialvorhersage.",
+  "fidelity.desc.illustrative": "Bewusst vereinfachte Lehrphysik; keine Materialvorhersage.",
   "fidelity.desc.classical_model":
     "Ein benanntes klassisches Potential oder Modell mit erklärtem Gültigkeitsbereich.",
   "fidelity.desc.ml_potential":
@@ -290,7 +290,8 @@ export const de: Record<TranslationKey, string> = {
   "workbench.crossCheckDeltaE": "Energieabweichung (TS vs. WASM)",
   "workbench.crossCheckDeltaF": "Maximale Kraftabweichung (TS vs. WASM)",
   "workbench.crossCheckPassed": "Beide Implementierungen stimmen innerhalb der Toleranz überein.",
-  "workbench.crossCheckFailed": "Die Implementierungen weichen über die Toleranz hinaus ab. Ergebnis nicht verwenden.",
+  "workbench.crossCheckFailed":
+    "Die Implementierungen weichen über die Toleranz hinaus ab. Ergebnis nicht verwenden.",
   "workbench.crossCheckUnavailable": "WASM-Vergleich nicht verfügbar",
 
   "workbench.cpuFallback": "Stattdessen wird der TypeScript-CPU-Kernel verwendet.",
@@ -299,9 +300,11 @@ export const de: Record<TranslationKey, string> = {
   "studio.distance": "Abstand",
   "studio.angle": "Winkel",
   "studio.selectionCount": "Atome ausgewählt",
-  "studio.wrappedNote": "Mindestens ein Paar überschreitet eine periodische Grenze; gezeigt wird der Minimum-Image-Abstand.",
+  "studio.wrappedNote":
+    "Mindestens ein Paar überschreitet eine periodische Grenze; gezeigt wird der Minimum-Image-Abstand.",
   "studio.clearSelection": "Auswahl aufheben",
-  "studio.measureHint": "Zwei Atome für einen Abstand, drei für einen Winkel. Umschalt-Klick erweitert die Auswahl.",
+  "studio.measureHint":
+    "Zwei Atome für einen Abstand, drei für einen Winkel. Umschalt-Klick erweitert die Auswahl.",
 
   "science.disclaimer":
     "Virtuelle Simulationen sind an ihr Modell gebunden. Ein Ergebnis ist kein Laborbeweis, keine Syntheseaussage und keine Zertifizierung.",

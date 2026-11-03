@@ -82,10 +82,11 @@ describe("WASM kernel in the solvers", () => {
 
   it("conserves energy when WASM drives a longer NVE run", async () => {
     const wasm = await kernel();
-    const start = makeSupercell(
-      createCrystal({ prototype: "fcc", a: 5.3, species: ["Ar"] }),
-      { na: 3, nb: 3, nc: 3 },
-    );
+    const start = makeSupercell(createCrystal({ prototype: "fcc", a: 5.3, species: ["Ar"] }), {
+      na: 3,
+      nb: 3,
+      nc: 3,
+    });
     const md = runMd(start, LJ_NOBLE_GASES, {
       steps: 200,
       timestep: 0.002,

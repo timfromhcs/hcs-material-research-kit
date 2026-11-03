@@ -103,7 +103,9 @@ export function computeRdf(structure: Structure, options: RdfOptions = {}): RdfR
     );
   }
   if (bins < 40) {
-    warnings.push("Fewer than 40 bins: the histogram is coarse; increase bins for publication plots.");
+    warnings.push(
+      "Fewer than 40 bins: the histogram is coarse; increase bins for publication plots.",
+    );
   }
   return {
     r,
@@ -215,7 +217,8 @@ export function computeMsd(frames: Vec3[][], options: MsdOptions): MsdResult {
 /** Mean displacement magnitude per atom between two frames, in Å. */
 export function meanDisplacement(a: Vec3[], b: Vec3[]): number {
   let sum = 0;
-  for (let i = 0; i < a.length; i++) sum += norm([b[i]![0] - a[i]![0], b[i]![1] - a[i]![1], b[i]![2] - a[i]![2]]);
+  for (let i = 0; i < a.length; i++)
+    sum += norm([b[i]![0] - a[i]![0], b[i]![1] - a[i]![1], b[i]![2] - a[i]![2]]);
   return sum / Math.max(1, a.length);
 }
 

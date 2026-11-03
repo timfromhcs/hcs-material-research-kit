@@ -59,7 +59,11 @@ export function JobsPage(): JSX.Element {
                         <Button size="sm" variant="ghost" onClick={() => open(entry.job.job_id)}>
                           {t("jobs.open")}
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => workspace.deleteJob(entry.job.job_id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => workspace.deleteJob(entry.job.job_id)}
+                        >
                           {t("common.delete")}
                         </Button>
                       </div>
@@ -76,15 +80,26 @@ export function JobsPage(): JSX.Element {
         <Panel title={t("jobs.events")} subtitle={workspace.activeJobId}>
           <dl className="kv" style={{ marginBottom: 14 }}>
             <dt>{t("jobs.inputHash")}</dt>
-            <dd className="mono tiny">{workspace.getJob(workspace.activeJobId)?.spec ? workspace.jobs.find((job) => job.job.job_id === workspace.activeJobId)?.job.input_hash : "—"}</dd>
+            <dd className="mono tiny">
+              {workspace.getJob(workspace.activeJobId)?.spec
+                ? workspace.jobs.find((job) => job.job.job_id === workspace.activeJobId)?.job
+                    .input_hash
+                : "—"}
+            </dd>
             <dt>{t("jobs.created")}</dt>
             <dd>{formatDate(workspace.getJob(workspace.activeJobId)?.job.created_at)}</dd>
             <dt>{t("common.status")}</dt>
             <dd>{workspace.getJob(workspace.activeJobId)?.job.state}</dd>
-            {workspace.getJob(workspace.activeJobId)?.job.resource_metrics?.wall_time_seconds !== undefined && (
+            {workspace.getJob(workspace.activeJobId)?.job.resource_metrics?.wall_time_seconds !==
+              undefined && (
               <>
                 <dt>{t("jobs.created")}</dt>
-                <dd>{formatDuration((workspace.getJob(workspace.activeJobId)!.job.resource_metrics!.wall_time_seconds ?? 0) * 1000)}</dd>
+                <dd>
+                  {formatDuration(
+                    (workspace.getJob(workspace.activeJobId)!.job.resource_metrics!
+                      .wall_time_seconds ?? 0) * 1000,
+                  )}
+                </dd>
               </>
             )}
           </dl>
@@ -110,11 +125,13 @@ export function JobsPage(): JSX.Element {
           </div>
           {(workspace.getJob(workspace.activeJobId)?.job.warnings ?? []).length > 0 && (
             <div className="stack" style={{ marginTop: 12 }}>
-              {(workspace.getJob(workspace.activeJobId)?.job.warnings ?? []).map((warning, index) => (
-                <Callout key={index} tone={warning.severity === "error" ? "error" : "warn"}>
-                  <span className="mono tiny">{warning.code}</span> {warning.message}
-                </Callout>
-              ))}
+              {(workspace.getJob(workspace.activeJobId)?.job.warnings ?? []).map(
+                (warning, index) => (
+                  <Callout key={index} tone={warning.severity === "error" ? "error" : "warn"}>
+                    <span className="mono tiny">{warning.code}</span> {warning.message}
+                  </Callout>
+                ),
+              )}
             </div>
           )}
         </Panel>

@@ -20,15 +20,15 @@ No simulation request, structure, coordinate or result leaves this box.
 
 ## Trust boundaries
 
-| Boundary | What crosses it | Control |
-|---|---|---|
-| User file → parser | CIF/POSCAR/XYZ/JSON text | bounded size, explicit errors, no element guessing |
-| Parser → structure model | validated document | JSON Schema + structural checks |
-| UI → worker | `SimulationSpec` + `Structure` | schema validation, structure hash match |
-| SOLVER → result | numbers + provenance | fidelity label, units, limitations, convergence |
-| Archive → workspace | `.hcsproj` zip | checksum verification, path safety, size limits |
-| MCP host → server | tool calls | 4 tools, workspace root confinement, no shell |
-| Browser → network | **nothing by default** | no telemetry, no backend endpoint |
+| Boundary                 | What crosses it                | Control                                            |
+| ------------------------ | ------------------------------ | -------------------------------------------------- |
+| User file → parser       | CIF/POSCAR/XYZ/JSON text       | bounded size, explicit errors, no element guessing |
+| Parser → structure model | validated document             | JSON Schema + structural checks                    |
+| UI → worker              | `SimulationSpec` + `Structure` | schema validation, structure hash match            |
+| SOLVER → result          | numbers + provenance           | fidelity label, units, limitations, convergence    |
+| Archive → workspace      | `.hcsproj` zip                 | checksum verification, path safety, size limits    |
+| MCP host → server        | tool calls                     | 4 tools, workspace root confinement, no shell      |
+| Browser → network        | **nothing by default**         | no telemetry, no backend endpoint                  |
 
 ## Shared vs edition-specific
 

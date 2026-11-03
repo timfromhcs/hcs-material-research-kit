@@ -79,7 +79,9 @@ describe("WASM kernel", () => {
     expect(actual.forces).toHaveLength(reference.forces.length);
     for (let i = 0; i < reference.forces.length; i++) {
       for (let axis = 0; axis < 3; axis++) {
-        expect(Math.abs(actual.forces[i]![axis]! - reference.forces[i]![axis]!)).toBeLessThan(1e-10);
+        expect(Math.abs(actual.forces[i]![axis]! - reference.forces[i]![axis]!)).toBeLessThan(
+          1e-10,
+        );
       }
     }
   });
@@ -128,7 +130,13 @@ describe("WASM kernel", () => {
     const structure = argon(1);
     const collapsed: Structure = {
       ...structure,
-      lattice: { vectors: [[0, 0, 0], [0, 0, 0], [0, 0, 0]] },
+      lattice: {
+        vectors: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+      },
     };
     expect(() => wasm.energyForces(collapsed, LJ_NOBLE_GASES)).toThrow(/minimum-image|cell/i);
   });
@@ -142,7 +150,9 @@ describe("WASM kernel", () => {
         index === 0 ? { ...site, species: "Fe" } : site,
       ),
     };
-    expect(() => wasm.energyForces(withIron, LJ_NOBLE_GASES)).toThrow(/no Lennard-Jones parameters/i);
+    expect(() => wasm.energyForces(withIron, LJ_NOBLE_GASES)).toThrow(
+      /no Lennard-Jones parameters/i,
+    );
     expect(baseSymbol(withIron.sites[0]!.species)).toBe("Fe");
   });
 });

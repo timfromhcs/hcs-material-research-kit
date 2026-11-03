@@ -23,7 +23,11 @@ const IDLE_PROGRESS: SolverProgress = { phase: "idle", fraction: 0, message: "" 
  */
 export function useSolver(): {
   state: SolverState;
-  run: (spec: SimulationSpec, structure: Structure, projectId: string) => Promise<WorkerResult | null>;
+  run: (
+    spec: SimulationSpec,
+    structure: Structure,
+    projectId: string,
+  ) => Promise<WorkerResult | null>;
   cancel: () => void;
   reset: () => void;
 } {
@@ -65,7 +69,11 @@ export function useSolver(): {
   }, []);
 
   const run = useCallback(
-    (spec: SimulationSpec, structure: Structure, projectId: string): Promise<WorkerResult | null> => {
+    (
+      spec: SimulationSpec,
+      structure: Structure,
+      projectId: string,
+    ): Promise<WorkerResult | null> => {
       workerRef.current?.terminate();
       const requestId = `req_${Math.random().toString(36).slice(2, 10)}`;
       setState({
@@ -89,7 +97,11 @@ export function useSolver(): {
           if (message.type === "progress") {
             setState((current) => ({
               ...current,
-              progress: { phase: message.phase, fraction: message.fraction, message: message.message },
+              progress: {
+                phase: message.phase,
+                fraction: message.fraction,
+                message: message.message,
+              },
             }));
             return;
           }

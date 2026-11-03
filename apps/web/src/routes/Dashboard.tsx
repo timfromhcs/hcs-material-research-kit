@@ -1,16 +1,16 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  buildPrototype,
-  supercellOf,
-  useWorkspace,
-} from "../state/store";
+import { buildPrototype, supercellOf, useWorkspace } from "../state/store";
 import { useI18n, type TranslationKey } from "../i18n";
 import { useHardware } from "../lib/useHardware";
 import { downloadBytes } from "../lib/download";
 import { formatBytes, formatDate, formatNumber, stateTone, shortHash } from "../lib/format";
 import { Badge, Button, Callout, Panel, Stat } from "@hcs-materials/ui";
-import { listEngines, PLANNED_ENGINES, importStructure as importStructureFile } from "@hcs-materials/core";
+import {
+  listEngines,
+  PLANNED_ENGINES,
+  importStructure as importStructureFile,
+} from "@hcs-materials/core";
 
 const QUICK_STARTS = [
   {
@@ -65,7 +65,9 @@ export function Dashboard(): JSX.Element {
       workspace.addStructure(result.structure);
       setNotice({
         tone: result.warnings.length ? "err" : "ok",
-        text: result.warnings.length ? result.warnings.join(" ") : `${result.structure.composition?.reduced_formula ?? ""} · ${result.structure.sites.length} ${t("common.atoms")}`,
+        text: result.warnings.length
+          ? result.warnings.join(" ")
+          : `${result.structure.composition?.reduced_formula ?? ""} · ${result.structure.sites.length} ${t("common.atoms")}`,
       });
       navigate("/studio");
     } catch (error) {
@@ -126,7 +128,12 @@ export function Dashboard(): JSX.Element {
           <Panel title={t("dashboard.quickStart")} subtitle={t("dashboard.workflow")}>
             <div className="quick-actions">
               {QUICK_STARTS.map((quick) => (
-                <button className="quick-card" key={quick.key} onClick={() => quickCreate(quick)} type="button">
+                <button
+                  className="quick-card"
+                  key={quick.key}
+                  onClick={() => quickCreate(quick)}
+                  type="button"
+                >
                   <strong>{t(quick.key as TranslationKey)}</strong>
                   <span className="tiny muted">
                     {quick.label} · a = {quick.a} Å · {quick.prototype}
@@ -179,35 +186,47 @@ export function Dashboard(): JSX.Element {
             )}
           </Panel>
 
-          <Panel title={t("dashboard.project")} actions={
-            <div className="row">
-              <Button size="sm" variant="ghost" onClick={() => projectInput.current?.click()}>
-                {t("dashboard.importProject")}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  try {
-                    const bytes = workspace.exportProject();
-                    downloadBytes(`${workspace.project.name || "project"}.hcsproj`, bytes);
-                  } catch (error) {
-                    setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
-                  }
-                }}
-                disabled={workspace.structures.length === 0 && workspace.jobs.length === 0}
-              >
-                {t("dashboard.exportProject")}
-              </Button>
-            </div>
-          }>
+          <Panel
+            title={t("dashboard.project")}
+            actions={
+              <div className="row">
+                <Button size="sm" variant="ghost" onClick={() => projectInput.current?.click()}>
+                  {t("dashboard.importProject")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    try {
+                      const bytes = workspace.exportProject();
+                      downloadBytes(`${workspace.project.name || "project"}.hcsproj`, bytes);
+                    } catch (error) {
+                      setNotice({
+                        tone: "err",
+                        text: error instanceof Error ? error.message : String(error),
+                      });
+                    }
+                  }}
+                  disabled={workspace.structures.length === 0 && workspace.jobs.length === 0}
+                >
+                  {t("dashboard.exportProject")}
+                </Button>
+              </div>
+            }
+          >
             <div className="grid-3">
-              <Stat label={t("dashboard.project")} value={workspace.project.name} hint={workspace.project.project_id} />
+              <Stat
+                label={t("dashboard.project")}
+                value={workspace.project.name}
+                hint={workspace.project.project_id}
+              />
               <Stat label={t("studio.structureList")} value={workspace.structures.length} />
               <Stat label={t("jobs.title")} value={workspace.jobs.length} />
             </div>
             {workspace.structures.length === 0 ? (
-              <p className="muted small" style={{ marginTop: 12 }}>{t("dashboard.projectEmpty")}</p>
+              <p className="muted small" style={{ marginTop: 12 }}>
+                {t("dashboard.projectEmpty")}
+              </p>
             ) : (
               <div className="list" style={{ marginTop: 12 }}>
                 {workspace.structures.map((structure) => (
@@ -220,17 +239,29 @@ export function Dashboard(): JSX.Element {
                       navigate("/studio");
                     }}
                   >
-                    <Badge tone={structure.validation?.status === "valid" ? "ok" : structure.validation?.status === "invalid" ? "err" : "warn"}>
+                    <Badge
+                      tone={
+                        structure.validation?.status === "valid"
+                          ? "ok"
+                          : structure.validation?.status === "invalid"
+                            ? "err"
+                            : "warn"
+                      }
+                    >
                       {structure.validation?.status ?? "unchecked"}
                     </Badge>
                     <span>
                       <div className="small">
-                        {structure.composition?.reduced_formula ?? structure.display_name ?? structure.structure_id}
+                        {structure.composition?.reduced_formula ??
+                          structure.display_name ??
+                          structure.structure_id}
                       </div>
                       <div className="tiny muted mono">{structure.structure_id}</div>
                     </span>
                     <span className="spacer" />
-                    <span className="tiny muted">{structure.sites.length} {t("common.atoms")}</span>
+                    <span className="tiny muted">
+                      {structure.sites.length} {t("common.atoms")}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -258,7 +289,9 @@ export function Dashboard(): JSX.Element {
                     <strong className="small">{engine.name}</strong>
                     <Badge tone="ok">{engine.installation_state}</Badge>
                   </div>
-                  <div className="tiny muted mono">{engine.engine_id} v{engine.version}</div>
+                  <div className="tiny muted mono">
+                    {engine.engine_id} v{engine.version}
+                  </div>
                   <div className="tiny secondary" style={{ marginTop: 6 }}>
                     {engine.supported_tasks.join(" · ")}
                   </div>
@@ -274,7 +307,10 @@ export function Dashboard(): JSX.Element {
           <Panel title={t("dashboard.hardware")}>
             {report ? (
               <div className="grid-2">
-                <Stat label={t("settings.backendSelected")} value={report.selectedBackend.toUpperCase()} />
+                <Stat
+                  label={t("settings.backendSelected")}
+                  value={report.selectedBackend.toUpperCase()}
+                />
                 <Stat label={t("settings.threads")} value={report.cpuThreads} />
                 <Stat
                   label={t("settings.webgpu")}
@@ -285,11 +321,18 @@ export function Dashboard(): JSX.Element {
                   label={t("settings.wasm")}
                   value={report.wasm.available ? (report.wasm.simd ? "SIMD" : "yes") : "no"}
                 />
-                <Stat label={t("settings.memory")} value={report.deviceMemoryGb ? `${report.deviceMemoryGb} GB` : "—"} />
+                <Stat
+                  label={t("settings.memory")}
+                  value={report.deviceMemoryGb ? `${report.deviceMemoryGb} GB` : "—"}
+                />
                 <Stat
                   label={t("dashboard.storage")}
                   value={report.storage.quotaBytes ? formatBytes(report.storage.quotaBytes) : "—"}
-                  hint={report.storage.persisted ? t("settings.storagePersisted") : t("dashboard.storageNote")}
+                  hint={
+                    report.storage.persisted
+                      ? t("settings.storagePersisted")
+                      : t("dashboard.storageNote")
+                  }
                 />
               </div>
             ) : (

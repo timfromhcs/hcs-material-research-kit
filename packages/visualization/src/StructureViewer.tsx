@@ -82,11 +82,45 @@ export function elementColor(species: string): string {
 }
 
 const COVALENT_RADII: Record<string, number> = {
-  H: 0.31, C: 0.76, N: 0.71, O: 0.66, F: 0.57, Na: 1.66, Mg: 1.41, Al: 1.21,
-  Si: 1.11, P: 1.07, S: 1.05, Cl: 1.02, K: 2.03, Ca: 1.76, Ti: 1.6, Fe: 1.32,
-  Co: 1.26, Ni: 1.24, Cu: 1.32, Zn: 1.22, Ga: 1.22, Ge: 1.2, As: 1.19, Se: 1.2,
-  Br: 1.2, Sr: 1.95, Zr: 1.75, Nb: 1.64, Mo: 1.54, Ag: 1.45, In: 1.42, Sn: 1.39,
-  Ba: 2.15, La: 2.07, W: 1.62, Pt: 1.36, Au: 1.36, Pb: 1.46, Ar: 1.06,
+  H: 0.31,
+  C: 0.76,
+  N: 0.71,
+  O: 0.66,
+  F: 0.57,
+  Na: 1.66,
+  Mg: 1.41,
+  Al: 1.21,
+  Si: 1.11,
+  P: 1.07,
+  S: 1.05,
+  Cl: 1.02,
+  K: 2.03,
+  Ca: 1.76,
+  Ti: 1.6,
+  Fe: 1.32,
+  Co: 1.26,
+  Ni: 1.24,
+  Cu: 1.32,
+  Zn: 1.22,
+  Ga: 1.22,
+  Ge: 1.2,
+  As: 1.19,
+  Se: 1.2,
+  Br: 1.2,
+  Sr: 1.95,
+  Zr: 1.75,
+  Nb: 1.64,
+  Mo: 1.54,
+  Ag: 1.45,
+  In: 1.42,
+  Sn: 1.39,
+  Ba: 2.15,
+  La: 2.07,
+  W: 1.62,
+  Pt: 1.36,
+  Au: 1.36,
+  Pb: 1.46,
+  Ar: 1.06,
 };
 
 export interface StructureViewerProps {
@@ -260,7 +294,8 @@ export function StructureViewer({
       });
       const mesh = new THREE.Mesh(sphereGeometry, material);
       mesh.position.set(position[0] - center.x, position[1] - center.y, position[2] - center.z);
-      const radiusScale = 0.75 + Math.min(0.6, (COVALENT_RADII[site.species.replace(/[0-9]+$/, "")] ?? 1.4) * 0.12);
+      const radiusScale =
+        0.75 + Math.min(0.6, (COVALENT_RADII[site.species.replace(/[0-9]+$/, "")] ?? 1.4) * 0.12);
       mesh.scale.setScalar(atomRadius * radiusScale);
       mesh.userData.siteIndex = index;
       root.add(mesh);
@@ -281,16 +316,29 @@ export function StructureViewer({
         );
       }
       const edges: Array<[number, number]> = [
-        [0, 1], [1, 3], [3, 2], [2, 0],
-        [4, 5], [5, 7], [7, 6], [6, 4],
-        [0, 4], [1, 5], [2, 6], [3, 7],
+        [0, 1],
+        [1, 3],
+        [3, 2],
+        [2, 0],
+        [4, 5],
+        [5, 7],
+        [7, 6],
+        [6, 4],
+        [0, 4],
+        [1, 5],
+        [2, 6],
+        [3, 7],
       ];
       const points: THREE.Vector3[] = [];
       for (const [a, b] of edges) {
         points.push(corners[a]!, corners[b]!);
       }
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({ color: 0x4fd6c4, transparent: true, opacity: 0.55 });
+      const material = new THREE.LineBasicMaterial({
+        color: 0x4fd6c4,
+        transparent: true,
+        opacity: 0.55,
+      });
       root.add(new THREE.LineSegments(geometry, material));
     }
 
@@ -302,18 +350,31 @@ export function StructureViewer({
           const distance = Math.hypot(r[0], r[1], r[2]);
           const speciesA = structure.sites[i]!.species.replace(/[0-9]+$/, "");
           const speciesB = structure.sites[j]!.species.replace(/[0-9]+$/, "");
-          const cutoff = (COVALENT_RADII[speciesA] ?? 1.4) + (COVALENT_RADII[speciesB] ?? 1.4) + 0.45;
+          const cutoff =
+            (COVALENT_RADII[speciesA] ?? 1.4) + (COVALENT_RADII[speciesB] ?? 1.4) + 0.45;
           if (distance > 0.1 && distance <= cutoff) {
             bondPositions.push(
-              new THREE.Vector3(positions[i]![0] - center.x, positions[i]![1] - center.y, positions[i]![2] - center.z),
-              new THREE.Vector3(positions[i]![0] + r[0] - center.x, positions[i]![1] + r[1] - center.y, positions[i]![2] + r[2] - center.z),
+              new THREE.Vector3(
+                positions[i]![0] - center.x,
+                positions[i]![1] - center.y,
+                positions[i]![2] - center.z,
+              ),
+              new THREE.Vector3(
+                positions[i]![0] + r[0] - center.x,
+                positions[i]![1] + r[1] - center.y,
+                positions[i]![2] + r[2] - center.z,
+              ),
             );
           }
         }
       }
       if (bondPositions.length > 0) {
         const geometry = new THREE.BufferGeometry().setFromPoints(bondPositions);
-        const material = new THREE.LineBasicMaterial({ color: 0x9fb0b8, transparent: true, opacity: 0.5 });
+        const material = new THREE.LineBasicMaterial({
+          color: 0x9fb0b8,
+          transparent: true,
+          opacity: 0.5,
+        });
         root.add(new THREE.LineSegments(geometry, material));
       }
     }
@@ -384,9 +445,20 @@ export function StructureViewer({
     <div className="viewer" style={height ? { height } : undefined}>
       <div ref={mountRef} style={{ position: "absolute", inset: 0 }} />
       {error && (
-        <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            padding: 24,
+            textAlign: "center",
+          }}
+        >
           <p className="secondary small" style={{ maxWidth: 420 }}>
-            {error === "no-webgl" ? webglUnavailableMessage : `${webglUnavailableMessage} (${error})`}
+            {error === "no-webgl"
+              ? webglUnavailableMessage
+              : `${webglUnavailableMessage} (${error})`}
           </p>
         </div>
       )}
@@ -408,7 +480,12 @@ export function StructureViewer({
       {hover && (
         <div
           className="badge badge-neutral"
-          style={{ position: "absolute", left: hover.x + 12, top: hover.y + 12, pointerEvents: "none" }}
+          style={{
+            position: "absolute",
+            left: hover.x + 12,
+            top: hover.y + 12,
+            pointerEvents: "none",
+          }}
         >
           {hover.species} · site {hover.index}
         </div>

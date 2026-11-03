@@ -39,7 +39,8 @@ export default defineConfig({
   webServer: process.env.HCS_E2E_BASE_URL
     ? undefined
     : {
-        command: "npm run build && npm run preview -w @hcs-materials/web -- --port 4173 --strictPort",
+        command:
+          "npm run build && npm run preview -w @hcs-materials/web -- --port 4173 --strictPort",
         cwd: repoRoot,
         url: "http://localhost:4173",
         reuseExistingServer: !process.env.CI,

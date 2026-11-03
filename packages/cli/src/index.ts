@@ -270,7 +270,9 @@ async function main(argv: string[]): Promise<number> {
       if (process.stderr.isTTY && !json) process.stderr.write("\n");
 
       const outDir = resolve(
-        typeof flags.out === "string" ? flags.out : join(process.cwd(), `hcs-run-${outcome.job.job_id}`),
+        typeof flags.out === "string"
+          ? flags.out
+          : join(process.cwd(), `hcs-run-${outcome.job.job_id}`),
       );
       mkdirSync(outDir, { recursive: true });
       const write = (name: string, value: unknown): void => {
@@ -281,7 +283,9 @@ async function main(argv: string[]): Promise<number> {
       if (outcome.provenance) write("provenance.json", outcome.provenance);
       writeFileSync(
         join(outDir, "run.log"),
-        outcome.job.events.map((event) => `${event.at} ${event.state} ${event.message}`).join("\n") + "\n",
+        outcome.job.events
+          .map((event) => `${event.at} ${event.state} ${event.message}`)
+          .join("\n") + "\n",
         "utf8",
       );
       if (outcome.result && outcome.provenance) {
@@ -324,7 +328,9 @@ async function main(argv: string[]): Promise<number> {
       } else {
         console.log(`job ${outcome.job.job_id}: ${outcome.job.state}`);
         for (const quantity of outcome.result?.quantities ?? []) {
-          console.log(`  ${quantity.name.padEnd(32)} ${String(quantity.value).padEnd(16)} ${quantity.unit}`);
+          console.log(
+            `  ${quantity.name.padEnd(32)} ${String(quantity.value).padEnd(16)} ${quantity.unit}`,
+          );
         }
         if (outcome.error) console.error(`error: ${outcome.error.code}: ${outcome.error.message}`);
         console.log(`wrote ${outDir}`);

@@ -116,9 +116,8 @@ function StatusBar(): JSX.Element {
         <span>{report ? describeBackend(report) : `${t("common.loading")}…`}</span>
         {report?.storage.quotaBytes !== undefined && (
           <span>
-            {t("dashboard.storage")}:{" "}
-            {((report.storage.usageBytes ?? 0) / 1024 / 1024).toFixed(1)} /{" "}
-            {(report.storage.quotaBytes / 1024 / 1024).toFixed(0)} MB
+            {t("dashboard.storage")}: {((report.storage.usageBytes ?? 0) / 1024 / 1024).toFixed(1)}{" "}
+            / {(report.storage.quotaBytes / 1024 / 1024).toFixed(0)} MB
           </span>
         )}
       </div>

@@ -176,7 +176,11 @@ async function handle(request: WorkerRequest): Promise<void> {
 
     let crossCheck: CrossCheck | undefined;
     let crossCheckError: string | undefined;
-    if (outcome.job.state === "completed" && outcome.result && request.spec.task_type === "energy.evaluate") {
+    if (
+      outcome.job.state === "completed" &&
+      outcome.result &&
+      request.spec.task_type === "energy.evaluate"
+    ) {
       const check = await crossCheckEnergy(request.structure, request.spec, outcome.result);
       crossCheck = check.check;
       crossCheckError = check.error;

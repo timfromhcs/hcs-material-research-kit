@@ -18,12 +18,7 @@ export const BUILTIN_ENGINES: EngineRecord[] = [
     version: CORE_VERSION,
     provider: "HCS (hcsmedia and timfromhcs)",
     license: "MIT (HCS code); parameters are literature estimates — see model notes",
-    supported_tasks: [
-      "energy.evaluate",
-      "structure.relax",
-      "md.run",
-      "analysis.rdf",
-    ],
+    supported_tasks: ["energy.evaluate", "structure.relax", "md.run", "analysis.rdf"],
     supported_elements: Object.keys(LJ_NOBLE_GASES.species),
     supported_phases: ["bulk (periodic cell)"],
     platforms: ["windows", "linux", "macos", "browser"],
@@ -42,7 +37,8 @@ export const BUILTIN_ENGINES: EngineRecord[] = [
     validation_cases: [
       {
         id: "lj.force-vs-gradient",
-        description: "Forces equal the negative numerical gradient of the energy (central differences).",
+        description:
+          "Forces equal the negative numerical gradient of the energy (central differences).",
         status: "passing",
         tolerance: "relative deviation < 1e-5",
       },

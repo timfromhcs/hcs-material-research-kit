@@ -103,7 +103,8 @@ export const fr: Record<TranslationKey, string> = {
   "studio.repeatC": "Répétition c",
   "studio.buildSupercell": "Construire la supermaille",
   "studio.importFile": "Importer un fichier de structure",
-  "studio.dropHint": "Déposez un fichier CIF, POSCAR, XYZ ou HCS JSON ici, ou choisissez un fichier.",
+  "studio.dropHint":
+    "Déposez un fichier CIF, POSCAR, XYZ ou HCS JSON ici, ou choisissez un fichier.",
   "studio.exportAs": "Exporter comme",
   "studio.validation": "Validation",
   "studio.valid": "valide",
@@ -187,7 +188,8 @@ export const fr: Record<TranslationKey, string> = {
   "workbench.jobSaved": "Résultat enregistré dans ce projet.",
   "workbench.unsupportedElement":
     "Ce modèle n'a pas de paramètres pour l'élément choisi. HCS ne les invente pas.",
-  "workbench.runningHint": "Le calcul s'exécute localement dans un Web Worker. L'interface reste réactive.",
+  "workbench.runningHint":
+    "Le calcul s'exécute localement dans un Web Worker. L'interface reste réactive.",
   "workbench.cancelled": "Annulé. Aucun résultat partiel n'a été enregistré.",
 
   "jobs.title": "Tâches",
@@ -250,7 +252,8 @@ export const fr: Record<TranslationKey, string> = {
   "settings.about": "À propos",
   "settings.version": "Version",
   "settings.license": "Licence",
-  "settings.noTelemetry": "Aucune télémétrie, aucune analyse, aucun rapport d'erreur vers un serveur.",
+  "settings.noTelemetry":
+    "Aucune télémétrie, aucune analyse, aucun rapport d'erreur vers un serveur.",
 
   "fidelity.illustrative": "Illustratif",
   "fidelity.classical_model": "Modèle classique",
@@ -262,7 +265,8 @@ export const fr: Record<TranslationKey, string> = {
   "fidelity.experiment_referenced": "Référence expérimentale",
 
   "fidelity.desc.illustrative": "Physique pédagogique simplifiée ; pas une prédiction de matériau.",
-  "fidelity.desc.classical_model": "Un potentiel ou modèle classique nommé avec un domaine déclaré.",
+  "fidelity.desc.classical_model":
+    "Un potentiel ou modèle classique nommé avec un domaine déclaré.",
   "fidelity.desc.ml_potential":
     "Un potentiel interatomique appris nommé, avec fiche modèle et limites de domaine.",
   "fidelity.desc.semi_empirical": "Un modèle électronique approché identifié.",
@@ -288,7 +292,8 @@ export const fr: Record<TranslationKey, string> = {
   "workbench.crossCheckDeltaE": "Écart d'énergie (TS vs WASM)",
   "workbench.crossCheckDeltaF": "Écart maximal de force (TS vs WASM)",
   "workbench.crossCheckPassed": "Les deux implémentations concordent dans la tolérance.",
-  "workbench.crossCheckFailed": "Les implémentations divergent au-delà de la tolérance. Ne pas utiliser ce résultat.",
+  "workbench.crossCheckFailed":
+    "Les implémentations divergent au-delà de la tolérance. Ne pas utiliser ce résultat.",
   "workbench.crossCheckUnavailable": "Contrôle WASM indisponible",
 
   "workbench.cpuFallback": "Le noyau CPU TypeScript est utilisé à la place.",
@@ -297,9 +302,11 @@ export const fr: Record<TranslationKey, string> = {
   "studio.distance": "Distance",
   "studio.angle": "Angle",
   "studio.selectionCount": "sites sélectionnés",
-  "studio.wrappedNote": "Au moins une paire traverse une frontière périodique ; la distance minimale est affichée.",
+  "studio.wrappedNote":
+    "Au moins une paire traverse une frontière périodique ; la distance minimale est affichée.",
   "studio.clearSelection": "Effacer la sélection",
-  "studio.measureHint": "Deux sites pour une distance, trois pour un angle. Maj-clic ajoute à la sélection.",
+  "studio.measureHint":
+    "Deux sites pour une distance, trois pour un angle. Maj-clic ajoute à la sélection.",
 
   "science.disclaimer":
     "Les simulations virtuelles dépendent de leur modèle. Un résultat n'est pas une preuve de laboratoire, ni une affirmation de synthèse, ni une certification.",

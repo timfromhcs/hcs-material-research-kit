@@ -73,8 +73,10 @@ export function LinePlot({
     const [yMin, yMax] = extent(series.y);
     const innerWidth = width - padding.left - padding.right;
     const innerHeight = height - padding.top - padding.bottom;
-    const toX = (value: number): number => padding.left + ((value - xMin) / (xMax - xMin)) * innerWidth;
-    const toY = (value: number): number => padding.top + innerHeight - ((value - yMin) / (yMax - yMin)) * innerHeight;
+    const toX = (value: number): number =>
+      padding.left + ((value - xMin) / (xMax - xMin)) * innerWidth;
+    const toY = (value: number): number =>
+      padding.top + innerHeight - ((value - yMin) / (yMax - yMin)) * innerHeight;
     const points: string[] = [];
     for (let i = 0; i < Math.min(series.x.length, series.y.length); i++) {
       const x = series.x[i]!;
@@ -97,7 +99,11 @@ export function LinePlot({
 
   return (
     <figure style={{ margin: 0 }}>
-      {title && <figcaption className="panel-title" style={{ marginBottom: 6 }}>{title}</figcaption>}
+      {title && (
+        <figcaption className="panel-title" style={{ marginBottom: 6 }}>
+          {title}
+        </figcaption>
+      )}
       <svg
         className="chart"
         viewBox={`0 0 ${width} ${height}`}

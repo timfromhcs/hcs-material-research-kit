@@ -115,7 +115,12 @@ function parseCif(text: string): CifParseResult {
       while (index < tokens.length) {
         const value = tokens[index]!;
         const vLower = value.toLowerCase();
-        if (vLower.startsWith("_") || vLower === "loop_" || vLower.startsWith("data_") || vLower === "stop_") {
+        if (
+          vLower.startsWith("_") ||
+          vLower === "loop_" ||
+          vLower.startsWith("data_") ||
+          vLower === "stop_"
+        ) {
           break;
         }
         values.push(value);
@@ -158,7 +163,8 @@ function cellFromParameters(
   const beta = betaDeg * rad;
   const gamma = gammaDeg * rad;
   const sinGamma = Math.sin(gamma);
-  if (Math.abs(sinGamma) < 1e-9) throw new Error("CIF cell is degenerate: gamma is 0 or 180 degrees");
+  if (Math.abs(sinGamma) < 1e-9)
+    throw new Error("CIF cell is degenerate: gamma is 0 or 180 degrees");
   const cosAlpha = Math.cos(alpha);
   const cosBeta = Math.cos(beta);
   const cosGamma = Math.cos(gamma);
@@ -177,15 +183,13 @@ type SymOp = (f: Vec3) => Vec3;
 
 /** Parses e.g. "-x+1/2,y,-z" or "x-y, x, z+1/2". */
 export function parseSymmetryOperation(expression: string): SymOp {
-  const components = expression
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .split(",");
+  const components = expression.toLowerCase().replace(/\s+/g, "").split(",");
   if (components.length !== 3) {
     throw new Error(`Invalid symmetry operation '${expression}': expected three components`);
   }
   const parsed = components.map((component) => {
-    const normalized = component.startsWith("+") || component.startsWith("-") ? component : `+${component}`;
+    const normalized =
+      component.startsWith("+") || component.startsWith("-") ? component : `+${component}`;
     const terms = normalized.match(/[+-][^+-]+/g);
     if (!terms) throw new Error(`Invalid symmetry component '${component}'`);
     let x = 0;
@@ -200,9 +204,11 @@ export function parseSymmetryOperation(expression: string): SymOp {
       if (variable) {
         const coefficientText = body.slice(0, variable.index);
         const coefficient =
-          coefficientText === "" ? 1 : coefficientText.includes("/")
-            ? ratio(coefficientText)
-            : Number(coefficientText);
+          coefficientText === ""
+            ? 1
+            : coefficientText.includes("/")
+              ? ratio(coefficientText)
+              : Number(coefficientText);
         if (!Number.isFinite(coefficient)) throw new Error(`Invalid coefficient in '${component}'`);
         if (variable[0] === "x") x += sign * coefficient;
         else if (variable[0] === "y") y += sign * coefficient;
@@ -261,14 +267,7 @@ export function readCif(text: string, filename?: string): CifImportResult {
   if (a === undefined || b === undefined || c === undefined) {
     throw new Error("CIF is missing _cell_length_a/b/c; only crystallographic CIFs are supported");
   }
-  const vectors = cellFromParameters(
-    a,
-    b,
-    c,
-    alpha ?? 90,
-    beta ?? 90,
-    gamma ?? 90,
-  );
+  const vectors = cellFromParameters(a, b, c, alpha ?? 90, beta ?? 90, gamma ?? 90);
 
   const atomLoop = loops.find((loop) =>
     loop.headers.some((h) => h === "_atom_site_fract_x" || h === "_atom_site_cartn_x"),
@@ -295,16 +294,13 @@ export function readCif(text: string, filename?: string): CifImportResult {
   const inverse = inverseRows(vectors);
 
   const baseSites: Site[] = atomLoop.rows.map((row, i) => {
-    const rawSpecies = (idxType >= 0 ? row[idxType] : undefined) ?? (idxLabel >= 0 ? row[idxLabel] : "");
+    const rawSpecies =
+      (idxType >= 0 ? row[idxType] : undefined) ?? (idxLabel >= 0 ? row[idxLabel] : "");
     const species = baseSymbol(rawSpecies!.replace(/[^A-Za-z]/g, ""));
     if (!species) throw new Error(`CIF atom site ${i + 1} has no parsable element symbol`);
     let position: Vec3;
     if (fractional) {
-      position = [
-        parseNumeric(row[idxFx]!),
-        parseNumeric(row[idxFy]!),
-        parseNumeric(row[idxFz]!),
-      ];
+      position = [parseNumeric(row[idxFx]!), parseNumeric(row[idxFy]!), parseNumeric(row[idxFz]!)];
     } else {
       const cart: Vec3 = [
         parseNumeric(row[idxCx]!),
@@ -327,7 +323,9 @@ export function readCif(text: string, filename?: string): CifImportResult {
 
   // Symmetry operations: explicit loops only.
   const symopLoop = loops.find((loop) =>
-    loop.headers.some((h) => h.includes("symop_operation_xyz") || h.includes("_symmetry_equiv_pos_as_xyz")),
+    loop.headers.some(
+      (h) => h.includes("symop_operation_xyz") || h.includes("_symmetry_equiv_pos_as_xyz"),
+    ),
   );
   let operations: string[] = [];
   if (symopLoop) {
@@ -392,7 +390,9 @@ export function readCif(text: string, filename?: string): CifImportResult {
     validation: validateStructure(structure),
   };
   if (withMeta.validation?.status === "invalid") {
-    warnings.push("Imported CIF structure failed structural validation; inspect the validation report.");
+    warnings.push(
+      "Imported CIF structure failed structural validation; inspect the validation report.",
+    );
   }
   return {
     structure: withMeta,

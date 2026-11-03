@@ -27,11 +27,11 @@ hardware is expected; commit the result if you want to compare.
 
 ## What is measured
 
-| Workload | Why |
-|---|---|
-| `energy.evaluate`, 108 and 500 atoms | Per-call cost and the O(N²) scaling of the reference kernel |
-| `md.run`, 108 atoms, 100 steps | Per-step cost including buffer copies into WASM memory |
-| `structure.relax`, 32 atoms, 200 steps | Repeated force evaluations in the minimiser |
+| Workload                               | Why                                                         |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `energy.evaluate`, 108 and 500 atoms   | Per-call cost and the O(N²) scaling of the reference kernel |
+| `md.run`, 108 atoms, 100 steps         | Per-step cost including buffer copies into WASM memory      |
+| `structure.relax`, 32 atoms, 200 steps | Repeated force evaluations in the minimiser                 |
 
 ## Interpretation notes
 

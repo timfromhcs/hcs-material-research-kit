@@ -20,15 +20,14 @@ const candidates =
     ? [join(packageDir, ".venv", "Scripts", "python.exe"), "python", "py"]
     : [join(packageDir, ".venv", "bin", "python"), "python3", "python"];
 
-const python = candidates.find(
-  (candidate) =>
-    candidate.startsWith(packageDir) ? existsSync(candidate) : whichOnPath(candidate) !== null,
+const python = candidates.find((candidate) =>
+  candidate.startsWith(packageDir) ? existsSync(candidate) : whichOnPath(candidate) !== null,
 );
 
 if (!python) {
   console.error(
     "error: no Python interpreter found. Create the environment first:\n" +
-      "  cd python/hcs_materials && uv venv && uv pip install -e \".[dev]\"",
+      '  cd python/hcs_materials && uv venv && uv pip install -e ".[dev]"',
   );
   process.exit(2);
 }
@@ -43,7 +42,8 @@ process.exit(result.status ?? 1);
 
 function whichOnPath(command) {
   const pathValue = process.env.PATH ?? "";
-  const extensions = process.platform === "win32" ? (process.env.PATHEXT ?? ".EXE").split(";") : [""];
+  const extensions =
+    process.platform === "win32" ? (process.env.PATHEXT ?? ".EXE").split(";") : [""];
   for (const directory of pathValue.split(process.platform === "win32" ? ";" : ":")) {
     if (!directory) continue;
     for (const extension of extensions) {

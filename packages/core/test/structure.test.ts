@@ -54,9 +54,9 @@ describe("crystal prototypes", () => {
   });
 
   it("rejects a missing species list entry instead of guessing", () => {
-    expect(() =>
-      createCrystal({ prototype: "rocksalt", a: 5.64, species: ["Na"] }),
-    ).toThrow(/needs 2 species/);
+    expect(() => createCrystal({ prototype: "rocksalt", a: 5.64, species: ["Na"] })).toThrow(
+      /needs 2 species/,
+    );
   });
 
   it("rejects a non-positive lattice parameter", () => {
@@ -70,7 +70,10 @@ describe("structure identity", () => {
     const reordered = { ...fcc, sites: [...fcc.sites].reverse() };
     expect(structureHash(reordered)).toBe(structureHash(fcc));
 
-    const substituted = { ...fcc, sites: fcc.sites.map((s, i) => (i === 0 ? { ...s, species: "Ag" } : s)) };
+    const substituted = {
+      ...fcc,
+      sites: fcc.sites.map((s, i) => (i === 0 ? { ...s, species: "Ag" } : s)),
+    };
     expect(structureHash(substituted)).not.toBe(structureHash(fcc));
   });
 
@@ -156,7 +159,13 @@ describe("validation", () => {
     const structure = createCrystal({ prototype: "sc", a: 3, species: ["Cu"] });
     const collapsed = {
       ...structure,
-      lattice: { vectors: [[0, 0, 0], [0, 0, 0], [0, 0, 0]] as [[number, number, number], [number, number, number], [number, number, number]] },
+      lattice: {
+        vectors: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ] as [[number, number, number], [number, number, number], [number, number, number]],
+      },
     };
     const report = validateStructure(collapsed);
     expect(report.status).toBe("invalid");
@@ -180,7 +189,13 @@ describe("validation", () => {
   it("warns about strongly skewed cells", () => {
     const skewed = {
       ...createCrystal({ prototype: "sc", a: 4, species: ["Cu"] }),
-      lattice: { vectors: [[4, 0, 0], [3.9, 0.5, 0], [0, 0, 4]] as [[number, number, number], [number, number, number], [number, number, number]] },
+      lattice: {
+        vectors: [
+          [4, 0, 0],
+          [3.9, 0.5, 0],
+          [0, 0, 4],
+        ] as [[number, number, number], [number, number, number], [number, number, number]],
+      },
     };
     const report = validateStructure(skewed);
     expect(report.checks.find((c) => c.id === "cell.skew")?.status).toBe("warning");
@@ -190,8 +205,14 @@ describe("validation", () => {
 describe("composition", () => {
   it("reduces integer counts and orders by Hill system", () => {
     const sites = [
-      ...Array.from({ length: 4 }, () => ({ species: "Na", fractional_position: [0, 0, 0] as [number, number, number] })),
-      ...Array.from({ length: 4 }, () => ({ species: "Cl", fractional_position: [0, 0, 0] as [number, number, number] })),
+      ...Array.from({ length: 4 }, () => ({
+        species: "Na",
+        fractional_position: [0, 0, 0] as [number, number, number],
+      })),
+      ...Array.from({ length: 4 }, () => ({
+        species: "Cl",
+        fractional_position: [0, 0, 0] as [number, number, number],
+      })),
     ];
     expect(compositionOf(sites).reduced_formula).toBe("NaCl");
     expect(compositionOf(sites).total_atoms).toBe(8);

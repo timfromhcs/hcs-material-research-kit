@@ -27,9 +27,9 @@
     "fixtures": "tsx scripts/make-reference-fixtures.ts",
     "dev": "npm run build:packages && npm run dev -w @hcs-materials/web",
     "preview": "npm run build && npm run preview -w @hcs-materials/web",
-    "fmt": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
-    "fmt:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\"",
-    "verify": "npm run typecheck && npm run test && npm run test:rust && npm run build && npm run test:e2e",
+    "fmt": "prettier --write .",
+    "fmt:check": "prettier --check .",
+    "verify": "npm run fmt:check && npm run typecheck && npm run test && npm run test:rust && npm run build && npm run test:e2e",
     "build:wasm": "node scripts/build-wasm.mjs"
   },
   "devDependencies": {

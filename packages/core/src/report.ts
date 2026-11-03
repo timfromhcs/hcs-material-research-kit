@@ -5,7 +5,13 @@
  * ProvenanceRecord. Missing data stays visible as "not recorded" — the report
  * never fills gaps with plausible-looking values.
  */
-import type { JobRecord, ProvenanceRecord, ResultBundle, SimulationSpec, Structure } from "./types.js";
+import type {
+  JobRecord,
+  ProvenanceRecord,
+  ResultBundle,
+  SimulationSpec,
+  Structure,
+} from "./types.js";
 
 export interface ReportInput {
   result: ResultBundle;
@@ -44,13 +50,15 @@ export function buildReproducibilityReport(input: ReportInput): string {
 
   const limitations = result.limitations.map((l) => `<li>${escapeHtml(l)}</li>`).join("\n");
   const warnings = (result.warnings ?? []).map((w) => `<li>${escapeHtml(w)}</li>`).join("\n");
-  const assumptions = (provenance.method?.assumptions ?? []).map((a) => `<li>${escapeHtml(a)}</li>`).join("\n");
+  const assumptions = (provenance.method?.assumptions ?? [])
+    .map((a) => `<li>${escapeHtml(a)}</li>`)
+    .join("\n");
 
   const siteRows = (structure?.sites ?? [])
     .slice(0, 400)
     .map(
       (site, index) =>
-        `<tr><td class="num">${index}</td><td>${escapeHtml(site.species)}</td><td class="num">${site.fractional_position.map((x) => x.toFixed(6)).join("</td><td class=\"num\">")}</td></tr>`,
+        `<tr><td class="num">${index}</td><td>${escapeHtml(site.species)}</td><td class="num">${site.fractional_position.map((x) => x.toFixed(6)).join('</td><td class="num">')}</td></tr>`,
     )
     .join("\n");
 
@@ -96,7 +104,9 @@ footer { margin-top: 48px; color: #7d8b92; font-size: 0.85rem; border-top: 1px s
     <div class="card"><dt>Model</dt><dd>${escapeHtml(result.model_id ?? "—")}</dd></div>
     <div class="card"><dt>Software</dt><dd>${escapeHtml(provenance.software.name)} v${escapeHtml(provenance.software.version)}</dd></div>
     <div class="card"><dt>Validation state</dt><dd>${escapeHtml(provenance.method?.validation_state ?? "not recorded")}</dd></div>
-    <div class="card"><dt>Units</dt><dd>${Object.entries(provenance.units).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`).join(" · ")}</dd></div>
+    <div class="card"><dt>Units</dt><dd>${Object.entries(provenance.units)
+      .map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}`)
+      .join(" · ")}</dd></div>
     <div class="card"><dt>Input hash</dt><dd><code>${escapeHtml(provenance.inputs.input_hash)}</code></dd></div>
     <div class="card"><dt>Structure hash</dt><dd><code>${escapeHtml(provenance.inputs.structure_hash ?? "—")}</code></dd></div>
     <div class="card"><dt>Backend / precision</dt><dd>${escapeHtml(provenance.environment?.backend ?? "unknown")} · ${escapeHtml(provenance.environment?.precision ?? "unknown")}</dd></div>

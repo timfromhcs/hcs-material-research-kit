@@ -21,7 +21,9 @@ export function ProvenancePage(): JSX.Element {
   const { t } = useI18n();
   const workspace = useWorkspace();
   const active = workspace.getJob(workspace.activeJobId) ?? workspace.jobs[0];
-  const [archive, setArchive] = useState<{ ok: boolean; warnings: string[]; name: string } | null>(null);
+  const [archive, setArchive] = useState<{ ok: boolean; warnings: string[]; name: string } | null>(
+    null,
+  );
   const fileInput = useRef<HTMLInputElement | null>(null);
   const engines = listEngines();
   const engine = engines.find((item) => item.engine_id === "hcs.lj-reference");
@@ -44,7 +46,12 @@ export function ProvenancePage(): JSX.Element {
             variant="ghost"
             onClick={() => {
               const html = active ? workspace.buildReport(active.job.job_id) : null;
-              if (html) downloadText(safeFilename(`report-${active!.job.job_id}`, "html"), html, "text/html");
+              if (html)
+                downloadText(
+                  safeFilename(`report-${active!.job.job_id}`, "html"),
+                  html,
+                  "text/html",
+                );
             }}
             disabled={!active?.result}
           >
@@ -55,7 +62,8 @@ export function ProvenancePage(): JSX.Element {
 
       {archive && (
         <Callout tone={archive.ok ? "info" : "error"}>
-          <strong>{archive.name}</strong> — {archive.ok ? t("provenance.archiveOk") : t("provenance.archiveFailed")}
+          <strong>{archive.name}</strong> —{" "}
+          {archive.ok ? t("provenance.archiveOk") : t("provenance.archiveFailed")}
           {archive.warnings.length > 0 && (
             <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
               {archive.warnings.map((warning, index) => (
@@ -124,7 +132,8 @@ export function ProvenancePage(): JSX.Element {
                     </dd>
                     <dt>engine</dt>
                     <dd>
-                      {provenance.software.engine_id ?? "—"} v{provenance.software.engine_version ?? "—"}
+                      {provenance.software.engine_id ?? "—"} v
+                      {provenance.software.engine_version ?? "—"}
                     </dd>
                     <dt>adapter</dt>
                     <dd>{provenance.software.adapter_version ?? "—"}</dd>
@@ -135,7 +144,9 @@ export function ProvenancePage(): JSX.Element {
                   <h3>{t("provenance.inputs")}</h3>
                   <dl className="kv">
                     <dt>input_hash</dt>
-                    <dd title={provenance.inputs.input_hash}>{shortHash(provenance.inputs.input_hash, 32)}…</dd>
+                    <dd title={provenance.inputs.input_hash}>
+                      {shortHash(provenance.inputs.input_hash, 32)}…
+                    </dd>
                     <dt>normalized</dt>
                     <dd title={provenance.inputs.normalized_input_hash}>
                       {shortHash(provenance.inputs.normalized_input_hash, 32)}…
@@ -143,9 +154,15 @@ export function ProvenancePage(): JSX.Element {
                     <dt>structure_id</dt>
                     <dd>{provenance.inputs.structure_id ?? "—"}</dd>
                     <dt>structure_hash</dt>
-                    <dd title={provenance.inputs.structure_hash}>{shortHash(provenance.inputs.structure_hash, 32)}…</dd>
+                    <dd title={provenance.inputs.structure_hash}>
+                      {shortHash(provenance.inputs.structure_hash, 32)}…
+                    </dd>
                     <dt>{t("provenance.datasets")}</dt>
-                    <dd>{provenance.inputs.dataset_refs?.length ? provenance.inputs.dataset_refs.length : t("common.none")}</dd>
+                    <dd>
+                      {provenance.inputs.dataset_refs?.length
+                        ? provenance.inputs.dataset_refs.length
+                        : t("common.none")}
+                    </dd>
                   </dl>
                 </section>
 
@@ -157,11 +174,15 @@ export function ProvenancePage(): JSX.Element {
                     <dt>precision</dt>
                     <dd>{provenance.environment?.precision ?? "—"}</dd>
                     <dt>runtime</dt>
-                    <dd style={{ overflowWrap: "anywhere" }}>{provenance.environment?.runtime ?? "—"}</dd>
+                    <dd style={{ overflowWrap: "anywhere" }}>
+                      {provenance.environment?.runtime ?? "—"}
+                    </dd>
                     <dt>seed</dt>
                     <dd>{provenance.environment?.random_seed ?? "—"}</dd>
                     <dt>deterministic</dt>
-                    <dd>{provenance.environment?.deterministic ? t("common.yes") : t("common.no")}</dd>
+                    <dd>
+                      {provenance.environment?.deterministic ? t("common.yes") : t("common.no")}
+                    </dd>
                   </dl>
                 </section>
 

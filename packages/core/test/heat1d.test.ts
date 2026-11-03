@@ -8,7 +8,7 @@ describe("1D heat equation reference solver", () => {
   it("reproduces the analytic decay of the lowest Fourier mode", () => {
     const nodes = 51;
     const dx = LENGTH / (nodes - 1);
-    const dt = 0.4 * (dx * dx) / ALPHA;
+    const dt = (0.4 * (dx * dx)) / ALPHA;
     const steps = 200;
     const result = solveHeat1D({
       length: LENGTH,
@@ -82,13 +82,37 @@ describe("1D heat equation reference solver", () => {
 
   it("refuses invalid inputs instead of returning NaNs", () => {
     expect(() =>
-      solveHeat1D({ length: -1, alpha: ALPHA, nodes: 11, steps: 1, left: 0, right: 0, initial: () => 0 }),
+      solveHeat1D({
+        length: -1,
+        alpha: ALPHA,
+        nodes: 11,
+        steps: 1,
+        left: 0,
+        right: 0,
+        initial: () => 0,
+      }),
     ).toThrow(/length/);
     expect(() =>
-      solveHeat1D({ length: 1, alpha: 0, nodes: 11, steps: 1, left: 0, right: 0, initial: () => 0 }),
+      solveHeat1D({
+        length: 1,
+        alpha: 0,
+        nodes: 11,
+        steps: 1,
+        left: 0,
+        right: 0,
+        initial: () => 0,
+      }),
     ).toThrow(/diffusivity/);
     expect(() =>
-      solveHeat1D({ length: 1, alpha: ALPHA, nodes: 2, steps: 1, left: 0, right: 0, initial: () => 0 }),
+      solveHeat1D({
+        length: 1,
+        alpha: ALPHA,
+        nodes: 2,
+        steps: 1,
+        left: 0,
+        right: 0,
+        initial: () => 0,
+      }),
     ).toThrow(/nodes/);
   });
 

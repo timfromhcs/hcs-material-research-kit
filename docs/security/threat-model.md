@@ -17,21 +17,21 @@
 
 ## Controls currently implemented
 
-| Threat | Control |
-|---|---|
-| Path traversal in `.hcsproj` | reject `..`, absolute paths, drive letters, backslashes; verified on read and write |
-| Zip bomb / resource exhaustion | 5 000 entry limit, 256 MB total, 64 MB per file, verified before parsing |
-| Silent archive corruption | per-file SHA-256, verified on read; mismatch reported |
-| Unbounded computation | atom-count limits, step limits, O(N²) documented, cutoff preflight |
-| Fabricated results | schema + fidelity + convergence + limitations enforced at the type level |
-| Silent parameter reset | locale-tolerant numeric input, no NaN stored |
-| Element guessing | species whitelist; unsupported elements refuse the run |
-| MCP arbitrary execution | no shell tool, no Python tool, only 4 bounded tools |
-| MCP path escape | paths resolved against `--root`, traversal rejected |
-| Data exfiltration | no network calls in the studio, no telemetry, no backend |
-| Secrets in bundle | no keys, no proxy tokens, `.env*` ignored |
-| XSS in exported report | all interpolated values HTML-escaped (tested) |
-| Oversized structure file | 64 MB read limit in Python; browser File API parse errors surface |
+| Threat                         | Control                                                                             |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| Path traversal in `.hcsproj`   | reject `..`, absolute paths, drive letters, backslashes; verified on read and write |
+| Zip bomb / resource exhaustion | 5 000 entry limit, 256 MB total, 64 MB per file, verified before parsing            |
+| Silent archive corruption      | per-file SHA-256, verified on read; mismatch reported                               |
+| Unbounded computation          | atom-count limits, step limits, O(N²) documented, cutoff preflight                  |
+| Fabricated results             | schema + fidelity + convergence + limitations enforced at the type level            |
+| Silent parameter reset         | locale-tolerant numeric input, no NaN stored                                        |
+| Element guessing               | species whitelist; unsupported elements refuse the run                              |
+| MCP arbitrary execution        | no shell tool, no Python tool, only 4 bounded tools                                 |
+| MCP path escape                | paths resolved against `--root`, traversal rejected                                 |
+| Data exfiltration              | no network calls in the studio, no telemetry, no backend                            |
+| Secrets in bundle              | no keys, no proxy tokens, `.env*` ignored                                           |
+| XSS in exported report         | all interpolated values HTML-escaped (tested)                                       |
+| Oversized structure file       | 64 MB read limit in Python; browser File API parse errors surface                   |
 
 ## Not yet implemented / residual risk
 

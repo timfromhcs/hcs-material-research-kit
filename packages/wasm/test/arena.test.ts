@@ -59,9 +59,7 @@ describe("WASM buffer arena", () => {
     expect(Math.abs(grown.energy - largeReference.energy)).toBeLessThan(1e-10);
     expect(Math.abs(grown.maxForce - largeReference.maxForce)).toBeLessThan(1e-10);
     for (let i = 0; i < large.sites.length; i++) {
-      expect(
-        maxForceDelta(grown.forces[i]!, largeReference.forces[i]!),
-      ).toBeLessThan(1e-10);
+      expect(maxForceDelta(grown.forces[i]!, largeReference.forces[i]!)).toBeLessThan(1e-10);
     }
 
     // A smaller structure after growth reuses the larger arena.

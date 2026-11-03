@@ -89,7 +89,11 @@ describe("POSCAR", () => {
   });
 
   it("round-trips structures through the writer", () => {
-    const original = createCrystal({ prototype: "perovskite", a: 3.905, species: ["Sr", "Ti", "O"] });
+    const original = createCrystal({
+      prototype: "perovskite",
+      a: 3.905,
+      species: ["Sr", "Ti", "O"],
+    });
     const again = readPoscar(exportStructure(original, "poscar")).structure;
     expect(structureHash(again)).toBe(structureHash(original));
   });
@@ -144,7 +148,8 @@ describe("XYZ", () => {
     const dx = (h[0] - o[0]) * m[0][0] + (h[1] - o[1]) * m[1][0] + (h[2] - o[2]) * m[2][0];
     const dy = (h[0] - o[0]) * m[0][1] + (h[1] - o[1]) * m[1][1] + (h[2] - o[2]) * m[2][1];
     const dz = (h[0] - o[0]) * m[0][2] + (h[1] - o[1]) * m[1][2] + (h[2] - o[2]) * m[2][2];
-    expect(Math.hypot(dx, dy, dz)).toBeCloseTo(0.9572, 3);    expect(validate("structure", structure)).toEqual([]);
+    expect(Math.hypot(dx, dy, dz)).toBeCloseTo(0.9572, 3);
+    expect(validate("structure", structure)).toEqual([]);
   });
 
   it("honours an extxyz Lattice and pbc flags", () => {
@@ -165,7 +170,9 @@ describe("XYZ", () => {
   });
 
   it("rejects a truncated file", () => {
-    expect(() => importStructure("5\ncomment\nC 0 0 0\n", "bad.xyz")).toThrow(/ends early|malformed/i);
+    expect(() => importStructure("5\ncomment\nC 0 0 0\n", "bad.xyz")).toThrow(
+      /ends early|malformed/i,
+    );
   });
 });
 

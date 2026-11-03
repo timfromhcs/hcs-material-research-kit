@@ -59,7 +59,8 @@ export const en = {
   "common.reload": "Reload",
 
   "dashboard.title": "Dashboard",
-  "dashboard.lead": "Your local research workspace. Nothing leaves this browser unless you export it.",
+  "dashboard.lead":
+    "Your local research workspace. Nothing leaves this browser unless you export it.",
   "dashboard.quickStart": "Start with a documented crystal",
   "dashboard.quickSilicon": "Silicon (diamond)",
   "dashboard.quickNacl": "Rock salt (NaCl)",
@@ -85,7 +86,8 @@ export const en = {
   "dashboard.openWorkbench": "Open Simulation Workbench",
 
   "studio.title": "Structure Studio",
-  "studio.lead": "Build, import, inspect and edit periodic structures. Validation runs on every change.",
+  "studio.lead":
+    "Build, import, inspect and edit periodic structures. Validation runs on every change.",
   "studio.structureList": "Structures",
   "studio.newCrystal": "New crystal",
   "studio.prototype": "Prototype",
@@ -171,7 +173,8 @@ export const en = {
   "workbench.computeMsd": "Compute MSD from trajectory",
   "workbench.msdNote":
     "Diffusion coefficients require a diffusive regime. If the slope is not positive, HCS reports no value instead of guessing.",
-  "workbench.ensembleNveOnly": "NVE only. There is no thermostat in this build, so NVT/NPT is refused.",
+  "workbench.ensembleNveOnly":
+    "NVE only. There is no thermostat in this build, so NVT/NPT is refused.",
   "workbench.resultStructure": "Send relaxed structure to Studio",
   "workbench.fidelity": "Fidelity",
   "workbench.method": "Method",
@@ -181,7 +184,8 @@ export const en = {
   "workbench.jobSaved": "Result stored in this project.",
   "workbench.unsupportedElement":
     "This model has no parameters for the selected element. HCS will not invent them.",
-  "workbench.runningHint": "Computation runs locally in a Web Worker. The interface stays responsive.",
+  "workbench.runningHint":
+    "Computation runs locally in a Web Worker. The interface stays responsive.",
   "workbench.cancelled": "Cancelled. No partial result was stored.",
 
   "jobs.title": "Jobs",
@@ -254,14 +258,20 @@ export const en = {
   "fidelity.benchmark_validated": "Benchmark validated",
   "fidelity.experiment_referenced": "Experiment referenced",
 
-  "fidelity.desc.illustrative": "Deliberately simplified teaching physics; not a materials prediction.",
+  "fidelity.desc.illustrative":
+    "Deliberately simplified teaching physics; not a materials prediction.",
   "fidelity.desc.classical_model": "A named classical potential or model with a declared domain.",
-  "fidelity.desc.ml_potential": "A named learned interatomic potential with model card and domain caveats.",
+  "fidelity.desc.ml_potential":
+    "A named learned interatomic potential with model card and domain caveats.",
   "fidelity.desc.semi_empirical": "An identified approximate electronic model.",
-  "fidelity.desc.first_principles": "A named DFT/ab-initio method with functional, basis, cutoff and k-points.",
-  "fidelity.desc.continuum_model": "A documented PDE/FEM/phase-field model with parameters and assumptions.",
-  "fidelity.desc.benchmark_validated": "Additionally verified against an identified benchmark and tolerance.",
-  "fidelity.desc.experiment_referenced": "Compared with a cited experimental dataset (not performed by HCS).",
+  "fidelity.desc.first_principles":
+    "A named DFT/ab-initio method with functional, basis, cutoff and k-points.",
+  "fidelity.desc.continuum_model":
+    "A documented PDE/FEM/phase-field model with parameters and assumptions.",
+  "fidelity.desc.benchmark_validated":
+    "Additionally verified against an identified benchmark and tolerance.",
+  "fidelity.desc.experiment_referenced":
+    "Compared with a cited experimental dataset (not performed by HCS).",
 
   "axis.temperature": "Temperature",
   "axis.energy": "Energy",
@@ -276,7 +286,8 @@ export const en = {
   "workbench.crossCheckDeltaE": "Energy deviation (TS vs WASM)",
   "workbench.crossCheckDeltaF": "Max force deviation (TS vs WASM)",
   "workbench.crossCheckPassed": "Both implementations agree within tolerance.",
-  "workbench.crossCheckFailed": "Implementations disagree beyond tolerance. Do not trust this result.",
+  "workbench.crossCheckFailed":
+    "Implementations disagree beyond tolerance. Do not trust this result.",
   "workbench.crossCheckUnavailable": "WASM cross-check unavailable",
 
   "workbench.cpuFallback": "The TypeScript CPU kernel is used instead.",
@@ -285,9 +296,11 @@ export const en = {
   "studio.distance": "Distance",
   "studio.angle": "Angle",
   "studio.selectionCount": "sites selected",
-  "studio.wrappedNote": "At least one pair crosses a periodic boundary; the minimum-image distance is shown.",
+  "studio.wrappedNote":
+    "At least one pair crosses a periodic boundary; the minimum-image distance is shown.",
   "studio.clearSelection": "Clear selection",
-  "studio.measureHint": "Select two sites for a distance, three for an angle. Shift-click adds to the selection.",
+  "studio.measureHint":
+    "Select two sites for a distance, three for an angle. Shift-click adds to the selection.",
 
   "science.disclaimer":
     "Virtual simulations are conditional on their model. A result is not laboratory proof, not a synthesis claim and not a certification.",

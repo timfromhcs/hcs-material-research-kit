@@ -60,7 +60,6 @@
 ## Capabilities in progress
 
 - OPFS artefacts beyond trajectories (currently only trajectories are written to OPFS).
-- Repo-wide Prettier formatting (the baseline tree does not pass `npm run fmt:check`).
 
 ## Known limitations
 
@@ -77,31 +76,31 @@
 
 ## Scientific validation evidence
 
-| Check | Result | Where |
-|---|---|---|
-| Forces = −∇E (central differences) | rel. deviation < 1e-5 | `packages/core/test/lj.test.ts` |
-| LJ pair minimum at 2^(1/6)σ = −ε | abs < 1e-12 eV | `packages/core/test/lj.test.ts` |
-| fcc cohesive energy bracket (truncated) | −9ε < E/atom < −6.5ε | `packages/core/test/lj.test.ts` |
-| NVE energy conservation, 108 atoms, 400 steps | < 1e-3 eV/atom (observed ~3e-7) | `packages/core/test/md.test.ts` |
-| Resumed MD = continuous MD | exact float equality (positions, velocities, energy) | `packages/core/test/md.test.ts`, `packages/cli/test/cli.test.ts` |
-| Translation invariance of energy | < 1e-9 eV | `packages/core/test/lj.test.ts` |
-| Zero net force in periodic cell | < 1e-9 eV/Å | TS + Rust tests |
-| RDF first peak at a/√2, coordination 12 | ±0.5 atoms | `packages/core/test/analysis.test.ts` |
-| Heat solver vs analytic sine mode | max abs error < 5e-4 | `packages/core/test/heat1d.test.ts` |
-| TS ↔ Rust energy/forces | abs < 1e-10 | `crates/compute-core/src/lib.rs` |
-| TS ↔ WASM energy/forces | abs < 1e-10, 13 tests incl. arena | `packages/wasm/test/` |
-| TS ↔ WASM relaxation minimum | abs < 1e-8 eV, 3 tests | `packages/wasm/test/kernels.test.ts` |
-| TS ↔ WASM first MD step | abs < 1e-10, same seed | `packages/wasm/test/kernels.test.ts` |
-| In-browser cross-check | tolerance 1e-8, asserted in E2E | worker + `tests/e2e` |
-| TS ↔ Python structure identity hash | exact equality | `python/.../tests/test_structure.py` |
-| Silicon density 2.329 g/cm³ | within 1 % | `packages/core/test/structure.test.ts` |
-| NaCl density 2.165 g/cm³ | within 1.5 % | TS + Python tests |
-| Archive tamper detection | checksum mismatch reported | TS + Python tests |
-| Archive path traversal | rejected | TS + Python tests |
-| MCP tool round-trip | official SDK client passes | `python/.../tests/test_mcp.py` |
-| MCP budget/approval refusals | 5 tests | `python/.../tests/test_mcp.py` |
-| Full acceptance workflow | 7 Playwright tests pass | `tests/e2e/workflow.spec.ts` |
-| CPU vs WASM timings | parity gate passed; baseline recorded | `benchmarks/results/latest.json` |
+| Check                                         | Result                                               | Where                                                            |
+| --------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------- |
+| Forces = −∇E (central differences)            | rel. deviation < 1e-5                                | `packages/core/test/lj.test.ts`                                  |
+| LJ pair minimum at 2^(1/6)σ = −ε              | abs < 1e-12 eV                                       | `packages/core/test/lj.test.ts`                                  |
+| fcc cohesive energy bracket (truncated)       | −9ε < E/atom < −6.5ε                                 | `packages/core/test/lj.test.ts`                                  |
+| NVE energy conservation, 108 atoms, 400 steps | < 1e-3 eV/atom (observed ~3e-7)                      | `packages/core/test/md.test.ts`                                  |
+| Resumed MD = continuous MD                    | exact float equality (positions, velocities, energy) | `packages/core/test/md.test.ts`, `packages/cli/test/cli.test.ts` |
+| Translation invariance of energy              | < 1e-9 eV                                            | `packages/core/test/lj.test.ts`                                  |
+| Zero net force in periodic cell               | < 1e-9 eV/Å                                          | TS + Rust tests                                                  |
+| RDF first peak at a/√2, coordination 12       | ±0.5 atoms                                           | `packages/core/test/analysis.test.ts`                            |
+| Heat solver vs analytic sine mode             | max abs error < 5e-4                                 | `packages/core/test/heat1d.test.ts`                              |
+| TS ↔ Rust energy/forces                       | abs < 1e-10                                          | `crates/compute-core/src/lib.rs`                                 |
+| TS ↔ WASM energy/forces                       | abs < 1e-10, 13 tests incl. arena                    | `packages/wasm/test/`                                            |
+| TS ↔ WASM relaxation minimum                  | abs < 1e-8 eV, 3 tests                               | `packages/wasm/test/kernels.test.ts`                             |
+| TS ↔ WASM first MD step                       | abs < 1e-10, same seed                               | `packages/wasm/test/kernels.test.ts`                             |
+| In-browser cross-check                        | tolerance 1e-8, asserted in E2E                      | worker + `tests/e2e`                                             |
+| TS ↔ Python structure identity hash           | exact equality                                       | `python/.../tests/test_structure.py`                             |
+| Silicon density 2.329 g/cm³                   | within 1 %                                           | `packages/core/test/structure.test.ts`                           |
+| NaCl density 2.165 g/cm³                      | within 1.5 %                                         | TS + Python tests                                                |
+| Archive tamper detection                      | checksum mismatch reported                           | TS + Python tests                                                |
+| Archive path traversal                        | rejected                                             | TS + Python tests                                                |
+| MCP tool round-trip                           | official SDK client passes                           | `python/.../tests/test_mcp.py`                                   |
+| MCP budget/approval refusals                  | 5 tests                                              | `python/.../tests/test_mcp.py`                                   |
+| Full acceptance workflow                      | 7 Playwright tests pass                              | `tests/e2e/workflow.spec.ts`                                     |
+| CPU vs WASM timings                           | parity gate passed; baseline recorded                | `benchmarks/results/latest.json`                                 |
 
 ## Native hardware tested
 
@@ -151,11 +150,11 @@
 
 ## Next 5 concrete tasks (v0.3.0)
 
-1. Repo-wide Prettier pass with a single formatting-only commit, then enable `fmt:check` in CI.
-2. WebGPU kernel (energy at minimum) with a CPU fallback and parity tests against WASM.
-3. Tauri shell with engine manager and honest unavailable states.
-4. OPTIMADE 1.3 provider connector with provenance, caching and rate limiting.
-5. Publication dry-run (`npm pack`, `python -m build`) without publishing.
+1. WebGPU kernel (energy at minimum) with a CPU fallback and parity tests against WASM.
+2. Tauri shell with engine manager and honest unavailable states.
+3. OPTIMADE 1.3 provider connector with provenance, caching and rate limiting.
+4. Publication dry-run (`npm pack`, `python -m build`) without publishing.
+5. Checkpoint/resume in the browser workbench (currently CLI-only).
 
 ## Deployment evidence
 

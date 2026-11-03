@@ -14,7 +14,11 @@ export function downloadText(filename: string, text: string, mime = "text/plain"
   downloadBlob(filename, new Blob([text], { type: `${mime};charset=utf-8` }));
 }
 
-export function downloadBytes(filename: string, bytes: Uint8Array, mime = "application/octet-stream"): void {
+export function downloadBytes(
+  filename: string,
+  bytes: Uint8Array,
+  mime = "application/octet-stream",
+): void {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   downloadBlob(filename, new Blob([copy], { type: mime }));

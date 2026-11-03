@@ -69,7 +69,10 @@ const maxDeltaForce = Math.max(
   ),
 );
 if (maxDeltaEv > 1e-10 || maxDeltaForce > 1e-10) {
-  console.error("[bench] parity check failed; refusing to publish timings", { maxDeltaEv, maxDeltaForce });
+  console.error("[bench] parity check failed; refusing to publish timings", {
+    maxDeltaEv,
+    maxDeltaForce,
+  });
   process.exit(1);
 }
 
@@ -90,9 +93,7 @@ const mdOptions = {
   sampleInterval: 10,
 };
 const md = [
-  measure("md.run 108 atoms, 100 steps (CPU)", 3, () =>
-    runMd(cell108, LJ_NOBLE_GASES, mdOptions),
-  ),
+  measure("md.run 108 atoms, 100 steps (CPU)", 3, () => runMd(cell108, LJ_NOBLE_GASES, mdOptions)),
   measure("md.run 108 atoms, 100 steps (WASM)", 3, () =>
     runMd(cell108, LJ_NOBLE_GASES, {
       ...mdOptions,

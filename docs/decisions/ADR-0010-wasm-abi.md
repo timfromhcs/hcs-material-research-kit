@@ -34,7 +34,7 @@ in the result (`compute_backend`) and in the provenance environment, so a result
 implementation produced it. If the asset cannot be loaded, the job falls back to the TypeScript
 kernel and reports the reason.
 
-Additionally, every single-point energy job is re-evaluated with the *other* implementation and
+Additionally, every single-point energy job is re-evaluated with the _other_ implementation and
 the maximum energy/force deviation is shown (tolerance 1e-8; observed ~1e-16). A disagreement is
 displayed as an error, not hidden.
 
@@ -64,4 +64,3 @@ displayed as an error, not hidden.
   and no benefit for one function with numeric buffers.
 - **Run only the cross-check in WASM**: would leave the browser physics on a single
   implementation and make the cross-check the only consumer.
-

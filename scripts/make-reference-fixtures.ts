@@ -29,9 +29,11 @@ const structure = {
   ...base,
   sites: base.sites.map((site) => ({
     ...site,
-    fractional_position: site.fractional_position.map(
-      (x) => x + (rng() - 0.5) * 0.04,
-    ) as [number, number, number],
+    fractional_position: site.fractional_position.map((x) => x + (rng() - 0.5) * 0.04) as [
+      number,
+      number,
+      number,
+    ],
   })),
 };
 
@@ -96,5 +98,10 @@ const identity = {
     density_g_per_cm3: densityGPerCm3(totalMassAmu(rocksalt), cellVolume(rocksalt)),
   },
 };
-writeFileSync("tests/fixtures/reference/structure-identity.json", `${JSON.stringify(identity, null, 2)}\n`);
-console.log(`wrote tests/fixtures/reference/structure-identity.json: ${identity.expected.structure_hash}`);
+writeFileSync(
+  "tests/fixtures/reference/structure-identity.json",
+  `${JSON.stringify(identity, null, 2)}\n`,
+);
+console.log(
+  `wrote tests/fixtures/reference/structure-identity.json: ${identity.expected.structure_hash}`,
+);

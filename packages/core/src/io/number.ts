@@ -7,7 +7,10 @@
  */
 export function parseNumeric(raw: string): number {
   if (raw === undefined || raw === null) throw new Error("Missing numeric value");
-  const trimmed = String(raw).trim().replace(/\u2212/g, "-").replace(/^\+/, "");
+  const trimmed = String(raw)
+    .trim()
+    .replace(/\u2212/g, "-")
+    .replace(/^\+/, "");
   if (trimmed === "" || trimmed === "." || trimmed === "?" || trimmed === "-") {
     throw new Error(`Not a number: '${raw}'`);
   }

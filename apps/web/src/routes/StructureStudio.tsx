@@ -49,7 +49,8 @@ const DEFAULT_LATTICE: Record<CrystalPrototype, number> = {
 export function StructureStudio(): JSX.Element {
   const { t } = useI18n();
   const workspace = useWorkspace();
-  const current = workspace.structures.find((s) => s.structure_id === workspace.activeStructureId) ?? null;
+  const current =
+    workspace.structures.find((s) => s.structure_id === workspace.activeStructureId) ?? null;
 
   const [prototype, setPrototype] = useState<CrystalPrototype>("diamond");
   const [latticeA, setLatticeA] = useState(DEFAULT_LATTICE.diamond);
@@ -114,7 +115,8 @@ export function StructureStudio(): JSX.Element {
   const handleCreate = (): void => {
     try {
       const needed = species.slice(0, info.speciesCount);
-      if (needed.some((value) => !value.trim())) throw new Error(t("studio.species") + ": " + needed.join(", "));
+      if (needed.some((value) => !value.trim()))
+        throw new Error(t("studio.species") + ": " + needed.join(", "));
       const structure = createCrystal({
         prototype,
         a: latticeA,
@@ -123,7 +125,10 @@ export function StructureStudio(): JSX.Element {
       });
       workspace.addStructure(structure);
       setSelected([]);
-      setNotice({ tone: "info", text: `${structure.composition?.reduced_formula} · ${structure.sites.length} ${t("common.atoms")}` });
+      setNotice({
+        tone: "info",
+        text: `${structure.composition?.reduced_formula} · ${structure.sites.length} ${t("common.atoms")}`,
+      });
     } catch (error) {
       setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
     }
@@ -151,7 +156,10 @@ export function StructureStudio(): JSX.Element {
       workspace.addStructure(result.structure);
       setNotice({
         tone: result.warnings.length > 0 ? "info" : "ok",
-        text: result.warnings.length > 0 ? result.warnings.join(" ") : `${result.format}: ${result.structure.sites.length} ${t("common.atoms")}`,
+        text:
+          result.warnings.length > 0
+            ? result.warnings.join(" ")
+            : `${result.format}: ${result.structure.sites.length} ${t("common.atoms")}`,
       });
     } catch (error) {
       setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
@@ -166,7 +174,11 @@ export function StructureStudio(): JSX.Element {
   };
 
   const parsePosition = (values: [string, string, string]): [number, number, number] => {
-    const parsed = values.map((value) => Number(value.replace(",", "."))) as [number, number, number];
+    const parsed = values.map((value) => Number(value.replace(",", "."))) as [
+      number,
+      number,
+      number,
+    ];
     if (parsed.some((value) => !Number.isFinite(value))) throw new Error(t("studio.addPosition"));
     return parsed;
   };
@@ -197,18 +209,32 @@ export function StructureStudio(): JSX.Element {
       <div className="two-col">
         <div className="stack">
           <Panel
-            title={current ? (current.display_name ?? current.structure_id) : t("studio.needStructure")}
-            subtitle={current ? `${current.sites.length} ${t("common.atoms")} · ${current.composition?.reduced_formula}` : undefined}
+            title={
+              current ? (current.display_name ?? current.structure_id) : t("studio.needStructure")
+            }
+            subtitle={
+              current
+                ? `${current.sites.length} ${t("common.atoms")} · ${current.composition?.reduced_formula}`
+                : undefined
+            }
             flush
             actions={
               current && (
                 <div className="row">
                   <label className="checkbox">
-                    <input type="checkbox" checked={showBonds} onChange={(event) => setShowBonds(event.target.checked)} />
+                    <input
+                      type="checkbox"
+                      checked={showBonds}
+                      onChange={(event) => setShowBonds(event.target.checked)}
+                    />
                     {t("studio.showBonds")}
                   </label>
                   <label className="checkbox">
-                    <input type="checkbox" checked={showCell} onChange={(event) => setShowCell(event.target.checked)} />
+                    <input
+                      type="checkbox"
+                      checked={showCell}
+                      onChange={(event) => setShowCell(event.target.checked)}
+                    />
                     {t("studio.showCell")}
                   </label>
                 </div>
@@ -346,13 +372,21 @@ export function StructureStudio(): JSX.Element {
               <Panel title={t("studio.supercell")}>
                 <div className="grid-3">
                   {(["na", "nb", "nc"] as const).map((axis, index) => (
-                    <Field key={axis} label={[t("studio.repeatA"), t("studio.repeatB"), t("studio.repeatC")][index]!} htmlFor={`sc-${axis}`}>
+                    <Field
+                      key={axis}
+                      label={
+                        [t("studio.repeatA"), t("studio.repeatB"), t("studio.repeatC")][index]!
+                      }
+                      htmlFor={`sc-${axis}`}
+                    >
                       <NumberInput
                         id={`sc-${axis}`}
                         min={1}
                         max={20}
                         value={supercell[axis]}
-                        onChange={(value) => setSupercell({ ...supercell, [axis]: Math.round(value) })}
+                        onChange={(value) =>
+                          setSupercell({ ...supercell, [axis]: Math.round(value) })
+                        }
                       />
                     </Field>
                   ))}
@@ -362,16 +396,32 @@ export function StructureStudio(): JSX.Element {
                     {t("studio.buildSupercell")}
                   </Button>
                   <span className="tiny muted">
-                    {current.sites.length * supercell.na * supercell.nb * supercell.nc} {t("common.atoms")}
+                    {current.sites.length * supercell.na * supercell.nb * supercell.nc}{" "}
+                    {t("common.atoms")}
                   </span>
                 </div>
               </Panel>
 
-              <Panel title={t("studio.validation")} actions={<Badge tone={validationTone(validation?.status)}>{validation?.status ?? "unchecked"}</Badge>}>
+              <Panel
+                title={t("studio.validation")}
+                actions={
+                  <Badge tone={validationTone(validation?.status)}>
+                    {validation?.status ?? "unchecked"}
+                  </Badge>
+                }
+              >
                 <ul className="list" style={{ gap: 6, listStyle: "none", padding: 0, margin: 0 }}>
                   {checks.map((check) => (
                     <li key={check.id} className="small" style={{ display: "flex", gap: 8 }}>
-                      <Badge tone={check.status === "pass" ? "ok" : check.status === "warning" ? "warn" : "err"}>
+                      <Badge
+                        tone={
+                          check.status === "pass"
+                            ? "ok"
+                            : check.status === "warning"
+                              ? "warn"
+                              : "err"
+                        }
+                      >
                         {check.status}
                       </Badge>
                       <span className="secondary">
@@ -381,13 +431,32 @@ export function StructureStudio(): JSX.Element {
                   ))}
                 </ul>
                 <div className="grid-3" style={{ marginTop: 14 }}>
-                  <Stat label={t("studio.formula")} value={current.composition?.reduced_formula ?? "—"} />
-                  <Stat label={t("studio.volume")} value={formatNumber(Math.abs(
-                    current.lattice.vectors[0][0] * (current.lattice.vectors[1][1] * current.lattice.vectors[2][2] - current.lattice.vectors[1][2] * current.lattice.vectors[2][1]) -
-                    current.lattice.vectors[0][1] * (current.lattice.vectors[1][0] * current.lattice.vectors[2][2] - current.lattice.vectors[1][2] * current.lattice.vectors[2][0]) +
-                    current.lattice.vectors[0][2] * (current.lattice.vectors[1][0] * current.lattice.vectors[2][1] - current.lattice.vectors[1][1] * current.lattice.vectors[2][0])
-                  ), 3)} unit="Å³" />
-                  <Stat label={t("studio.speciesCol")} value={Object.keys(current.composition?.amounts ?? {}).join(" · ")} />
+                  <Stat
+                    label={t("studio.formula")}
+                    value={current.composition?.reduced_formula ?? "—"}
+                  />
+                  <Stat
+                    label={t("studio.volume")}
+                    value={formatNumber(
+                      Math.abs(
+                        current.lattice.vectors[0][0] *
+                          (current.lattice.vectors[1][1] * current.lattice.vectors[2][2] -
+                            current.lattice.vectors[1][2] * current.lattice.vectors[2][1]) -
+                          current.lattice.vectors[0][1] *
+                            (current.lattice.vectors[1][0] * current.lattice.vectors[2][2] -
+                              current.lattice.vectors[1][2] * current.lattice.vectors[2][0]) +
+                          current.lattice.vectors[0][2] *
+                            (current.lattice.vectors[1][0] * current.lattice.vectors[2][1] -
+                              current.lattice.vectors[1][1] * current.lattice.vectors[2][0]),
+                      ),
+                      3,
+                    )}
+                    unit="Å³"
+                  />
+                  <Stat
+                    label={t("studio.speciesCol")}
+                    value={Object.keys(current.composition?.amounts ?? {}).join(" · ")}
+                  />
                 </div>
               </Panel>
 
@@ -417,7 +486,9 @@ export function StructureStudio(): JSX.Element {
                         Δ = [{measurement.vector.map((v) => v.toFixed(4)).join(", ")}] Å
                       </p>
                     )}
-                    {measurement.wrapped && <Callout tone="info">{t("studio.wrappedNote")}</Callout>}
+                    {measurement.wrapped && (
+                      <Callout tone="info">{t("studio.wrappedNote")}</Callout>
+                    )}
                     <div className="row">
                       <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
                         {t("studio.clearSelection")}
@@ -455,7 +526,10 @@ export function StructureStudio(): JSX.Element {
                         try {
                           replaceCurrent(substituteSpecies(current, selected, substituteTo));
                         } catch (error) {
-                          setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
+                          setNotice({
+                            tone: "err",
+                            text: error instanceof Error ? error.message : String(error),
+                          });
                         }
                       }}
                     >
@@ -470,7 +544,10 @@ export function StructureStudio(): JSX.Element {
                         try {
                           replaceCurrent(createVacancy(current, selected));
                         } catch (error) {
-                          setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
+                          setNotice({
+                            tone: "err",
+                            text: error instanceof Error ? error.message : String(error),
+                          });
                         }
                       }}
                     >
@@ -484,7 +561,10 @@ export function StructureStudio(): JSX.Element {
                           key={axis}
                           className="input num"
                           style={{ maxWidth: 86 }}
-                          defaultValue={current.sites[selected[0]!]?.fractional_position[index]?.toFixed(4) ?? "0"}
+                          defaultValue={
+                            current.sites[selected[0]!]?.fractional_position[index]?.toFixed(4) ??
+                            "0"
+                          }
                           aria-label={`f_${axis}`}
                           onChange={(event) => {
                             const next = [...moveTo] as [string, string, string];
@@ -499,9 +579,14 @@ export function StructureStudio(): JSX.Element {
                         onClick={() => {
                           if (selected.length === 0 || !current) return;
                           try {
-                            replaceCurrent(setSitePosition(current, selected[0]!, parsePosition(moveTo)));
+                            replaceCurrent(
+                              setSitePosition(current, selected[0]!, parsePosition(moveTo)),
+                            );
                           } catch (error) {
-                            setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
+                            setNotice({
+                              tone: "err",
+                              text: error instanceof Error ? error.message : String(error),
+                            });
                           }
                         }}
                       >
@@ -539,7 +624,10 @@ export function StructureStudio(): JSX.Element {
                         try {
                           replaceCurrent(addAtom(current, newSpecies, parsePosition(newPosition)));
                         } catch (error) {
-                          setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
+                          setNotice({
+                            tone: "err",
+                            text: error instanceof Error ? error.message : String(error),
+                          });
                         }
                       }}
                     >
@@ -552,7 +640,12 @@ export function StructureStudio(): JSX.Element {
               <Panel title={t("studio.exportAs")}>
                 <div className="row">
                   {(["cif", "poscar", "xyz", "hcs-json"] as StructureFormat[]).map((format) => (
-                    <Button key={format} size="sm" variant="ghost" onClick={() => handleExport(format)}>
+                    <Button
+                      key={format}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleExport(format)}
+                    >
                       {format.toUpperCase()}
                     </Button>
                   ))}
@@ -583,7 +676,10 @@ export function StructureStudio(): JSX.Element {
               {workspace.structures.map((structure) => (
                 <div
                   key={structure.structure_id}
-                  className={cx("list-item", structure.structure_id === workspace.activeStructureId && "active")}
+                  className={cx(
+                    "list-item",
+                    structure.structure_id === workspace.activeStructureId && "active",
+                  )}
                   data-active={structure.structure_id === workspace.activeStructureId}
                   style={{ cursor: "pointer" }}
                   onClick={() => {
@@ -596,13 +692,16 @@ export function StructureStudio(): JSX.Element {
                   </Badge>
                   <span style={{ minWidth: 0 }}>
                     <div className="small">
-                      {structure.composition?.reduced_formula ?? structure.display_name ?? structure.structure_id}
+                      {structure.composition?.reduced_formula ??
+                        structure.display_name ??
+                        structure.structure_id}
                     </div>
                     <div className="tiny muted mono">{structure.structure_id}</div>
                   </span>
                   <span className="spacer" />
                   <span className="tiny muted">
-                    {structure.sites.length} {t("common.atoms")} · {structure.source?.format ?? "generated"}
+                    {structure.sites.length} {t("common.atoms")} ·{" "}
+                    {structure.source?.format ?? "generated"}
                   </span>
                 </div>
               ))}

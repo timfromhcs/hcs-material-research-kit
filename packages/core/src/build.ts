@@ -38,12 +38,11 @@ interface PrototypeDefinition {
   readonly basis: (species: string[], u: number) => Array<{ species: string; f: Vec3 }>;
 }
 
-const cubic =
-  (a: number): Mat3 => [
-    [a, 0, 0],
-    [0, a, 0],
-    [0, 0, a],
-  ];
+const cubic = (a: number): Mat3 => [
+  [a, 0, 0],
+  [0, a, 0],
+  [0, 0, a],
+];
 
 const FCC_BASIS: Vec3[] = [
   [0, 0, 0],
@@ -100,11 +99,15 @@ const PROTOTYPES: Record<CrystalPrototype, PrototypeDefinition> = {
     lattice: ({ a }) => cubic(a),
     basis: ([xs]) => [
       ...FCC_BASIS.map((f) => ({ species: xs!, f })),
-      ...FCC_BASIS.map((f) => ({ species: xs!, f: [f[0] + 0.25, f[1] + 0.25, f[2] + 0.25] as Vec3 })),
+      ...FCC_BASIS.map((f) => ({
+        species: xs!,
+        f: [f[0] + 0.25, f[1] + 0.25, f[2] + 0.25] as Vec3,
+      })),
     ],
   },
   rocksalt: {
-    description: "Rock-salt (NaCl-type), 8 atoms per conventional cell: two interpenetrating fcc lattices.",
+    description:
+      "Rock-salt (NaCl-type), 8 atoms per conventional cell: two interpenetrating fcc lattices.",
     speciesCount: 2,
     needsC: false,
     lattice: ({ a }) => cubic(a),
@@ -124,7 +127,8 @@ const PROTOTYPES: Record<CrystalPrototype, PrototypeDefinition> = {
     ],
   },
   perovskite: {
-    description: "Cubic ABO3 perovskite: A at corners, B at body centre, O at face centres (5 atoms).",
+    description:
+      "Cubic ABO3 perovskite: A at corners, B at body centre, O at face centres (5 atoms).",
     speciesCount: 3,
     needsC: false,
     lattice: ({ a }) => cubic(a),
@@ -230,7 +234,9 @@ export function makeSupercell(structure: Structure, request: SupercellRequest): 
     ["nc", nc],
   ] as const) {
     if (!Number.isInteger(value) || value < 1 || value > 20) {
-      throw new Error(`Supercell repetition ${label} must be an integer between 1 and 20, got ${value}`);
+      throw new Error(
+        `Supercell repetition ${label} must be an integer between 1 and 20, got ${value}`,
+      );
     }
   }
   const total = na * nb * nc * structure.sites.length;
@@ -251,11 +257,7 @@ export function makeSupercell(structure: Structure, request: SupercellRequest): 
       for (let k = 0; k < nc; k++) {
         for (const site of structure.sites) {
           const f = site.fractional_position;
-          const position: Vec3 = [
-            (f[0] + i) / na,
-            (f[1] + j) / nb,
-            (f[2] + k) / nc,
-          ];
+          const position: Vec3 = [(f[0] + i) / na, (f[1] + j) / nb, (f[2] + k) / nc];
           sites.push({
             ...site,
             label: `${site.label ?? site.species}_${i}${j}${k}`,
@@ -272,7 +274,10 @@ export function makeSupercell(structure: Structure, request: SupercellRequest): 
     display_name: `${structure.display_name ?? structure.structure_id} ${na}x${nb}x${nc}`,
     lattice: { vectors },
     sites,
-    source: { format: "generated", notes: `Supercell ${na}x${nb}x${nc} of ${structure.structure_id}` },
+    source: {
+      format: "generated",
+      notes: `Supercell ${na}x${nb}x${nc} of ${structure.structure_id}`,
+    },
     updated_at: new Date().toISOString(),
   });
   return { ...next, composition: compositionOf(next.sites), validation: validateStructure(next) };
@@ -287,7 +292,8 @@ export function substituteSpecies(
   const target = baseSymbol(species);
   const set = new Set(indices);
   for (const index of set) {
-    if (index < 0 || index >= structure.sites.length) throw new Error(`Site index ${index} out of range`);
+    if (index < 0 || index >= structure.sites.length)
+      throw new Error(`Site index ${index} out of range`);
   }
   const sites = structure.sites.map((site, index) =>
     set.has(index)

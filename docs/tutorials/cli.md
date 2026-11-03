@@ -19,11 +19,11 @@ After `npm install`, the workspace binary is also available as `npx hcs-sim`.
 
 ## Commands
 
-| Command | Purpose |
-|---|---|
-| `inspect <file> [--json]` | Formula, atom count, volume, density, structure hash, validation checks |
-| `engines [--planned] [--json]` | Implemented engines; planned engines are listed but never runnable |
-| `run --structure <file> --spec <spec.json> [--out <dir>] [--backend auto\|cpu\|wasm] [--resume <checkpoint.json>]` | Validate and execute one job |
+| Command                                                                                                            | Purpose                                                                 |
+| ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `inspect <file> [--json]`                                                                                          | Formula, atom count, volume, density, structure hash, validation checks |
+| `engines [--planned] [--json]`                                                                                     | Implemented engines; planned engines are listed but never runnable      |
+| `run --structure <file> --spec <spec.json> [--out <dir>] [--backend auto\|cpu\|wasm] [--resume <checkpoint.json>]` | Validate and execute one job                                            |
 
 Exit codes: `0` success, `2` usage error, `3` validation or run failure.
 
@@ -66,7 +66,7 @@ node packages/cli/dist/index.js run --structure ar.json --spec spec-200b.json --
   --resume ./run-001/checkpoint.json
 ```
 
-`spec-200b.json` asks for the *additional* steps; the checkpoint supplies the first 200. The
+`spec-200b.json` asks for the _additional_ steps; the checkpoint supplies the first 200. The
 combined run is bit-for-bit identical to one continuous run of the total length (tested), and
 `provenance.method.parameters.resumed_from_steps` records the offset. A checkpoint whose
 structure hash or timestep does not match the request is refused before any step runs.

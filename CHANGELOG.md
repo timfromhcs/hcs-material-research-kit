@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- The repository is formatted with Prettier (`.prettierignore` excludes generated
+  contracts, fixtures, benchmark results and the committed WASM asset).
+  `npm run fmt:check` now passes and is enforced in CI and in `npm run verify`.
+
 ## [0.2.0] — 2026-11-03
 
 The first release with a public repository, a CI run that actually executed, and

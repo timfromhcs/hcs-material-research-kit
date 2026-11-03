@@ -87,7 +87,9 @@ export const SWITCH_ON_FRACTION = 0.9;
 export function getLJModel(id: string): LJModel {
   const model = LJ_MODELS[id];
   if (!model) {
-    throw new Error(`Unknown Lennard-Jones model '${id}'. Available: ${Object.keys(LJ_MODELS).join(", ")}`);
+    throw new Error(
+      `Unknown Lennard-Jones model '${id}'. Available: ${Object.keys(LJ_MODELS).join(", ")}`,
+    );
   }
   return model;
 }
@@ -168,10 +170,7 @@ export function ljPairPotential(epsilon: number, sigma: number, r: number): numb
 }
 
 /** Cubic switching function S(r) and its radial derivative. */
-export function switchingFunction(
-  r: number,
-  cutoff: number,
-): { s: number; ds: number } {
+export function switchingFunction(r: number, cutoff: number): { s: number; ds: number } {
   const rOn = SWITCH_ON_FRACTION * cutoff;
   const r2 = r * r;
   if (r <= rOn) return { s: 1, ds: 0 };
@@ -188,7 +187,12 @@ export function switchingFunction(
 }
 
 /** Switched Lennard-Jones pair potential used by the engine (eV). */
-export function ljSwitchedPotential(epsilon: number, sigma: number, r: number, cutoff: number): number {
+export function ljSwitchedPotential(
+  epsilon: number,
+  sigma: number,
+  r: number,
+  cutoff: number,
+): number {
   if (r >= cutoff) return 0;
   return ljPairPotential(epsilon, sigma, r) * switchingFunction(r, cutoff).s;
 }
@@ -219,7 +223,9 @@ function resolveCutoff(
   if (!(requested > 0)) throw new Error("Cutoff must be positive");
   const maxValid = maxCutoffForCell(structure);
   if (!(maxValid > 1e-6)) {
-    throw new Error("Cell has no valid minimum-image radius; fix the lattice before evaluating energies");
+    throw new Error(
+      "Cell has no valid minimum-image radius; fix the lattice before evaluating energies",
+    );
   }
   const cutoff = Math.min(requested, maxValid);
   if (cutoff < 0.9) {

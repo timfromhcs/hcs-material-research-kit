@@ -65,7 +65,9 @@ describe("energy and forces", () => {
         const shiftedPlus = shiftAtom(structure, atom, axis, h);
         const shiftedMinus = shiftAtom(structure, atom, axis, -h);
         const numeric =
-          -(computePotentialEnergy(shiftedPlus, ARGON) - computePotentialEnergy(shiftedMinus, ARGON)) /
+          -(
+            computePotentialEnergy(shiftedPlus, ARGON) - computePotentialEnergy(shiftedMinus, ARGON)
+          ) /
           (2 * h);
         const analytic = evaluated.forces[atom]![axis]!;
         expect(Math.abs(numeric - analytic)).toBeLessThan(1e-5 * Math.max(1, Math.abs(analytic)));
@@ -133,9 +135,11 @@ describe("FIRE relaxation", () => {
       ...base,
       sites: base.sites.map((site) => ({
         ...site,
-        fractional_position: site.fractional_position.map(
-          (x) => x + (rng() - 0.5) * amplitude,
-        ) as [number, number, number],
+        fractional_position: site.fractional_position.map((x) => x + (rng() - 0.5) * amplitude) as [
+          number,
+          number,
+          number,
+        ],
       })),
     };
   }

@@ -141,7 +141,10 @@ function multiplyRow(v: Vec3, m: Mat3): Vec3 {
 
 export function writeXyz(structure: Structure, comment?: string): string {
   const m = structure.lattice.vectors;
-  const latticeValue = m.flat().map((x) => x.toFixed(10)).join(" ");
+  const latticeValue = m
+    .flat()
+    .map((x) => x.toFixed(10))
+    .join(" ");
   const pbcValue = structure.pbc.map((p) => (p ? "T" : "F")).join(" ");
   const positions = structure.sites.map((site) => {
     const f = site.fractional_position;

@@ -81,7 +81,9 @@ export function relaxFire(
   const fireAlpha = 0.99;
 
   const n = structure.sites.length;
-  const positions = structure.sites.map((site) => fractionalToCartesian(structure, site.fractional_position));
+  const positions = structure.sites.map((site) =>
+    fractionalToCartesian(structure, site.fractional_position),
+  );
   const velocities: Vec3[] = Array.from({ length: n }, () => [0, 0, 0] as Vec3);
   let alpha = alphaStart;
   let positiveSteps = 0;

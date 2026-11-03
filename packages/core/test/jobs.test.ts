@@ -86,7 +86,9 @@ describe("runJob: energy evaluation", () => {
     expect(outcome.result?.status).toBe("complete");
     expect(outcome.provenance?.inputs.structure_hash).toBe(structureHash(structure));
     expect(outcome.result?.provenance_ref).toBe(outcome.provenance?.provenance_id);
-    expect(outcome.result?.quantities.find((q) => q.name === "total_potential_energy")?.unit).toBe("eV");
+    expect(outcome.result?.quantities.find((q) => q.name === "total_potential_energy")?.unit).toBe(
+      "eV",
+    );
     expect(outcome.result?.limitations.length).toBeGreaterThan(0);
     expect(outcome.job.events.some((e) => e.state === "completed")).toBe(true);
     // Result documents survive a JSON round-trip (export readiness).
@@ -136,12 +138,21 @@ describe("runJob: energy evaluation", () => {
     const structure = argon();
     const collapsed: Structure = {
       ...structure,
-      lattice: { vectors: [[0, 0, 0], [0, 0, 0], [0, 0, 0]] },
+      lattice: {
+        vectors: [
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ],
+      },
       structure_id: structure.structure_id,
     };
     const outcome = runJob({
       spec: spec(collapsed, {
-        structure_ref: { structure_id: collapsed.structure_id, structure_hash: structureHash(collapsed) },
+        structure_ref: {
+          structure_id: collapsed.structure_id,
+          structure_hash: structureHash(collapsed),
+        },
       }),
       structure: collapsed,
     });
@@ -158,9 +169,11 @@ describe("runJob: relaxation and MD", () => {
       ...base,
       sites: base.sites.map((site) => ({
         ...site,
-        fractional_position: site.fractional_position.map(
-          (x) => x + (rng() - 0.5) * 0.06,
-        ) as [number, number, number],
+        fractional_position: site.fractional_position.map((x) => x + (rng() - 0.5) * 0.06) as [
+          number,
+          number,
+          number,
+        ],
       })),
     };
     const outcome = runJob({
@@ -222,18 +235,23 @@ describe("runJob: relaxation and MD", () => {
     const outcome = runJob({ spec: spec(structure), structure, energyKernel: alternative });
     expect(outcome.job.state).toBe("completed");
     expect(calls).toBeGreaterThan(0);
-    const backend = outcome.result?.quantities.find((quantity) => quantity.name === "compute_backend");
+    const backend = outcome.result?.quantities.find(
+      (quantity) => quantity.name === "compute_backend",
+    );
     expect(backend?.value).toBe("wasm");
     expect(outcome.provenance?.environment?.backend).toBe("wasm");
     // The physics must be unchanged: the wrapper delegates to the CPU kernel.
-    const energy = outcome.result?.quantities.find((quantity) => quantity.name === "total_potential_energy");
+    const energy = outcome.result?.quantities.find(
+      (quantity) => quantity.name === "total_potential_energy",
+    );
     expect(Number(energy?.value)).toBeCloseTo(
       computeEnergyForces(structure, LJ_NOBLE_GASES).energy,
       10,
     );
   });
 
-  it("cancels before starting when a cancellation was requested", () => {    const structure = argon();
+  it("cancels before starting when a cancellation was requested", () => {
+    const structure = argon();
     const outcome = runJob({
       spec: spec(structure, {
         task_type: "structure.relax",

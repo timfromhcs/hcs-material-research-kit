@@ -55,7 +55,9 @@ test("creates a documented crystal and validates it", async ({ page }) => {
 test("refuses a calculation when the model has no parameters for the element", async ({ page }) => {
   await createSilicon(page);
   await page.getByRole("link", { name: "Simulation Workbench" }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "no parameters for the selected element" })).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "no parameters for the selected element" }),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Run calculation" })).toBeDisabled();
 });
 
@@ -67,7 +69,9 @@ test("runs a single-point energy and reports units and limits", async ({ page })
   await expect(page.getByRole("cell", { name: "eV", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Limitations and assumptions" })).toBeVisible();
   await expect(
-    page.getByText("Two-body only: no three-body, many-body, electrostatic or quantum contributions."),
+    page.getByText(
+      "Two-body only: no three-body, many-body, electrostatic or quantum contributions.",
+    ),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Cross-implementation check" })).toBeVisible();
   await expect(page.getByText("Both implementations agree within tolerance.")).toBeVisible();

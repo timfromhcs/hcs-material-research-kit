@@ -31,8 +31,7 @@ export const EV_IN_JOULE = 1.602176634e-19;
 /** Unified atomic mass unit in kilogram (CODATA 2018). */
 export const AMU_IN_KG = 1.6605390666e-27;
 /** 1 eV/Å/amu expressed in Å/ps². */
-export const EV_PER_A_PER_AMU_TO_A_PER_PS2 =
-  (EV_IN_JOULE / 1e-10 / AMU_IN_KG) * 1e-14;
+export const EV_PER_A_PER_AMU_TO_A_PER_PS2 = (EV_IN_JOULE / 1e-10 / AMU_IN_KG) * 1e-14;
 
 /**
  * 1 sqrt(eV/u) expressed in Å/ps. Thermal velocities sampled as

@@ -23,7 +23,10 @@ function setup() {
     schema_version: "1.0.0",
     task_id: "task_a",
     task_type: "energy.evaluate",
-    structure_ref: { structure_id: structure.structure_id, structure_hash: structureHash(structure) },
+    structure_ref: {
+      structure_id: structure.structure_id,
+      structure_hash: structureHash(structure),
+    },
     engine_id: "hcs.lj-reference",
     model_id: "lj.noble-gases.v1",
     fidelity_level: "classical_model",
@@ -76,7 +79,12 @@ describe("project archive", () => {
     });
     const entries = unzipSync(bytes);
     const structurePath = Object.keys(entries).find((p) => p.startsWith("structures/"))!;
-    entries[structurePath] = strToU8(JSON.stringify({ ...JSON.parse(String(new TextDecoder().decode(entries[structurePath]))), display_name: "tampered" }));
+    entries[structurePath] = strToU8(
+      JSON.stringify({
+        ...JSON.parse(String(new TextDecoder().decode(entries[structurePath]))),
+        display_name: "tampered",
+      }),
+    );
     const tampered = zipSync(entries);
     const read = readProjectArchive(tampered);
     expect(read.checksumsVerified).toBe(false);
@@ -155,7 +163,10 @@ describe("reproducibility report", () => {
       schema_version: "1.0.0",
       task_id: "relax_1",
       task_type: "structure.relax",
-      structure_ref: { structure_id: structure.structure_id, structure_hash: structureHash(structure) },
+      structure_ref: {
+        structure_id: structure.structure_id,
+        structure_hash: structureHash(structure),
+      },
       engine_id: "hcs.lj-reference",
       model_id: "lj.noble-gases.v1",
       fidelity_level: "classical_model",

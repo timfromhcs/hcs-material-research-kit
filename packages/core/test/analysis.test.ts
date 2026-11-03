@@ -24,7 +24,10 @@ describe("radial distribution function", () => {
     const a = 5.26;
     const structure = argonFcc(2, a);
     const rdf = computeRdf(structure, { cutoff: 4.6, bins: 92 });
-    const peakIndex = rdf.g.reduce((best, value, index) => (value > rdf.g[best]! ? index : best), 0);
+    const peakIndex = rdf.g.reduce(
+      (best, value, index) => (value > rdf.g[best]! ? index : best),
+      0,
+    );
     expect(rdf.r[peakIndex]!).toBeCloseTo(a / Math.sqrt(2), 1);
     expect(rdf.normalization).toBe("periodic-bulk");
     expect(rdf.pairsCounted).toBeGreaterThan(0);
@@ -126,7 +129,16 @@ describe("mean-square displacement", () => {
 
   it("rejects frame sets with inconsistent atom counts", () => {
     expect(() =>
-      computeMsd([[[0, 0, 0]], [[0, 0, 0], [1, 1, 1]]], { frameTimePs: 0.001 }),
+      computeMsd(
+        [
+          [[0, 0, 0]],
+          [
+            [0, 0, 0],
+            [1, 1, 1],
+          ],
+        ],
+        { frameTimePs: 0.001 },
+      ),
     ).toThrow(/same number of atoms/);
   });
 });

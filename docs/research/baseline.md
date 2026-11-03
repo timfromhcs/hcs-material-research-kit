@@ -11,15 +11,15 @@ implementation.
 
 ## Verified during this build
 
-| Item | How | Result |
-|---|---|---|
-| MCP Python SDK v2 exists and is current | `pypi.org/pypi/mcp/json` → 2.3.0, requires Python ≥3.10 | used for the server; official client used in tests |
-| MCP server API surface (`MCPServer`, decorators) | installed package introspection | `create_server` builds tools/resources/prompts |
-| MCP client can run a server in-process | `python/.../tests/test_mcp.py` | 6 tests pass |
-| Node 22, npm 10, Rust 1.96, Python 3.14 availability | local toolchain inspection | used for the build |
-| Ajv 2020-12 supports the schemas | build + validation tests | passes with `ajv/dist/2020` |
-| fflate can write/read `.hcsproj` zips | tests | round-trip, tamper detection |
-| Vite 6 builds worker + three.js bundle | production build | succeeds |
+| Item                                                 | How                                                     | Result                                             |
+| ---------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------- |
+| MCP Python SDK v2 exists and is current              | `pypi.org/pypi/mcp/json` → 2.3.0, requires Python ≥3.10 | used for the server; official client used in tests |
+| MCP server API surface (`MCPServer`, decorators)     | installed package introspection                         | `create_server` builds tools/resources/prompts     |
+| MCP client can run a server in-process               | `python/.../tests/test_mcp.py`                          | 6 tests pass                                       |
+| Node 22, npm 10, Rust 1.96, Python 3.14 availability | local toolchain inspection                              | used for the build                                 |
+| Ajv 2020-12 supports the schemas                     | build + validation tests                                | passes with `ajv/dist/2020`                        |
+| fflate can write/read `.hcsproj` zips                | tests                                                   | round-trip, tamper detection                       |
+| Vite 6 builds worker + three.js bundle               | production build                                        | succeeds                                           |
 
 ## Not verified here (do not claim)
 

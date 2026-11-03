@@ -20,7 +20,13 @@
  */
 
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import type { JobRecord, ProvenanceRecord, ResultBundle, SimulationSpec, Structure } from "./types.js";
+import type {
+  JobRecord,
+  ProvenanceRecord,
+  ResultBundle,
+  SimulationSpec,
+  Structure,
+} from "./types.js";
 import { SCHEMA_VERSION } from "./types.js";
 import { sha256Hex } from "./hash.js";
 import { newId } from "./structure.js";
@@ -178,7 +184,14 @@ export function writeProjectArchive(input: ProjectArchiveInput): Uint8Array {
   const checksumBytes = strToU8(`${checksumText}\n`);
   const manifestWithChecksum = {
     ...manifest,
-    files: [...checksums, { path: "checksums.sha256", sha256: sha256Hex(checksumBytes), bytes: checksumBytes.byteLength }],
+    files: [
+      ...checksums,
+      {
+        path: "checksums.sha256",
+        sha256: sha256Hex(checksumBytes),
+        bytes: checksumBytes.byteLength,
+      },
+    ],
   };
   files["checksums.sha256"] = checksumBytes;
   files["manifest.json"] = strToU8(`${JSON.stringify(manifestWithChecksum, null, 2)}\n`);
@@ -199,7 +212,8 @@ export function readProjectArchive(bytes: Uint8Array): ProjectArchiveReadResult 
     throw new Error(`Not a readable .hcsproj archive: ${(error as Error).message}`);
   }
   const paths = Object.keys(raw);
-  if (paths.length > MAX_ENTRIES) throw new Error(`Archive has ${paths.length} entries; limit is ${MAX_ENTRIES}`);
+  if (paths.length > MAX_ENTRIES)
+    throw new Error(`Archive has ${paths.length} entries; limit is ${MAX_ENTRIES}`);
 
   let totalBytes = 0;
   for (const path of paths) {
@@ -243,7 +257,9 @@ export function readProjectArchive(bytes: Uint8Array): ProjectArchiveReadResult 
     }
     checksumsVerified = mismatches === 0 && warnings.length === 0;
     if (!checksumsVerified) {
-      warnings.push("Project integrity could not be fully verified; treat extracted results as untrusted.");
+      warnings.push(
+        "Project integrity could not be fully verified; treat extracted results as untrusted.",
+      );
     }
   } else {
     warnings.push("Archive has no checksums.sha256; integrity cannot be verified.");
@@ -265,7 +281,17 @@ export function readProjectArchive(bytes: Uint8Array): ProjectArchiveReadResult 
     }
   }
 
-  const jobsByDir = new Map<string, { spec?: SimulationSpec; job?: JobRecord; result?: ResultBundle; provenance?: ProvenanceRecord; log?: string; trajectories: Record<string, unknown> }>();
+  const jobsByDir = new Map<
+    string,
+    {
+      spec?: SimulationSpec;
+      job?: JobRecord;
+      result?: ResultBundle;
+      provenance?: ProvenanceRecord;
+      log?: string;
+      trajectories: Record<string, unknown>;
+    }
+  >();
   for (const path of paths) {
     const match = /^simulations\/([^/]+)\/(.+)$/.exec(path);
     if (!match) continue;
@@ -291,7 +317,9 @@ export function readProjectArchive(bytes: Uint8Array): ProjectArchiveReadResult 
   const jobs: ProjectArchiveReadResult["jobs"] = [];
   for (const [jobId, entry] of jobsByDir) {
     if (!entry.spec || !entry.job) {
-      warnings.push(`Job '${jobId}' is incomplete (missing input.json or status.json) and was skipped`);
+      warnings.push(
+        `Job '${jobId}' is incomplete (missing input.json or status.json) and was skipped`,
+      );
       continue;
     }
     jobs.push({

@@ -49,11 +49,17 @@ async function trajectoryDir(): Promise<FileSystemDirectoryHandle> {
   return base.getDirectoryHandle(TRAJECTORY_DIR, { create: true });
 }
 
-export async function writeTrajectory(jobId: string, payload: unknown): Promise<{ ok: true; bytes: number } | { ok: false; reason: string }> {
+export async function writeTrajectory(
+  jobId: string,
+  payload: unknown,
+): Promise<{ ok: true; bytes: number } | { ok: false; reason: string }> {
   const text = JSON.stringify(payload);
   const bytes = new TextEncoder().encode(text).byteLength;
   if (bytes > MAX_ARTEFACT_BYTES) {
-    return { ok: false, reason: `Trajectory exceeds the 48 MB artefact limit (${(bytes / 1024 / 1024).toFixed(1)} MB).` };
+    return {
+      ok: false,
+      reason: `Trajectory exceeds the 48 MB artefact limit (${(bytes / 1024 / 1024).toFixed(1)} MB).`,
+    };
   }
   try {
     const estimate = await navigator.storage.estimate();

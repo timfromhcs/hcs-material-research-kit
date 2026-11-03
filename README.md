@@ -21,27 +21,27 @@ research record with provenance.
 
 A working vertical slice, not a mock-up:
 
-| Capability | State | Evidence |
-|---|---|---|
-| Canonical JSON Schema contracts | Implemented | `schemas/`, validated in TS and Python |
-| Structure model, periodic cells, minimum image | Implemented | 30+ unit tests incl. known densities |
-| CIF / POSCAR / XYZ / extXYZ import + export | Implemented (documented subsets) | round-trip fixtures |
-| Structure Studio with 3D viewer, supercells, substitution, vacancies | Implemented | E2E, manual screenshots |
-| Distance/angle measurement with minimum images | Implemented | unit tests + E2E assertion |
-| Lennard-Jones reference engine (energy, forces, FIRE, NVE MD, RDF) | Implemented | force-vs-gradient, energy conservation |
-| MD checkpoint and restart (`checkpoint.json`, `hcs-sim --resume`) | Implemented | resume reproduces a continuous run bit-for-bit |
-| 1D heat/diffusion solver | Implemented | analytic Fourier-mode comparison |
-| Job lifecycle, events, warnings, provenance | Implemented | state-machine tests, job tests |
-| `.hcsproj` archive with checksums and path safety | Implemented | tamper/traversal tests (TS + Python) |
-| Browser studio (EN/DE/FR, dark/light, responsive) | Implemented | Vite build, Playwright E2E |
-| Rust CPU kernel with cross-language parity | Implemented | 1e-10 eV agreement with TS |
-| WASM backend for energy, relax, MD (reusable buffer arena) | Implemented | 13 parity tests, E2E asserts backend `wasm` |
-| Node simulation CLI (`hcs-sim`) | Implemented | 8 CLI tests, writes result/provenance/report/checkpoint |
-| Python CLI | Implemented | 32 tests |
-| MCP v2 stdio server with an approval-gated simulation tool | Implemented | 41 tests incl. budget and approval refusal |
-| Automated acceptance workflow | Implemented | 7 Playwright tests on the production bundle |
-| Reproducible benchmark harness | Implemented | `benchmarks/`, committed baseline with parity gate |
-| WebGPU kernels, DFT/LAMMPS/ML potentials, Tauri app | **Not implemented** | see `ROADMAP.md` |
+| Capability                                                           | State                            | Evidence                                                |
+| -------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------- |
+| Canonical JSON Schema contracts                                      | Implemented                      | `schemas/`, validated in TS and Python                  |
+| Structure model, periodic cells, minimum image                       | Implemented                      | 30+ unit tests incl. known densities                    |
+| CIF / POSCAR / XYZ / extXYZ import + export                          | Implemented (documented subsets) | round-trip fixtures                                     |
+| Structure Studio with 3D viewer, supercells, substitution, vacancies | Implemented                      | E2E, manual screenshots                                 |
+| Distance/angle measurement with minimum images                       | Implemented                      | unit tests + E2E assertion                              |
+| Lennard-Jones reference engine (energy, forces, FIRE, NVE MD, RDF)   | Implemented                      | force-vs-gradient, energy conservation                  |
+| MD checkpoint and restart (`checkpoint.json`, `hcs-sim --resume`)    | Implemented                      | resume reproduces a continuous run bit-for-bit          |
+| 1D heat/diffusion solver                                             | Implemented                      | analytic Fourier-mode comparison                        |
+| Job lifecycle, events, warnings, provenance                          | Implemented                      | state-machine tests, job tests                          |
+| `.hcsproj` archive with checksums and path safety                    | Implemented                      | tamper/traversal tests (TS + Python)                    |
+| Browser studio (EN/DE/FR, dark/light, responsive)                    | Implemented                      | Vite build, Playwright E2E                              |
+| Rust CPU kernel with cross-language parity                           | Implemented                      | 1e-10 eV agreement with TS                              |
+| WASM backend for energy, relax, MD (reusable buffer arena)           | Implemented                      | 13 parity tests, E2E asserts backend `wasm`             |
+| Node simulation CLI (`hcs-sim`)                                      | Implemented                      | 8 CLI tests, writes result/provenance/report/checkpoint |
+| Python CLI                                                           | Implemented                      | 32 tests                                                |
+| MCP v2 stdio server with an approval-gated simulation tool           | Implemented                      | 41 tests incl. budget and approval refusal              |
+| Automated acceptance workflow                                        | Implemented                      | 7 Playwright tests on the production bundle             |
+| Reproducible benchmark harness                                       | Implemented                      | `benchmarks/`, committed baseline with parity gate      |
+| WebGPU kernels, DFT/LAMMPS/ML potentials, Tauri app                  | **Not implemented**              | see `ROADMAP.md`                                        |
 
 The browser and native editions do not share every solver — they share schemas, workflows,
 file formats and provenance. `docs/engines/engine-registry.md` states this explicitly.
@@ -93,6 +93,7 @@ that exact cell and timestep for the number of steps in the new spec. See
 `docs/tutorials/cli.md`.
 
 ## A two-minute real workflow
+
 1. Open the studio and choose **Argon (fcc, LJ reference)** — this creates a 3×3×3 cell
    (108 atoms) so the pair cutoff has real interactions.
 2. Go to **Simulation Workbench**, choose **NVE molecular dynamics**, keep the default
@@ -143,6 +144,7 @@ docs/                    Science, architecture, decisions, security, tutorials
 ## Verification
 
 Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96):
+
 ```text
 TypeScript 132 tests passing   vitest run (includes 13 TS ↔ WASM/arena tests)
 Rust         8 tests passing   cargo test -p hcs-compute-core -p hcs-compute-wasm
@@ -176,6 +178,7 @@ Playwright suite against the deployed build.
 
 Read `STATUS.md` for what is done, what is blocked and what comes next, and `ROADMAP.md`
 for the phase gates. Known limitations of this release:
+
 - the only physics engine is a **classical Lennard-Jones reference** for He/Ne/Ar/Kr/Xe;
 - O(N²) pair loop (documented; fine for a few thousand atoms);
 - no DFT, no ML potentials, no LAMMPS, no CALPHAD, no phase field beyond the 1D heat solver;
@@ -183,9 +186,7 @@ for the phase gates. Known limitations of this release:
 - browser storage is IndexedDB + OPFS and can be evicted — export archives;
 - MCP exposes structure/project tools plus one approval-gated `simulations_run`
   tool; it cannot run unbounded jobs and has no HTTP transport yet;
-- E2E tests cover Chromium only; Firefox/Safari are untested;
-- `npm run fmt:check` does not pass on the baseline tree; a repo-wide formatting
-  pass is scheduled for v0.3.0.
+- E2E tests cover Chromium only; Firefox/Safari are untested.
 
 ## License
 

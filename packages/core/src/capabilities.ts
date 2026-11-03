@@ -56,9 +56,7 @@ export async function detectHardware(): Promise<HardwareReport> {
     platform: isBrowser ? "browser" : "node",
     os: isBrowser ? navigator.platform || "unknown" : nodePlatform(),
     architecture: isBrowser ? "unknown" : nodeArchitecture(),
-    cpuThreads: isBrowser
-      ? navigator.hardwareConcurrency || 1
-      : nodeThreads(),
+    cpuThreads: isBrowser ? navigator.hardwareConcurrency || 1 : nodeThreads(),
     wasm: { available: false, simd: false, threads: false },
     webgpu: { available: false, reason: "not probed" },
     storage: { supported: false },
@@ -102,7 +100,8 @@ export async function detectHardware(): Promise<HardwareReport> {
         if (!adapter) {
           report.webgpu = {
             available: false,
-            reason: "navigator.gpu exists but no adapter was returned (driver or permission issue).",
+            reason:
+              "navigator.gpu exists but no adapter was returned (driver or permission issue).",
           };
           reasons.push("WebGPU adapter unavailable: using CPU/WebAssembly.");
         } else {
@@ -154,7 +153,8 @@ export async function detectHardware(): Promise<HardwareReport> {
   } else {
     report.webgpu = {
       available: false,
-      reason: "Native WebGPU/Vulkan kernel not built into this Node build; CPU reference path is used.",
+      reason:
+        "Native WebGPU/Vulkan kernel not built into this Node build; CPU reference path is used.",
     };
     reasons.push("Native CPU implementation selected (float64 reference path).");
   }

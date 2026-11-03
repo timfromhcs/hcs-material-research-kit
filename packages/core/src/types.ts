@@ -209,7 +209,13 @@ export interface ResultBundle {
   limitations: string[];
   warnings?: string[];
   result_structure?: Structure;
-  artifacts?: Array<{ name: string; path: string; media_type: string; sha256?: string; bytes?: number }>;
+  artifacts?: Array<{
+    name: string;
+    path: string;
+    media_type: string;
+    sha256?: string;
+    bytes?: number;
+  }>;
   provenance_ref: string;
   created_at?: string;
 }
@@ -227,7 +233,8 @@ export interface ProvenanceRecord {
     parameters?: Record<string, unknown>;
     assumptions?: string[];
     limitations?: string[];
-    validation_state?: "unvalidated" | "unit_tested" | "analytically_verified" | "benchmark_verified";
+    validation_state?:
+      "unvalidated" | "unit_tested" | "analytically_verified" | "benchmark_verified";
   };
   software: {
     name: string;
@@ -289,11 +296,7 @@ export interface EngineRecord {
     tolerance?: string;
   }>;
   installation_state:
-    | "builtin"
-    | "installed"
-    | "not_installed"
-    | "unsupported_platform"
-    | "unavailable";
+    "builtin" | "installed" | "not_installed" | "unsupported_platform" | "unavailable";
   installation_notes?: string;
   fidelity_levels?: string[];
   docs_url?: string;

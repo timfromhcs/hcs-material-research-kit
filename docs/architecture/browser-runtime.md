@@ -11,12 +11,12 @@
 
 ## Storage layers
 
-| Layer | Contents | Durability |
-|---|---|---|
-| React state | active project, structures, jobs, selected items | session |
-| IndexedDB (`hcs-materials`/`kv`) | project metadata, structures, job records, results, provenance (no trajectories) | until site data is cleared |
-| OPFS (`hcs-materials/trajectories`) | MD trajectory JSON, one file per job | until eviction; quota-checked |
-| Memory | active trajectory while the workbench is open | session |
+| Layer                               | Contents                                                                         | Durability                    |
+| ----------------------------------- | -------------------------------------------------------------------------------- | ----------------------------- |
+| React state                         | active project, structures, jobs, selected items                                 | session                       |
+| IndexedDB (`hcs-materials`/`kv`)    | project metadata, structures, job records, results, provenance (no trajectories) | until site data is cleared    |
+| OPFS (`hcs-materials/trajectories`) | MD trajectory JSON, one file per job                                             | until eviction; quota-checked |
+| Memory                              | active trajectory while the workbench is open                                    | session                       |
 
 Before writing a trajectory the app calls `navigator.storage.estimate()` and refuses writes
 larger than the free space; artefacts above 48 MB are refused outright. If OPFS is unavailable,

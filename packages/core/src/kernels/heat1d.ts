@@ -46,7 +46,7 @@ export function solveHeat1D(options: Heat1DOptions): Heat1DResult {
   if (!Number.isInteger(steps) || steps < 1) throw new Error("steps must be an integer >= 1");
 
   const dx = length / (nodes - 1);
-  const dt = options.dt ?? 0.4 * (dx * dx) / alpha;
+  const dt = options.dt ?? (0.4 * (dx * dx)) / alpha;
   if (!(dt > 0)) throw new Error("Timestep must be positive");
   const courant = (alpha * dt) / (dx * dx);
   if (courant > 0.5) {
@@ -107,8 +107,11 @@ export function analyticSineMode(
   alpha: number,
   amplitude = 1,
 ): number {
-  return amplitude * Math.exp((-alpha * Math.PI * Math.PI * t) / (length * length)) *
-    Math.sin((Math.PI * x) / length);
+  return (
+    amplitude *
+    Math.exp((-alpha * Math.PI * Math.PI * t) / (length * length)) *
+    Math.sin((Math.PI * x) / length)
+  );
 }
 
 /** Maximum absolute difference between the numeric field and the analytic mode. */
@@ -121,7 +124,13 @@ export function maxAbsError(
   const n = field.length;
   for (let i = 0; i < n; i++) {
     const x = (i * options.length) / (n - 1);
-    const reference = analyticSineMode(x, timeS, options.length, options.alpha, options.amplitude ?? 1);
+    const reference = analyticSineMode(
+      x,
+      timeS,
+      options.length,
+      options.alpha,
+      options.amplitude ?? 1,
+    );
     worst = Math.max(worst, Math.abs(field[i]! - reference));
   }
   return worst;
