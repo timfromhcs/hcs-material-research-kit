@@ -281,6 +281,14 @@ export const en = {
 
   "workbench.cpuFallback": "The TypeScript CPU kernel is used instead.",
 
+  "studio.measurement": "Measurement",
+  "studio.distance": "Distance",
+  "studio.angle": "Angle",
+  "studio.selectionCount": "sites selected",
+  "studio.wrappedNote": "At least one pair crosses a periodic boundary; the minimum-image distance is shown.",
+  "studio.clearSelection": "Clear selection",
+  "studio.measureHint": "Select two sites for a distance, three for an angle. Shift-click adds to the selection.",
+
   "science.disclaimer":
     "Virtual simulations are conditional on their model. A result is not laboratory proof, not a synthesis claim and not a certification.",
   "science.localOnly": "Local-first: no structure or result is uploaded.",

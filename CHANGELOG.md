@@ -17,7 +17,9 @@ First development preview: a tested vertical slice, not a mock interface.
 - **Structure IO**: CIF (crystallographic subset with explicit symmetry operations), POSCAR/
   CONTCAR (VASP 4 and 5), XYZ/extXYZ, HCS JSON; import and export.
 - **Structure building**: sc, bcc, fcc, hcp, diamond, rock salt, CsCl, perovskite, wurtzite
-  prototypes; supercells; substitution; vacancies; atom placement and movement.
+  prototypes; supercells; substitution; vacancies; atom placement and movement; multi-selection
+  with distance/angle measurement using minimum-image vectors (including a warning when a pair
+  crosses a periodic boundary).
 - **Lennard-Jones reference engine**: cubic-switched potential, analytic forces, FIRE
   relaxation, velocity-Verlet NVE molecular dynamics, RDF, MSD.
 - **Continuum reference**: explicit 1D heat/diffusion solver with a Courant stability guard

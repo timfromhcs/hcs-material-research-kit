@@ -12,8 +12,8 @@
 - **Automated end-to-end suite** (`tests/e2e`): seven Playwright tests against the production
   bundle, covering the full acceptance workflow including downloads and archive re-import.
 - **Structure Studio**: create 9 prototypes, import CIF/POSCAR/XYZ/extXYZ/HCS JSON, supercells,
-  substitution, vacancies, atom insertion/movement, validation panel, 3D viewer (Three.js,
-  WebGL2), export in four formats.
+  substitution, vacancies, atom insertion/movement, distance/angle measurement with minimum-image
+  vectors, validation panel, 3D viewer (Three.js, WebGL2), export in four formats.
 - **Simulation Workbench**: single-point energy, FIRE relaxation, NVE MD (with trajectory),
   RDF; Web Worker execution, progress, hard cancel, MSD from trajectory, reproducibility
   report download.

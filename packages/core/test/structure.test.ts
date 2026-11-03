@@ -6,6 +6,7 @@ import {
   createCrystal,
   densityGPerCm3,
   EV_PER_A_PER_AMU_TO_A_PER_PS2,
+  measureSites,
   structureHash,
   totalMassAmu,
   validateStructure,
@@ -99,6 +100,54 @@ describe("unit conversions", () => {
     expect(accelerationFromForce(1, 1)).toBeCloseTo(9648.53, 1);
     expect(accelerationFromForce(0, 1)).toBe(0);
     expect(() => accelerationFromForce(1, 0)).toThrow(/positive/);
+  });
+});
+
+describe("site measurements", () => {
+  it("measures the fcc nearest-neighbour distance with a minimum image", () => {
+    const fcc = createCrystal({ prototype: "fcc", a: 4.05, species: ["Al"] });
+    // Sites 0 and 1 are (0,0,0) and (0,1/2,1/2): nearest neighbours.
+    const measurement = measureSites(fcc, [0, 1]);
+    expect(measurement.distances).toHaveLength(1);
+    expect(measurement.distances[0]!).toBeCloseTo(4.05 / Math.sqrt(2), 10);
+    expect(measurement.angleDegrees).toBeUndefined();
+  });
+
+  it("wraps across the periodic boundary and says so", () => {
+    const structure = createCrystal({ prototype: "sc", a: 4, species: ["Cu"] });
+    const nearBoundary = {
+      ...structure,
+      sites: [
+        { species: "Cu", fractional_position: [0.02, 0, 0] as [number, number, number] },
+        { species: "Cu", fractional_position: [0.98, 0, 0] as [number, number, number] },
+      ],
+    };
+    const measurement = measureSites(nearBoundary, [0, 1]);
+    expect(measurement.distances[0]!).toBeCloseTo(0.16, 10);
+    expect(measurement.wrapped).toBe(true);
+  });
+
+  it("computes the angle at the second selected site", () => {
+    const structure = createCrystal({ prototype: "sc", a: 10, species: ["Ar"] });
+    const rightAngle = {
+      ...structure,
+      sites: [
+        { species: "Ar", fractional_position: [0.5, 0.5, 0.5] as [number, number, number] },
+        { species: "Ar", fractional_position: [0.6, 0.5, 0.5] as [number, number, number] },
+        { species: "Ar", fractional_position: [0.6, 0.6, 0.5] as [number, number, number] },
+      ],
+    };
+    const measurement = measureSites(rightAngle, [0, 1, 2]);
+    expect(measurement.angleDegrees!).toBeCloseTo(90, 8);
+    expect(measurement.distances).toHaveLength(2);
+  });
+
+  it("rejects out-of-range and duplicate selections", () => {
+    const structure = createCrystal({ prototype: "sc", a: 4, species: ["Cu"] });
+    expect(() => measureSites(structure, [])).toThrow(/at least one/i);
+    expect(() => measureSites(structure, [0, 9])).toThrow(/out of range/i);
+    const duplicate = measureSites(structure, [0, 0]);
+    expect(duplicate.indices).toEqual([0]);
   });
 });
 

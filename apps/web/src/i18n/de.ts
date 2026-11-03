@@ -295,6 +295,14 @@ export const de: Record<TranslationKey, string> = {
 
   "workbench.cpuFallback": "Stattdessen wird der TypeScript-CPU-Kernel verwendet.",
 
+  "studio.measurement": "Messung",
+  "studio.distance": "Abstand",
+  "studio.angle": "Winkel",
+  "studio.selectionCount": "Atome ausgewählt",
+  "studio.wrappedNote": "Mindestens ein Paar überschreitet eine periodische Grenze; gezeigt wird der Minimum-Image-Abstand.",
+  "studio.clearSelection": "Auswahl aufheben",
+  "studio.measureHint": "Zwei Atome für einen Abstand, drei für einen Winkel. Umschalt-Klick erweitert die Auswahl.",
+
   "science.disclaimer":
     "Virtuelle Simulationen sind an ihr Modell gebunden. Ein Ergebnis ist kein Laborbeweis, keine Syntheseaussage und keine Zertifizierung.",
   "science.localOnly": "Local-first: keine Struktur und kein Ergebnis wird hochgeladen.",

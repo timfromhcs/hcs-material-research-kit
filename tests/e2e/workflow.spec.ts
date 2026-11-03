@@ -42,6 +42,14 @@ test("creates a documented crystal and validates it", async ({ page }) => {
   await expect(page.getByText("valid", { exact: true }).first()).toBeVisible();
   await expect(page.locator("canvas")).toBeVisible();
   await expect(page.getByText("No unphysical overlaps", { exact: false })).toBeVisible();
+
+  // Distance measurement between the first two sites (diamond nearest neighbour
+  // across the fcc translation = a/sqrt(2) = 3.840 Å).
+  const rows = page.locator(".site-table tbody tr");
+  await rows.nth(0).click();
+  await rows.nth(1).click({ modifiers: ["Shift"] });
+  await expect(page.getByText("Distance 0–1")).toBeVisible();
+  await expect(page.getByText("3.840", { exact: false }).first()).toBeVisible();
 });
 
 test("refuses a calculation when the model has no parameters for the element", async ({ page }) => {

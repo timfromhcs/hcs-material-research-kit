@@ -92,7 +92,8 @@ const COVALENT_RADII: Record<string, number> = {
 export interface StructureViewerProps {
   structure: Structure;
   selectedSites?: number[];
-  onSelectSite?: (index: number | null) => void;
+  /** `additive` is true when Shift was held (toggle selection). */
+  onSelectSite?: (index: number | null, additive: boolean) => void;
   showCell?: boolean;
   showBonds?: boolean;
   height?: number;
@@ -362,7 +363,7 @@ export function StructureViewer({
       updatePointer(event);
       raycaster.setFromCamera(pointer, camera);
       const hit = raycaster.intersectObjects(atomMeshes, false)[0];
-      onSelectSite?.(hit ? (hit.object.userData.siteIndex as number) : null);
+      onSelectSite?.(hit ? (hit.object.userData.siteIndex as number) : null, event.shiftKey);
     };
 
     const onLeave = (): void => setHover(null);

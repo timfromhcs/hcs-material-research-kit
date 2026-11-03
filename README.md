@@ -6,9 +6,9 @@ research record with provenance.
 
 > Made with love by **hcsmedia** and **timfromhcs**.
 
-[![tests](https://img.shields.io/badge/TypeScript%20tests-111%20passing-4fd6c4)](#verification)
+[![tests](https://img.shields.io/badge/TypeScript%20tests-115%20passing-4fd6c4)](#verification)
 [![rust](https://img.shields.io/badge/Rust%20tests-8%20passing-4fd6c4)](#verification)
-[![python](https://img.shields.io/badge/Python%2FMCP-32%20passing-4fd6c4)](#verification)
+[![python](https://img.shields.io/badge/Python%2FMCP-36%20passing-4fd6c4)](#verification)
 [![e2e](https://img.shields.io/badge/Playwright%20E2E-7%20passing-4fd6c4)](#verification)
 
 ---
@@ -22,7 +22,8 @@ A working vertical slice, not a mock-up:
 | Canonical JSON Schema contracts | Implemented | `schemas/`, validated in TS and Python |
 | Structure model, periodic cells, minimum image | Implemented | 30+ unit tests incl. known densities |
 | CIF / POSCAR / XYZ / extXYZ import + export | Implemented (documented subsets) | round-trip fixtures |
-| Structure Studio with 3D viewer, supercells, substitution, vacancies | Implemented | manual browser test, screenshots |
+| Structure Studio with 3D viewer, supercells, substitution, vacancies | Implemented | E2E, manual screenshots |
+| Distance/angle measurement with minimum images | Implemented | unit tests + E2E assertion |
 | Lennard-Jones reference engine (energy, forces, FIRE, NVE MD, RDF) | Implemented | force-vs-gradient, energy conservation |
 | 1D heat/diffusion solver | Implemented | analytic Fourier-mode comparison |
 | Job lifecycle, events, warnings, provenance | Implemented | state-machine tests, job tests |
@@ -122,9 +123,9 @@ docs/                    Science, architecture, decisions, security, tutorials
 
 Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96):
 ```text
-TypeScript 111 tests passing   vitest run (includes 11 TS ↔ WASM tests)
+TypeScript 115 tests passing   vitest run (includes 11 TS ↔ WASM tests)
 Rust         8 tests passing   cargo test -p hcs-compute-core -p hcs-compute-wasm
-Python      32 tests passing   pytest (includes real MCP client/server round-trip)
+Python      36 tests passing   pytest (includes real MCP client/server round-trip)
 Playwright   7 tests passing   production bundle, Chrome channel, WASM backend
 Web build   vite build ok      ~375 kB app + 471 kB three + 218 kB worker + 58 kB wasm
 npm audit   0 vulnerabilities

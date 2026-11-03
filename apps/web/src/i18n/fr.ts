@@ -293,6 +293,14 @@ export const fr: Record<TranslationKey, string> = {
 
   "workbench.cpuFallback": "Le noyau CPU TypeScript est utilisé à la place.",
 
+  "studio.measurement": "Mesure",
+  "studio.distance": "Distance",
+  "studio.angle": "Angle",
+  "studio.selectionCount": "sites sélectionnés",
+  "studio.wrappedNote": "Au moins une paire traverse une frontière périodique ; la distance minimale est affichée.",
+  "studio.clearSelection": "Effacer la sélection",
+  "studio.measureHint": "Deux sites pour une distance, trois pour un angle. Maj-clic ajoute à la sélection.",
+
   "science.disclaimer":
     "Les simulations virtuelles dépendent de leur modèle. Un résultat n'est pas une preuve de laboratoire, ni une affirmation de synthèse, ni une certification.",
   "science.localOnly": "Local-first : aucune structure ni résultat n'est envoyé.",

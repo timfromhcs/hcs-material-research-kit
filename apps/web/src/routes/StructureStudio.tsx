@@ -6,6 +6,7 @@ import {
   exportStructure,
   importStructure,
   makeSupercell,
+  measureSites,
   prototypeInfo,
   setSitePosition,
   substituteSpecies,
@@ -55,7 +56,7 @@ export function StructureStudio(): JSX.Element {
   const [latticeC, setLatticeC] = useState(5.431);
   const [species, setSpecies] = useState<string[]>(["Si"]);
   const [supercell, setSupercell] = useState({ na: 1, nb: 1, nc: 1 });
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number[]>([]);
   const [substituteTo, setSubstituteTo] = useState("Ge");
   const [newSpecies, setNewSpecies] = useState("C");
   const [newPosition, setNewPosition] = useState<[string, string, string]>(["0.5", "0.5", "0.5"]);
@@ -65,6 +66,27 @@ export function StructureStudio(): JSX.Element {
   const [showCell, setShowCell] = useState(true);
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [dragging, setDragging] = useState(false);
+
+  const measurement = useMemo(() => {
+    if (!current || selected.length < 2) return null;
+    try {
+      return measureSites(current, selected);
+    } catch {
+      return null;
+    }
+  }, [current, selected]);
+
+  const toggleSelection = (index: number | null, additive: boolean): void => {
+    if (index === null) {
+      setSelected([]);
+      return;
+    }
+    setSelected((previous) => {
+      if (!additive) return [index];
+      if (previous.includes(index)) return previous.filter((value) => value !== index);
+      return [...previous, index].slice(-3);
+    });
+  };
 
   const info = prototypeInfo(prototype);
   const validation = current?.validation;
@@ -100,7 +122,7 @@ export function StructureStudio(): JSX.Element {
         species: needed,
       });
       workspace.addStructure(structure);
-      setSelected(null);
+      setSelected([]);
       setNotice({ tone: "info", text: `${structure.composition?.reduced_formula} · ${structure.sites.length} ${t("common.atoms")}` });
     } catch (error) {
       setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
@@ -111,7 +133,7 @@ export function StructureStudio(): JSX.Element {
     if (!current) return;
     workspace.removeStructure(current.structure_id);
     workspace.addStructure(next);
-    setSelected(null);
+    setSelected([]);
   };
 
   const handleSupercell = (): void => {
@@ -197,8 +219,8 @@ export function StructureStudio(): JSX.Element {
               <>
                 <StructureViewer
                   structure={current}
-                  selectedSites={selected === null ? [] : [selected]}
-                  onSelectSite={setSelected}
+                  selectedSites={selected}
+                  onSelectSite={toggleSelection}
                   showBonds={showBonds}
                   showCell={showCell}
                   emptyMessage={t("studio.needStructure")}
@@ -232,8 +254,8 @@ export function StructureStudio(): JSX.Element {
                     {current.sites.map((site, index) => (
                       <tr
                         key={`${site.label ?? site.species}-${index}`}
-                        aria-selected={selected === index}
-                        onClick={() => setSelected(index)}
+                        aria-selected={selected.includes(index)}
+                        onClick={(event) => toggleSelection(index, event.shiftKey)}
                       >
                         <td className="num">{index}</td>
                         <td>{site.species}</td>
@@ -369,12 +391,52 @@ export function StructureStudio(): JSX.Element {
                 </div>
               </Panel>
 
+              <Panel title={t("studio.measurement")} subtitle={t("studio.measureHint")}>
+                {measurement ? (
+                  <div className="stack" style={{ gap: 10 }}>
+                    <div className="grid-2">
+                      {measurement.distances.map((distance, index) => (
+                        <Stat
+                          key={index}
+                          label={`${t("studio.distance")} ${measurement.indices[index]}–${measurement.indices[index + 1]}`}
+                          value={distance.toFixed(6)}
+                          unit="Å"
+                        />
+                      ))}
+                      {measurement.angleDegrees !== undefined && (
+                        <Stat
+                          label={t("studio.angle")}
+                          value={measurement.angleDegrees.toFixed(3)}
+                          unit="°"
+                          hint={`${measurement.indices.join(" → ")}`}
+                        />
+                      )}
+                    </div>
+                    {measurement.vector && (
+                      <p className="tiny muted mono">
+                        Δ = [{measurement.vector.map((v) => v.toFixed(4)).join(", ")}] Å
+                      </p>
+                    )}
+                    {measurement.wrapped && <Callout tone="info">{t("studio.wrappedNote")}</Callout>}
+                    <div className="row">
+                      <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
+                        {t("studio.clearSelection")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="small muted">{t("studio.measureHint")}</p>
+                )}
+              </Panel>
+
               <Panel title={t("studio.edit")}>
                 <div className="stack" style={{ gap: 12 }}>
                   <p className="small secondary">
-                    {selected === null
+                    {selected.length === 0
                       ? t("studio.noSelection")
-                      : `${t("studio.selected")}: ${selected} · ${current.sites[selected]?.species} · ${current.sites[selected]?.fractional_position.map((v) => v.toFixed(3)).join(", ")}`}
+                      : `${selected.length} ${t("studio.selectionCount")}: ${selected
+                          .map((index) => `${index} (${current.sites[index]?.species})`)
+                          .join(", ")}`}
                   </p>
                   <div className="row">
                     <input
@@ -387,11 +449,11 @@ export function StructureStudio(): JSX.Element {
                     />
                     <Button
                       size="sm"
-                      disabled={selected === null}
+                      disabled={selected.length === 0}
                       onClick={() => {
-                        if (selected === null || !current) return;
+                        if (selected.length === 0 || !current) return;
                         try {
-                          replaceCurrent(substituteSpecies(current, [selected], substituteTo));
+                          replaceCurrent(substituteSpecies(current, selected, substituteTo));
                         } catch (error) {
                           setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
                         }
@@ -402,11 +464,11 @@ export function StructureStudio(): JSX.Element {
                     <Button
                       size="sm"
                       variant="danger"
-                      disabled={selected === null}
+                      disabled={selected.length === 0}
                       onClick={() => {
-                        if (selected === null || !current) return;
+                        if (selected.length === 0 || !current) return;
                         try {
-                          replaceCurrent(createVacancy(current, [selected]));
+                          replaceCurrent(createVacancy(current, selected));
                         } catch (error) {
                           setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
                         }
@@ -415,14 +477,14 @@ export function StructureStudio(): JSX.Element {
                       {t("studio.vacancy")}
                     </Button>
                   </div>
-                  {selected !== null && (
+                  {selected.length > 0 && (
                     <div className="row">
                       {(["a", "b", "c"] as const).map((axis, index) => (
                         <input
                           key={axis}
                           className="input num"
                           style={{ maxWidth: 86 }}
-                          defaultValue={current.sites[selected]?.fractional_position[index]?.toFixed(4) ?? "0"}
+                          defaultValue={current.sites[selected[0]!]?.fractional_position[index]?.toFixed(4) ?? "0"}
                           aria-label={`f_${axis}`}
                           onChange={(event) => {
                             const next = [...moveTo] as [string, string, string];
@@ -435,9 +497,9 @@ export function StructureStudio(): JSX.Element {
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          if (selected === null || !current) return;
+                          if (selected.length === 0 || !current) return;
                           try {
-                            replaceCurrent(setSitePosition(current, selected, parsePosition(moveTo)));
+                            replaceCurrent(setSitePosition(current, selected[0]!, parsePosition(moveTo)));
                           } catch (error) {
                             setNotice({ tone: "err", text: error instanceof Error ? error.message : String(error) });
                           }
@@ -500,7 +562,7 @@ export function StructureStudio(): JSX.Element {
                     onClick={() => {
                       if (!current) return;
                       workspace.removeStructure(current.structure_id);
-                      setSelected(null);
+                      setSelected([]);
                     }}
                   >
                     {t("studio.deleteStructure")}
@@ -526,7 +588,7 @@ export function StructureStudio(): JSX.Element {
                   style={{ cursor: "pointer" }}
                   onClick={() => {
                     workspace.selectStructure(structure.structure_id);
-                    setSelected(null);
+                    setSelected([]);
                   }}
                 >
                   <Badge tone={validationTone(structure.validation?.status)}>

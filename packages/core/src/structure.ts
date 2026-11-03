@@ -1,5 +1,4 @@
-import { det3, dot, inverse3, matVec, norm, sub, vecMat, type Mat3, type Vec3 } from "./linalg.js";
-import { getElement, baseSymbol, isKnownElement } from "./elements.js";
+import { clamp, det3, dot, inverse3, matVec, norm, sub, vecMat, type Mat3, type Vec3 } from "./linalg.js";import { getElement, baseSymbol, isKnownElement } from "./elements.js";
 import { hashJson } from "./hash.js";
 import { fromAngstrom, toAngstrom } from "./units.js";
 import { SCHEMA_VERSION, type Composition, type Site, type Structure, type ValidationReport } from "./types.js";
@@ -446,4 +445,64 @@ export function cellCorners(structure: Structure): Vec3[] {
     corners.push(matVec(m, f));
   }
   return corners;
+}
+
+export interface SiteMeasurement {
+  /** Indices that were measured, in the given order. */
+  indices: number[];
+  /** Pairwise distances in Å using minimum images (length = indices-1 for a chain). */
+  distances: number[];
+  /** Vector from the first to the second site in Å (minimum image). */
+  vector?: Vec3;
+  /** Angle at the second site between first→second and third→second, in degrees. */
+  angleDegrees?: number;
+  /** True when at least one pair crosses a periodic boundary. */
+  wrapped: boolean;
+}
+
+/**
+ * Measures distances (2 sites) and an angle (3 sites) using minimum-image
+ * vectors. The result says whether periodic wrapping was involved, because a
+ * distance across a boundary is not the distance a viewer might suggest.
+ */
+export function measureSites(structure: Structure, indices: number[]): SiteMeasurement {
+  const unique = indices.filter((index, position) => indices.indexOf(index) === position);
+  if (unique.length < 1) throw new Error("Select at least one site to measure");
+  for (const index of unique) {
+    if (index < 0 || index >= structure.sites.length) {
+      throw new Error(`Site index ${index} is out of range`);
+    }
+  }
+  const positions = cartesianPositions(structure);
+  const distances: number[] = [];
+  let wrapped = false;
+  let vector: Vec3 | undefined;
+  for (let i = 1; i < unique.length; i++) {
+    const delta = minimumImageVector(structure, positions[unique[i - 1]!]!, positions[unique[i]!]!);
+    const distance = norm(delta);
+    if (distance <= 0) throw new Error("Selected sites coincide");
+    const direct = norm(sub(positions[unique[i]!]!, positions[unique[i - 1]!]!));
+    if (Math.abs(direct - distance) > 1e-6) wrapped = true;
+    distances.push(distance);
+    if (i === 1) vector = delta;
+  }
+
+  let angleDegrees: number | undefined;
+  if (unique.length >= 3) {
+    const a = minimumImageVector(structure, positions[unique[1]!]!, positions[unique[0]!]!);
+    const b = minimumImageVector(structure, positions[unique[1]!]!, positions[unique[2]!]!);
+    const norms = norm(a) * norm(b);
+    if (norms > 0) {
+      const cosine = clamp(dot(a, b) / norms, -1, 1);
+      angleDegrees = (Math.acos(cosine) * 180) / Math.PI;
+    }
+  }
+
+  return {
+    indices: unique,
+    distances,
+    ...(vector ? { vector } : {}),
+    ...(angleDegrees !== undefined ? { angleDegrees } : {}),
+    wrapped,
+  };
 }
