@@ -51,13 +51,12 @@ before any publication.
 | One validated classical workflow | Done | LJ energy/relax/NVE/RDF with tests |
 | Analytic PDE verification | Done | 1D heat equation |
 | Jobs, progress, cancel | Done | state machine, worker, hard cancel |
-| WASM compilation of the Rust core | Done (energy/forces) | `crates/compute-wasm`, 8 parity tests, in-browser cross-check |
+| WASM compilation of the Rust core | Done (energy, relax, MD) | `crates/compute-wasm`, 11 parity tests, in-browser cross-check, E2E backend assertion |
 | WebGPU kernels + CPU fallback | **Not started** | capability probe only |
 | Native wgpu/Vulkan path | **Not started** | crate is CPU-only |
 
-**Gate status:** partially met. WASM parity exists for energy/forces; relaxation/MD still run
-the TypeScript kernel, and no GPU/WASM parity exists for the GPU paths because they are not
-implemented.
+**Gate status:** WASM parity exists for every implemented atomistic task. GPU paths remain
+unimplemented and are not claimed.
 
 ## Phase 4 — Python package, CLI, external engines
 

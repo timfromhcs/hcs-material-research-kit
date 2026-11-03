@@ -71,6 +71,7 @@ export interface WorkerResult {
   trajectory?: { step: number; timePs: number; positions: [number, number, number][] }[];
   crossCheck?: CrossCheck;
   crossCheckError?: string;
+  wasmError?: string;
   error?: { code: string; message: string };
 }
 
@@ -146,10 +147,22 @@ async function handle(request: WorkerRequest): Promise<void> {
   if (request.type !== "run") return;
 
   try {
+    // Prefer the WASM kernel for LJ tasks; fall back to the TypeScript CPU
+    // implementation if the asset cannot be instantiated. The fallback is
+    // reported, never hidden.
+    let kernel: WasmKernel | null = null;
+    let wasmError: string | undefined;
+    try {
+      kernel = await wasmKernel();
+    } catch (error) {
+      wasmError = error instanceof Error ? error.message : String(error);
+    }
+
     const outcome = runJob({
       spec: request.spec,
       structure: request.structure,
       projectId: request.projectId,
+      ...(kernel ? { energyKernel: kernel.energyForces.bind(kernel) } : {}),
       onProgress: (update) => {
         scope.postMessage({
           type: "progress",
@@ -182,6 +195,7 @@ async function handle(request: WorkerRequest): Promise<void> {
       })),
       crossCheck,
       crossCheckError,
+      wasmError,
       error: outcome.error,
     } satisfies WorkerResult);
   } catch (error) {

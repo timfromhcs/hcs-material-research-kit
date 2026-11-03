@@ -12,7 +12,7 @@
 
 import type { Vec3 } from "../linalg.js";
 import type { Structure } from "../types.js";
-import type { LJModel } from "./lj.js";
+import type { EnergyForces, LJEvaluationOptions, LJModel } from "./lj.js";
 import { computeEnergyForces } from "./lj.js";
 import {
   cartesianToFractional,
@@ -21,6 +21,17 @@ import {
   validateStructure,
 } from "../structure.js";
 
+/**
+ * Evaluates energy and forces. The TypeScript CPU kernel is the default; the
+ * WASM kernel has the same contract, so a caller can swap implementations
+ * without changing the minimiser.
+ */
+export type EnergyForcesKernel = (
+  structure: Structure,
+  model: LJModel,
+  options?: LJEvaluationOptions,
+) => EnergyForces;
+
 export interface RelaxOptions {
   maxForceEvPerA?: number;
   maxSteps?: number;
@@ -28,6 +39,8 @@ export interface RelaxOptions {
   maxStep?: number;
   /** Requested pair cutoff in angstrom; clamped to the cell minimum-image radius. */
   cutoff?: number;
+  /** Optional alternative implementation (e.g. WASM); must match the CPU contract. */
+  energyKernel?: EnergyForcesKernel;
   /** Called after every evaluated step; return false to cancel. */
   onStep?: (info: RelaxStepInfo) => boolean | void;
 }
@@ -96,9 +109,14 @@ export function relaxFire(
     };
   };
 
+  const evaluate: EnergyForcesKernel =
+    options.energyKernel ??
+    ((candidate, candidateModel, evaluation) =>
+      computeEnergyForces(candidate, candidateModel, evaluation ?? { cutoff: options.cutoff }));
+
   for (step = 0; step < maxSteps; step++) {
     const displaced = toStructure();
-    const evaluated = computeEnergyForces(displaced, model, { cutoff: options.cutoff });
+    const evaluated = evaluate(displaced, model, { cutoff: options.cutoff });
     energy = evaluated.energy;
     maxForce = evaluated.maxForce;
     if (!Number.isFinite(energy) || !Number.isFinite(maxForce)) {
@@ -182,7 +200,7 @@ export function relaxFire(
   }
 
   const finalStructure = toStructure();
-  const final = computeEnergyForces(finalStructure, model, { cutoff: options.cutoff });
+  const final = evaluate(finalStructure, model, { cutoff: options.cutoff });
   return {
     structure: finalStructure,
     energy: final.energy,

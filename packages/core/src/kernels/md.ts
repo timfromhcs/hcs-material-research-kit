@@ -14,6 +14,7 @@ import { makeGaussian, makeRng, type Vec3 } from "../linalg.js";
 import type { Structure } from "../types.js";
 import type { LJModel } from "./lj.js";
 import { computeEnergyForces } from "./lj.js";
+import type { EnergyForcesKernel } from "./relax.js";
 import {
   cartesianToFractional,
   compositionOf,
@@ -37,6 +38,8 @@ export interface MdOptions {
   trajectoryInterval?: number;
   /** Requested pair cutoff in angstrom; clamped to the cell minimum-image radius. */
   cutoff?: number;
+  /** Optional alternative implementation (e.g. WASM); must match the CPU contract. */
+  energyKernel?: EnergyForcesKernel;
   /** Called after each sampled step; return false to cancel. */
   onStep?: (info: MdStepInfo) => boolean | void;
 }
@@ -167,8 +170,13 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
     };
   };
 
+  const evaluate: EnergyForcesKernel =
+    options.energyKernel ??
+    ((candidate, candidateModel, evaluation) =>
+      computeEnergyForces(candidate, candidateModel, evaluation ?? { cutoff: options.cutoff }));
+
   let current = toStructure(positions);
-  let evaluated = computeEnergyForces(current, model, { cutoff: options.cutoff });
+  let evaluated = evaluate(current, model, { cutoff: options.cutoff });
   const initialPotentialEv = evaluated.energy;
   const initialKineticEv = kineticOf(velocities);
   const initialTotal = initialPotentialEv + initialKineticEv;
@@ -223,7 +231,7 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
     }
 
     current = toStructure(positions);
-    evaluated = computeEnergyForces(current, model, { cutoff: options.cutoff });
+    evaluated = evaluate(current, model, { cutoff: options.cutoff });
     forces = evaluated.forces;
 
     for (let i = 0; i < positions.length; i++) {
@@ -267,7 +275,7 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
   }
 
   const finalStructure = toStructure(positions);
-  const finalEvaluated = computeEnergyForces(finalStructure, model, { cutoff: options.cutoff });
+  const finalEvaluated = evaluate(finalStructure, model, { cutoff: options.cutoff });
   const finalKinetic = kineticOf(velocities);
   const finalTotal = finalEvaluated.energy + finalKinetic;
   const drift = finalTotal - initialTotal;

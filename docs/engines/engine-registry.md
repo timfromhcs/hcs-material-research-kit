@@ -14,9 +14,10 @@ UI or called through MCP.
 Execution backends are probed, not assumed: WebGPU adapters are detected and reported, but no
 HCS kernel currently has a WebGPU implementation, so the CPU path is used and the UI says so.
 
-The WASM backend is the Rust kernel compiled with a C ABI (`crates/compute-wasm`). It currently
-covers energy/force evaluation only and is used in two ways: as a parity test in CI and as an
-in-browser cross-check on every single-point job. Relaxation and MD run the TypeScript kernel.
+The WASM backend is the Rust kernel compiled with a C ABI (`crates/compute-wasm`). It covers
+energy/force evaluation, FIRE relaxation and NVE molecular dynamics, and is used for the actual
+computation in the browser. Every result records `compute_backend`; single-point energy jobs are
+additionally re-evaluated with the other implementation and the deviation is shown.
 
 ## Planned (not implemented, not runnable)
 

@@ -53,6 +53,7 @@ export function Workbench(): JSX.Element {
   const trajectory = live?.trajectory ?? storedActive?.trajectory;
   const crossCheck = live?.crossCheck ?? storedActive?.crossCheck;
   const crossCheckError = live?.crossCheckError ?? storedActive?.crossCheckError;
+  const wasmError = live?.wasmError ?? storedActive?.wasmError;
 
   // A trajectory written to OPFS is loaded on demand so the project does not
   // keep large arrays in IndexedDB.
@@ -140,6 +141,7 @@ export function Workbench(): JSX.Element {
         trajectoryLocation: outcome.trajectory ? "memory" : "none",
         crossCheck: outcome.crossCheck,
         crossCheckError: outcome.crossCheckError,
+        wasmError: outcome.wasmError,
       };
       setLive(entry);
       if (outcome.job.state === "completed" || outcome.job.state === "failed") {
@@ -460,8 +462,13 @@ export function Workbench(): JSX.Element {
                 ) : null
               ) : null}
 
-              {(crossCheck || crossCheckError) && (
-                <section style={{ marginTop: 18 }}>
+              {wasmError && (
+                <Callout tone="warn">
+                  {t("workbench.crossCheckUnavailable")}: {wasmError}. {t("workbench.cpuFallback")}
+                </Callout>
+              )}
+
+              {(crossCheck || crossCheckError) && (                <section style={{ marginTop: 18 }}>
                   <div className="row" style={{ justifyContent: "space-between" }}>
                     <h3>{t("workbench.crossCheck")}</h3>
                     {crossCheck && (

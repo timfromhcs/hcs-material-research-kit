@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   JobController,
+  LJ_NOBLE_GASES,
   assertTransition,
   canTransition,
+  computeEnergyForces,
   createCrystal,
   makeSupercell,
   runContinuumJob,
   runJob,
   structureHash,
   makeRng,
+  type EnergyForcesKernel,
   type SimulationSpec,
   type Structure,
 } from "@hcs-materials/core";
@@ -209,8 +212,28 @@ describe("runJob: relaxation and MD", () => {
     expect(Math.abs(Number(drift?.value))).toBeLessThan(1e-3);
   });
 
-  it("cancels before starting when a cancellation was requested", () => {
-    const structure = argon();
+  it("records which kernel backend produced the numbers", () => {
+    const structure = argon(2);
+    let calls = 0;
+    const alternative: EnergyForcesKernel = (candidate, model, evaluation) => {
+      calls++;
+      return { ...computeEnergyForces(candidate, model, evaluation), backend: "wasm" };
+    };
+    const outcome = runJob({ spec: spec(structure), structure, energyKernel: alternative });
+    expect(outcome.job.state).toBe("completed");
+    expect(calls).toBeGreaterThan(0);
+    const backend = outcome.result?.quantities.find((quantity) => quantity.name === "compute_backend");
+    expect(backend?.value).toBe("wasm");
+    expect(outcome.provenance?.environment?.backend).toBe("wasm");
+    // The physics must be unchanged: the wrapper delegates to the CPU kernel.
+    const energy = outcome.result?.quantities.find((quantity) => quantity.name === "total_potential_energy");
+    expect(Number(energy?.value)).toBeCloseTo(
+      computeEnergyForces(structure, LJ_NOBLE_GASES).energy,
+      10,
+    );
+  });
+
+  it("cancels before starting when a cancellation was requested", () => {    const structure = argon();
     const outcome = runJob({
       spec: spec(structure, {
         task_type: "structure.relax",

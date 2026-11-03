@@ -293,6 +293,8 @@ export const de: Record<TranslationKey, string> = {
   "workbench.crossCheckFailed": "Die Implementierungen weichen über die Toleranz hinaus ab. Ergebnis nicht verwenden.",
   "workbench.crossCheckUnavailable": "WASM-Vergleich nicht verfügbar",
 
+  "workbench.cpuFallback": "Stattdessen wird der TypeScript-CPU-Kernel verwendet.",
+
   "science.disclaimer":
     "Virtuelle Simulationen sind an ihr Modell gebunden. Ein Ergebnis ist kein Laborbeweis, keine Syntheseaussage und keine Zertifizierung.",
   "science.localOnly": "Local-first: keine Struktur und kein Ergebnis wird hochgeladen.",

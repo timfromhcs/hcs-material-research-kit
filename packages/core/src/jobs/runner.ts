@@ -13,6 +13,7 @@ import { buildProvenance } from "./provenance.js";
 import { requireEngine } from "../engines.js";
 import { getLJModel, type LJModel } from "../kernels/lj.js";
 import { computeEnergyForces, maxCutoffForCell } from "../kernels/lj.js";
+import type { EnergyForcesKernel } from "../kernels/relax.js";
 import { relaxFire } from "../kernels/relax.js";
 import { runMd, type MdTrajectoryFrame } from "../kernels/md.js";
 import { computeRdf } from "../kernels/analysis.js";
@@ -41,6 +42,12 @@ export interface RunJobOptions {
    * (see docs/decisions/ADR-0003-job-cancellation.md).
    */
   cancel?: { requested: boolean };
+  /**
+   * Optional alternative energy/force implementation (for example the WASM
+   * kernel). It must match the CPU contract, including cutoff handling and
+   * error behaviour; the job records which backend produced the numbers.
+   */
+  energyKernel?: EnergyForcesKernel;
   now?: () => Date;
 }
 
@@ -267,7 +274,10 @@ export function runJob(options: RunJobOptions): JobOutcome {
 
     // Preflight: a cell whose supported cutoff reaches no other atom has no
     // physics in it. Refusing is honest; returning E = 0 would look like data.
-    const preflight = computeEnergyForces(structure, model, { cutoff: effectiveCutoff });
+    const evaluate: EnergyForcesKernel =
+      options.energyKernel ?? ((candidate, candidateModel, evaluation) => computeEnergyForces(candidate, candidateModel, evaluation));
+    const preflight = evaluate(structure, model, { cutoff: effectiveCutoff });
+    const backend = preflight.backend;
     if (preflight.pairCount === 0) {
       return failJob(
         controller,
@@ -280,7 +290,7 @@ export function runJob(options: RunJobOptions): JobOutcome {
     }
 
     if (spec.task_type === "energy.evaluate") {
-      const evaluatedNow = computeEnergyForces(structure, model, { cutoff: effectiveCutoff });
+      const evaluatedNow = evaluate(structure, model, { cutoff: effectiveCutoff });
       report("analysis", 0.9, "Collecting single-point energy and forces");
       const result: ResultBundle = {
         schema_version: SCHEMA_VERSION,
@@ -298,6 +308,7 @@ export function runJob(options: RunJobOptions): JobOutcome {
           { name: "pair_count", value: evaluatedNow.pairCount, unit: "1" },
           { name: "atom_count", value: structure.sites.length, unit: "1" },
           { name: "cutoff", value: model.cutoff, unit: CANONICAL_UNITS.length },
+          { name: "compute_backend", value: backend, unit: "1" },
         ],
         convergence: {
           converged: true,
@@ -319,6 +330,7 @@ export function runJob(options: RunJobOptions): JobOutcome {
         maxForceEvPerA: maxForceTarget,
         maxSteps,
         cutoff: effectiveCutoff,
+        energyKernel: evaluate,
         onStep: ({ step, energy, maxForce }) => {
           report("relax", Math.min(0.95, 0.05 + 0.9 * (step / maxSteps)), `Step ${step}: E=${energy.toFixed(4)} eV, Fmax=${maxForce.toFixed(4)} eV/Å`);
           return !cancelled();
@@ -343,6 +355,7 @@ export function runJob(options: RunJobOptions): JobOutcome {
           { name: "max_force", value: relaxation.maxForce, unit: CANONICAL_UNITS.force },
           { name: "steps", value: relaxation.steps, unit: "1" },
           { name: "converged", value: relaxation.converged, unit: "1" },
+          { name: "compute_backend", value: backend, unit: "1" },
         ],
         series: [
           {
@@ -408,6 +421,7 @@ export function runJob(options: RunJobOptions): JobOutcome {
         temperature,
         seed: spec.seed ?? 12345,
         cutoff: effectiveCutoff,
+        energyKernel: evaluate,
         sampleInterval,
         trajectoryInterval,
         onStep: ({ step, totalEv }) => {
@@ -469,6 +483,7 @@ export function runJob(options: RunJobOptions): JobOutcome {
           { name: "steps", value: md.steps, unit: "1" },
           { name: "timestep", value: md.timestepPs, unit: CANONICAL_UNITS.time },
           { name: "ensemble", value: "NVE", unit: "1" },
+          { name: "compute_backend", value: backend, unit: "1" },
         ],
         series,
         convergence: {
@@ -574,12 +589,14 @@ function finish(
   now: () => Date,
   trajectory: MdTrajectoryFrame[] | undefined,
 ): JobOutcome {
+  const backendQuantity = result.quantities.find((quantity) => quantity.name === "compute_backend");
+  const backend = backendQuantity?.value === "wasm" ? "wasm" : "cpu";
   const provenance = buildProvenance({
     spec,
     structure,
     engine,
     model,
-    backend: "cpu",
+    backend,
     randomSeed: spec.seed,
     deterministic: spec.seed !== undefined,
     recordedAt: now().toISOString(),
@@ -591,7 +608,7 @@ function finish(
   };
   controller.setResultRef(`${controller.snapshot.job_id}/result.json`);
   controller.setMetrics({
-    backend: "cpu",
+    backend,
     wall_time_seconds: Math.max(
       0,
       (new Date(now()).getTime() - new Date(controller.snapshot.created_at).getTime()) / 1000,

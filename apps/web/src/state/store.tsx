@@ -56,6 +56,7 @@ export interface StoredJob {
     passed: boolean;
   };
   crossCheckError?: string;
+  wasmError?: string;
 }
 
 export interface ProjectInfo {

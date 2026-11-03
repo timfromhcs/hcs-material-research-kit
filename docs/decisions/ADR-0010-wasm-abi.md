@@ -28,18 +28,23 @@ JavaScript glue layer that can drift.
 
 ## Use in the product
 
-The solver worker keeps the TypeScript kernel as the job engine and runs the WASM kernel as a
-**cross-implementation check** for single-point evaluations: it reports the maximum energy and
-force deviation and whether both agree within 1e-8 (observed: ~1e-16). A disagreement is shown
-as an error, not hidden. If the WASM asset cannot be loaded, the job still completes and the
-check states why it was unavailable.
+The solver worker instantiates the WASM kernel once per job and passes it to the job runner for
+**energy evaluation, FIRE relaxation and NVE molecular dynamics**. The runner records the backend
+in the result (`compute_backend`) and in the provenance environment, so a result states which
+implementation produced it. If the asset cannot be loaded, the job falls back to the TypeScript
+kernel and reports the reason.
+
+Additionally, every single-point energy job is re-evaluated with the *other* implementation and
+the maximum energy/force deviation is shown (tolerance 1e-8; observed ~1e-16). A disagreement is
+displayed as an error, not hidden.
 
 ## Consequences
 
-- The browser has two independent implementations of the pair potential; the numbers are
-  verified on every energy job instead of only in CI.
-- Backend coverage is honest but partial: relaxation and MD still run the TypeScript kernel.
-  A full kernel abstraction is a separate decision.
+- The browser has two independent implementations; the WASM path is used for the real
+  computation, not only for a badge.
+- Relaxation and MD call into WASM once per force evaluation, so array copying and allocation
+  cost matters for large cells. The current buffers are allocated per call; a reusable buffer
+  pool is a follow-up optimisation, not a correctness issue.
 - The ABI is versioned; a stale asset is detected at load time.
 - No wasm-bindgen dependency, no generated glue, ~58 kB artefact.
 
@@ -47,12 +52,16 @@ check states why it was unavailable.
 
 - `packages/wasm/test/parity.test.ts` (8 tests): argon, mixed Ar/Kr, cutoff clamping, explicit
   cutoff, zero-interaction cell, degenerate cell, unsupported element.
+- `packages/wasm/test/kernels.test.ts` (3 tests): relaxation to the same minimum within 1e-8,
+  identical first MD step within 1e-10, energy conservation with the WASM kernel.
 - `crates/compute-core` parity test against the TypeScript fixture (1e-10 eV).
-- End-to-end: `tests/e2e/workflow.spec.ts` asserts the in-browser cross-check passes.
+- End-to-end: `tests/e2e/workflow.spec.ts` asserts the cross-check passes and that the result
+  reports backend `wasm`.
 
 ## Alternatives rejected
 
 - **wasm-bindgen / wasm-pack**: extra toolchain, generated JS that can drift, larger artefact,
   and no benefit for one function with numeric buffers.
-- **Run jobs only in WASM**: would break the readable TypeScript reference and the ability to
-  compare implementations at runtime.
+- **Run only the cross-check in WASM**: would leave the browser physics on a single
+  implementation and make the cross-check the only consumer.
+

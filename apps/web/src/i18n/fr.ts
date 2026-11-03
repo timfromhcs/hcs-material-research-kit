@@ -291,6 +291,8 @@ export const fr: Record<TranslationKey, string> = {
   "workbench.crossCheckFailed": "Les implémentations divergent au-delà de la tolérance. Ne pas utiliser ce résultat.",
   "workbench.crossCheckUnavailable": "Contrôle WASM indisponible",
 
+  "workbench.cpuFallback": "Le noyau CPU TypeScript est utilisé à la place.",
+
   "science.disclaimer":
     "Les simulations virtuelles dépendent de leur modèle. Un résultat n'est pas une preuve de laboratoire, ni une affirmation de synthèse, ni une certification.",
   "science.localOnly": "Local-first : aucune structure ni résultat n'est envoyé.",

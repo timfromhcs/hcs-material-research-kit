@@ -26,8 +26,9 @@
   structures_convert, project_validate + 2 resources + 2 prompts.
 - **Rust crate** (`hcs-compute-core`): switched Lennard-Jones energy/forces, parity-tested.
 - **WASM kernel** (`@hcs-materials/wasm`): the Rust kernel compiled to wasm32-unknown-unknown
-  with a plain C ABI; the worker runs it as a second implementation on every energy job and
-  reports the deviation.
+  with a plain C ABI. The worker uses it for energy evaluation, FIRE relaxation and NVE MD, and
+  records the backend (`cpu`/`wasm`) in the result and provenance. Energy jobs are additionally
+  re-evaluated with the other implementation and the deviation is reported.
 
 ## Completed capabilities
 
@@ -45,7 +46,7 @@
 
 - MCP simulation tools (blocked until a stable job API is exposed over MCP).
 - OPFS artefacts beyond trajectories (currently only trajectories are written to OPFS).
-- Extending the WASM backend from energy/forces to relaxation and MD.
+- Reusable WASM buffers (currently allocated per force evaluation; correctness is unaffected).
 
 ## Known limitations
 
@@ -71,6 +72,8 @@
 | Heat solver vs analytic sine mode | max abs error < 5e-4 | `packages/core/test/heat1d.test.ts` |
 | TS ↔ Rust energy/forces | abs < 1e-10 | `crates/compute-core/src/lib.rs` |
 | TS ↔ WASM energy/forces | abs < 1e-10, 8 tests | `packages/wasm/test/parity.test.ts` |
+| TS ↔ WASM relaxation minimum | abs < 1e-8 eV, 3 tests | `packages/wasm/test/kernels.test.ts` |
+| TS ↔ WASM first MD step | abs < 1e-10, same seed | `packages/wasm/test/kernels.test.ts` |
 | In-browser cross-check | tolerance 1e-8, asserted in E2E | worker + `tests/e2e` |
 | TS ↔ Python structure identity hash | exact equality | `python/.../tests/test_structure.py` |
 | Silicon density 2.329 g/cm³ | within 1 % | `packages/core/test/structure.test.ts` |
@@ -118,7 +121,7 @@
 
 ## Next 5 concrete tasks
 
-1. Extend the WASM backend to relaxation and MD via a kernel abstraction in the job runner.
+1. Reuse WASM buffers across force evaluations and benchmark large cells.
 2. Implement MCP simulation tools over a stable, approval-gated job API.
 3. Add checkpoint/restart for long MD runs (cooperative pause).
 4. Add a Tauri shell and engine manager skeleton with honest unavailable states.

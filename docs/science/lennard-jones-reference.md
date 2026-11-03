@@ -109,8 +109,9 @@ The same physics exists twice: in TypeScript (`packages/core`) and in Rust
 
 1. in CI against a committed reference fixture (1e-10 eV);
 2. in the browser on every single-point energy job, where the worker re-evaluates the cell with
-   the WASM kernel and reports the maximum deviation. A deviation above 1e-8 eV is surfaced as
+   the other kernel and reports the maximum deviation. A deviation above 1e-8 eV is surfaced as
    an error, not silently accepted.
 
-Relaxation and MD currently use the TypeScript kernel; only the energy/force evaluation has a
-WASM path. This is stated in the UI rather than implied.
+The worker uses the WASM kernel for energy evaluation, relaxation and MD, records the backend in
+the result (`compute_backend`) and in the provenance environment, and falls back to the TypeScript
+kernel with a visible notice if the WASM asset cannot be loaded.

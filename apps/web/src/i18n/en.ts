@@ -279,6 +279,8 @@ export const en = {
   "workbench.crossCheckFailed": "Implementations disagree beyond tolerance. Do not trust this result.",
   "workbench.crossCheckUnavailable": "WASM cross-check unavailable",
 
+  "workbench.cpuFallback": "The TypeScript CPU kernel is used instead.",
+
   "science.disclaimer":
     "Virtual simulations are conditional on their model. A result is not laboratory proof, not a synthesis claim and not a certification.",
   "science.localOnly": "Local-first: no structure or result is uploaded.",

@@ -63,11 +63,13 @@ test("runs a single-point energy and reports units and limits", async ({ page })
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Cross-implementation check" })).toBeVisible();
   await expect(page.getByText("Both implementations agree within tolerance.")).toBeVisible();
+  await expect(page.getByRole("cell", { name: "wasm", exact: true })).toBeVisible();
 });
 
 test("runs NVE dynamics, computes the MSD and downloads a report", async ({ page }) => {
   await createArgonRun(page, "md");
   await expect(page.getByText("energy_drift_per_atom").first()).toBeVisible();
+  await expect(page.getByRole("cell", { name: "wasm", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Compute MSD from trajectory" })).toBeEnabled();
   await page.getByRole("button", { name: "Compute MSD from trajectory" }).click();
   await expect(page.getByText("cm²/s")).toBeVisible();
