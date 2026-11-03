@@ -2,12 +2,12 @@ cff-version: 1.2.0
 message: "If you use this software, cite the repository and the specific model documentation you relied on."
 title: "HCS Material Research Kit"
 abstract: "A local-first, open virtual materials research studio for structure building, validation, documented classical reference simulations and provenance-preserving project export."
-version: 0.1.0
+version: 0.2.0
 date-released: "2026-11-03"
 license: MIT
 authors:
   - name: "hcsmedia and timfromhcs"
-repository-code: "https://github.com/hcsmedia/hcs-material-research-kit"
+repository-code: "https://github.com/timfromhcs/hcs-material-research-kit"
 keywords:
   - materials science
   - molecular dynamics
@@ -19,6 +19,6 @@ preferred-citation:
   title: "HCS Material Research Kit"
   authors:
     - name: "hcsmedia and timfromhcs"
-  version: 0.1.0
+  version: 0.2.0
   date-released: "2026-11-03"
   license: MIT
