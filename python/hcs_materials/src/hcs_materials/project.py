@@ -60,7 +60,7 @@ class ProjectMeta:
             "description": self.description,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "app": {"name": "HCS Material Research Kit", "version": "0.1.0"},
+            "app": {"name": "HCS Material Research Kit", "version": "0.2.0"},
             "structure_ids": [],
             "job_ids": [],
             "tags": self.tags,
@@ -132,7 +132,7 @@ def write_project(
         "format": "hcsproj",
         "format_version": PROJECT_FORMAT_VERSION,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "app": {"name": "HCS Material Research Kit", "version": "0.1.0"},
+        "app": {"name": "HCS Material Research Kit", "version": "0.2.0"},
         "project_id": project.project_id,
         "files": checksums
         + [

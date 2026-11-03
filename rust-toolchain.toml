@@ -1,0 +1,7 @@
+# Pinned so the committed WebAssembly asset can be rebuilt byte-for-byte.
+# The exact compiler is recorded in packages/wasm/wasm/MANIFEST.json; changing
+# the channel here requires rebuilding the asset and updating that manifest.
+[toolchain]
+channel = "1.96.0"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]

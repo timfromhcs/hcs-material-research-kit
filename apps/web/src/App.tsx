@@ -3,7 +3,7 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import { useI18n, type Lang } from "./i18n";
 import { WorkspaceProvider, useWorkspace } from "./state/store";
 import { useHardware } from "./lib/useHardware";
-import { describeBackend } from "@hcs-materials/core";
+import { CORE_VERSION, describeBackend } from "@hcs-materials/core";
 import { Badge, cx } from "@hcs-materials/ui";
 import {
   IconAtoms,
@@ -124,7 +124,7 @@ function StatusBar(): JSX.Element {
       </div>
       <div className="status-cluster">
         <span>{t("science.localOnly")}</span>
-        <span>v0.1.0</span>
+        <span>v{CORE_VERSION}</span>
       </div>
     </footer>
   );

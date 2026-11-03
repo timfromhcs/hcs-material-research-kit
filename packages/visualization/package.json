@@ -1,22 +1,27 @@
 {
   "name": "@hcs-materials/visualization",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "3D structure viewer and scientific plot components for the HCS Material Research Kit.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@hcs-materials/core": "0.1.0",
-    "@hcs-materials/ui": "0.1.0",
+    "@hcs-materials/core": "0.2.0",
+    "@hcs-materials/ui": "0.2.0",
     "three": "^0.170.0"
   },
   "peerDependencies": {

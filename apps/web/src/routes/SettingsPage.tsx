@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PLANNED_ENGINES, listEngines } from "@hcs-materials/core";
+import { CORE_VERSION, PLANNED_ENGINES, listEngines } from "@hcs-materials/core";
 import { Badge, Button, Panel, Stat } from "@hcs-materials/ui";
 import { useI18n, type Lang } from "../i18n";
 import { useHardware } from "../lib/useHardware";
@@ -190,7 +190,7 @@ export function SettingsPage(): JSX.Element {
           <Panel title={t("settings.about")}>
             <dl className="kv">
               <dt>{t("settings.version")}</dt>
-              <dd>0.1.0</dd>
+              <dd>{CORE_VERSION}</dd>
               <dt>{t("settings.license")}</dt>
               <dd>MIT (code); model parameters carry their own notes</dd>
               <dt>Brand</dt>

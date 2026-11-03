@@ -6,14 +6,14 @@ research record with provenance.
 
 > Made with love by **hcsmedia** and **timfromhcs**.
 
-[![tests](https://img.shields.io/badge/TypeScript%20tests-121%20passing-4fd6c4)](#verification)
+[![tests](https://img.shields.io/badge/TypeScript%20tests-132%20passing-4fd6c4)](#verification)
 [![rust](https://img.shields.io/badge/Rust%20tests-8%20passing-4fd6c4)](#verification)
-[![python](https://img.shields.io/badge/Python%2FMCP-36%20passing-4fd6c4)](#verification)
+[![python](https://img.shields.io/badge/Python%2FMCP-41%20passing-4fd6c4)](#verification)
 [![e2e](https://img.shields.io/badge/Playwright%20E2E-7%20passing-4fd6c4)](#verification)
 
 ---
 
-## What this repository is today (v0.1.0)
+## What this repository is today (v0.2.0)
 
 A working vertical slice, not a mock-up:
 
@@ -25,15 +25,16 @@ A working vertical slice, not a mock-up:
 | Structure Studio with 3D viewer, supercells, substitution, vacancies | Implemented | E2E, manual screenshots |
 | Distance/angle measurement with minimum images | Implemented | unit tests + E2E assertion |
 | Lennard-Jones reference engine (energy, forces, FIRE, NVE MD, RDF) | Implemented | force-vs-gradient, energy conservation |
+| MD checkpoint and restart (`checkpoint.json`, `hcs-sim --resume`) | Implemented | resume reproduces a continuous run bit-for-bit |
 | 1D heat/diffusion solver | Implemented | analytic Fourier-mode comparison |
 | Job lifecycle, events, warnings, provenance | Implemented | state-machine tests, job tests |
 | `.hcsproj` archive with checksums and path safety | Implemented | tamper/traversal tests (TS + Python) |
 | Browser studio (EN/DE/FR, dark/light, responsive) | Implemented | Vite build, Playwright E2E |
 | Rust CPU kernel with cross-language parity | Implemented | 1e-10 eV agreement with TS |
-| WASM backend for energy, relax, MD | Implemented | 11 parity tests, E2E asserts backend `wasm` |
-| Node simulation CLI (`hcs-sim`) | Implemented | 6 CLI tests, writes result/provenance/report |
+| WASM backend for energy, relax, MD (reusable buffer arena) | Implemented | 13 parity tests, E2E asserts backend `wasm` |
+| Node simulation CLI (`hcs-sim`) | Implemented | 8 CLI tests, writes result/provenance/report/checkpoint |
 | Python CLI | Implemented | 32 tests |
-| MCP v2 stdio server | Implemented (subset) | official SDK client tests |
+| MCP v2 stdio server with an approval-gated simulation tool | Implemented | 41 tests incl. budget and approval refusal |
 | Automated acceptance workflow | Implemented | 7 Playwright tests on the production bundle |
 | Reproducible benchmark harness | Implemented | `benchmarks/`, committed baseline with parity gate |
 | WebGPU kernels, DFT/LAMMPS/ML potentials, Tauri app | **Not implemented** | see `ROADMAP.md` |
@@ -53,9 +54,9 @@ npm run build
 npm run dev            # http://localhost:5173
 
 # 3. Tests
-npm test               # TypeScript: 99 tests
-npm run test:rust      # Rust parity: 5 tests
-npm run test:python    # Python + MCP: 32 tests (needs the venv below)
+npm test               # TypeScript: 132 tests
+npm run test:rust      # Rust parity: 8 tests
+npm run test:python    # Python + MCP: 41 tests (finds .venv automatically)
 npm run test:e2e       # Playwright: 7 acceptance tests (uses installed Chrome)
 ```
 
@@ -78,10 +79,14 @@ Simulation CLI (Node, CPU or WASM kernel):
 npm run build:packages
 node packages/cli/dist/index.js inspect tests/fixtures/structures/silicon.cif
 node packages/cli/dist/index.js run --structure ar.json --spec spec.json --out ./run-001
+node packages/cli/dist/index.js run --structure ar.json --spec spec-2.json --out ./run-002 \
+  --resume ./run-001/checkpoint.json
 node packages/cli/dist/index.js engines --planned
 ```
 
-See `docs/tutorials/cli.md`.
+Every `md.run` writes `checkpoint.json` next to the result; `--resume` continues
+that exact cell and timestep for the number of steps in the new spec. See
+`docs/tutorials/cli.md`.
 
 ## A two-minute real workflow
 1. Open the studio and choose **Argon (fcc, LJ reference)** — this creates a 3×3×3 cell
@@ -135,11 +140,11 @@ docs/                    Science, architecture, decisions, security, tutorials
 
 Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96):
 ```text
-TypeScript 121 tests passing   vitest run (includes 11 TS ↔ WASM tests)
+TypeScript 132 tests passing   vitest run (includes 13 TS ↔ WASM/arena tests)
 Rust         8 tests passing   cargo test -p hcs-compute-core -p hcs-compute-wasm
-Python      36 tests passing   pytest (includes real MCP client/server round-trip)
+Python      41 tests passing   pytest (includes MCP round-trip, budget and approval refusals)
 Playwright   7 tests passing   production bundle, Chrome channel, WASM backend
-Web build   vite build ok      ~375 kB app + 471 kB three + 218 kB worker + 58 kB wasm
+Web build   vite build ok      ~378 kB app + 471 kB three + 222 kB worker + 58 kB wasm
 npm audit   0 vulnerabilities
 ```
 
@@ -170,8 +175,11 @@ for the phase gates. Known limitations of this release:
 - no DFT, no ML potentials, no LAMMPS, no CALPHAD, no phase field beyond the 1D heat solver;
 - no Tauri desktop app, no installers, no PyPI/npm publication;
 - browser storage is IndexedDB + OPFS and can be evicted — export archives;
-- MCP exposes structure/project tools only (no simulation tool yet);
-- E2E tests cover Chromium only; Firefox/Safari are untested.
+- MCP exposes structure/project tools plus one approval-gated `simulations_run`
+  tool; it cannot run unbounded jobs and has no HTTP transport yet;
+- E2E tests cover Chromium only; Firefox/Safari are untested;
+- `npm run fmt:check` does not pass on the baseline tree; a repo-wide formatting
+  pass is scheduled for v0.3.0.
 
 ## License
 

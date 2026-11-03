@@ -1,6 +1,6 @@
 {
   "name": "@hcs-materials/contracts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Canonical JSON Schema contracts and runtime validators for the HCS Material Research Kit.",
   "license": "MIT",
   "type": "module",
@@ -12,7 +12,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "schemas"],
+  "files": [
+    "dist",
+    "schemas"
+  ],
   "scripts": {
     "build": "node ../../scripts/sync-schemas.mjs && tsc -p tsconfig.json",
     "typecheck": "node ../../scripts/sync-schemas.mjs && tsc -p tsconfig.json --noEmit",

@@ -51,7 +51,8 @@ before any publication.
 | One validated classical workflow | Done | LJ energy/relax/NVE/RDF with tests |
 | Analytic PDE verification | Done | 1D heat equation |
 | Jobs, progress, cancel | Done | state machine, worker, hard cancel |
-| WASM compilation of the Rust core | Done (energy, relax, MD) | `crates/compute-wasm`, 11 parity tests, in-browser cross-check, E2E backend assertion |
+| WASM compilation of the Rust core | Done (energy, relax, MD) | `crates/compute-wasm`, 13 parity tests, in-browser cross-check, E2E backend assertion |
+| Reusable WASM buffer arena | Done | `packages/wasm/test/arena.test.ts`, benchmark allocation count |
 | WebGPU kernels + CPU fallback | **Not started** | capability probe only |
 | Native wgpu/Vulkan path | **Not started** | crate is CPU-only |
 
@@ -74,7 +75,8 @@ unimplemented and are not claimed.
 ## Phase 5 — Databases and materials informatics
 
 All items (OPTIMADE, OQMD, AFLOW, Materials Cloud, NOMAD, Materials Project) are **not
-started**. No API key handling exists yet, so no connector may be advertised.
+started**. No API key handling exists yet, so no connector may be advertised. The OPTIMADE
+target version is **1.3.0** (December 2025), not 1.2.
 
 ## Phase 6 — Discovery Lab
 
@@ -86,12 +88,13 @@ Discovery page by design — it would be a fake surface.
 | Task | State | Evidence |
 |---|---|---|
 | MCP v2 stdio server | Done (subset) | official SDK client tests |
-| Strict tool schemas | Done | 4 tools, typed |
-| Simulation tools over MCP | **Not started** | needs stable job API + approval flow |
+| Strict tool schemas | Done | 7 tools, typed |
+| Simulation tools over MCP | Done (approval-gated, bounded) | `simulations_run`, 5 refusal tests, real-CLI evidence |
 | Loopback HTTP transport | **Not started** | stdio only |
 | Agent audit panel | **Not started** | |
 
-**Gate status:** partially met; destructive/heavy operations are absent rather than gated.
+**Gate status:** met for the stdio surface; destructive/heavy operations are explicitly gated
+and budgeted. HTTP transport and the audit panel remain open.
 
 ## Phase 8 — Polish, documentation, packaging, launch
 
@@ -99,12 +102,13 @@ Discovery page by design — it would be a fake surface.
 |---|---|---|
 | Documentation set | Done for this slice | `README.md`, `docs/` |
 | Windows/Linux installers | **Not started** | |
-| PyPI/npm publication | **Not started** | names unverified |
-| Vercel project + config | Prepared, deployment blocked | linked `hcsmediacorp/hcs-material-research-kit`; quota `api-deployments-free-per-day` |
+| PyPI/npm publication | **Not started** | names verified free (2026-11-03), no tokens |
+| GitHub repository + CI | Done | public repo, green CI run linked in `STATUS.md` |
+| Vercel project + config | See deployment evidence | linked `hcsmediacorp/hcs-material-research-kit` |
 | Security/license audit | Partial | `SECURITY.md`, engine notes |
 
-**Gate status:** not met. A preview deployment must succeed and be smoke-tested before this
-phase can close.
+**Gate status:** met when the release run is green and a deployment URL has been smoke-tested;
+otherwise the open item is stated explicitly in `STATUS.md`.
 
 ## Phase 9 — Advanced research expansion
 

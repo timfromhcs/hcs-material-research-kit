@@ -4,6 +4,70 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for public APIs.
 
+## [Unreleased]
+
+## [0.2.0] — 2026-11-03
+
+The first release with a public repository, a CI run that actually executed, and
+a deployed build. Focus: make the existing claims reproducible instead of adding
+new surface area.
+
+### Added
+
+- **MD checkpoint and restart**: `runMd` accepts a portable initial state and
+  returns the final positions and velocities; `hcs-sim` writes `checkpoint.json`
+  for every `md.run` and `--resume <file>` continues the same cell and timestep.
+  A resumed run reproduces one continuous run exactly (asserted to the last bit).
+  Provenance records `resumed_from_steps`; `steps_resumed_from` and `final_step`
+  are result quantities.
+- **MCP `simulations_run`**: an approval-gated tool that starts the stable
+  `hcs-sim` job API as a subprocess, confined to the workspace, with a scrubbed
+  environment, no shell, a 180 s timeout and hard budgets (20 000 atoms for
+  static tasks, 5 000 atoms / 2 000 steps for `md.run`). Refusals are typed:
+  `approval_required`, `budget_exceeded`, `path_rejected`, `sim_cli_unavailable`,
+  `sim_timeout`, `sim_cli_invalid_output`.
+- **WASM buffer arena**: one growable set of linear-memory buffers instead of
+  seven allocations per force evaluation, with explicit `dispose()`. Five new
+  tests pin reuse, growth, shrink, species isolation and disposal; the benchmark
+  records how many arena allocations a workload needed (2 for the full suite).
+- **CI**: benchmark parity gate, Python 3.12/3.13 matrix, a non-blocking Node 24
+  job, `workflow_dispatch`, and action pins updated to the current majors
+  (`checkout@v7`, `setup-node@v7`, `setup-python@v7`, `upload-artifact@v7`).
+- **`rust-toolchain.toml`** pinning Rust 1.96.0 and the wasm target so the
+  committed `.wasm` asset is rebuildable byte-for-byte.
+- **Documentation**: `docs/plan/2026-11-03-v0.2.0-long-horizon.md` (researched
+  open questions, phase gates, test loops) and evidence under `docs/plan/evidence/`.
+
+### Changed
+
+- `npm run typecheck` builds workspace dependencies first, so a fresh clone
+  typechecks without a previous build (this is why CI failed before it ran).
+- `CORE_VERSION` is now displayed in the studio footer and Settings instead of a
+  hard-coded version string.
+- Version updated to `0.2.0` across npm workspaces, Cargo crates and the Python
+  package; the committed WASM asset was rebuilt with the new version.
+- `npm run test:python` now uses a cross-platform launcher and finds the venv on
+  Windows and POSIX (previously the documented command failed on Windows).
+
+### Fixed
+
+- The reference identity fixture embedded a random `structure_id` and a
+  timestamp, so the CI drift check could never pass. Both are now pinned and the
+  fixture is byte-stable across regenerations.
+- `tsx` is a declared devDependency; CI no longer downloads it implicitly.
+- README test counts and the version banner no longer drift from the actual run.
+
+### Removed
+
+- Nothing.
+
+### Known limitations
+
+- `npm run fmt:check` still fails on pre-existing files; a repo-wide formatting
+  pass is deferred to v0.3.0 so it can be reviewed as its own diff.
+- WebGPU, native Vulkan, Tauri, DFT/ML potentials and database connectors remain
+  unimplemented and are still listed as such.
+
 ## [0.1.0] — 2026-11-03
 
 First development preview: a tested vertical slice, not a mock interface.

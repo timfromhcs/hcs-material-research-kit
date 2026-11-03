@@ -2,7 +2,7 @@ import type { EngineRecord } from "./types.js";
 import { SCHEMA_VERSION } from "./types.js";
 import { LJ_NOBLE_GASES } from "./kernels/lj.js";
 
-export const CORE_VERSION = "0.1.0";
+export const CORE_VERSION = "0.2.0";
 
 /**
  * Registry of engines that are actually implemented in this build.

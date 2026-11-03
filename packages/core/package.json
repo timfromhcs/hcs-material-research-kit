@@ -1,6 +1,6 @@
 {
   "name": "@hcs-materials/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure TypeScript domain model, structure mathematics, file formats, classical reference kernels, job lifecycle and project archive.",
   "license": "MIT",
   "type": "module",
@@ -12,14 +12,16 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@hcs-materials/contracts": "0.1.0",
+    "@hcs-materials/contracts": "0.2.0",
     "fflate": "^0.8.2"
   },
   "devDependencies": {

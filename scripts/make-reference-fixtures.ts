@@ -40,7 +40,7 @@ const evaluated = computeEnergyForces(structure, LJ_NOBLE_GASES, { cutoff });
 
 const fixture = {
   _comment:
-    "Reference output of the TypeScript reference engine (@hcs-materials/core 0.1.0). " +
+    "Reference output of the TypeScript reference engine (@hcs-materials/core 0.2.0). " +
     "The Rust CPU parity test must match it within 1e-10 eV and 1e-10 eV/A.",
   model: {
     id: LJ_NOBLE_GASES.id,

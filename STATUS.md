@@ -1,14 +1,16 @@
 # Current Status
 
 **Date:** 2026-11-03
-**Branch:** `main` (local repository, no remote configured yet)
-**Version:** 0.1.0 — development preview
+**Branch:** `main` (release built on `release/0.2.0`)
+**Repository:** https://github.com/timfromhcs/hcs-material-research-kit
+**Version:** 0.2.0 — first public release
 
 ## Working product surfaces
 
 - **Browser studio** (`apps/web`): Dashboard, Structure Studio, Simulation Workbench, Jobs,
   Data & Provenance, Settings. Static Vite build, HashRouter, EN/DE/FR, dark and light theme,
-  responsive down to 390 px.
+  responsive down to 390 px. The footer and Settings show `CORE_VERSION`, so the displayed
+  version cannot drift from the code.
 - **Automated end-to-end suite** (`tests/e2e`): seven Playwright tests against the production
   bundle, covering the full acceptance workflow including downloads and archive re-import.
 - **Structure Studio**: create 9 prototypes, import CIF/POSCAR/XYZ/extXYZ/HCS JSON, supercells,
@@ -23,15 +25,18 @@
 - **Python CLI** (`hcs-materials`): doctor, hardware, engines list/inspect, structure
   validate/convert, project create/validate, report build.
 - **Node simulation CLI** (`hcs-sim`): inspect, engines, run with CPU/WASM backend; writes
-  status/result/provenance/report/log and an optional trajectory or relaxed structure.
+  status/result/provenance/report/log plus trajectory, relaxed structure and — for `md.run` —
+  `checkpoint.json`. `--resume <checkpoint>` continues the exact cell and timestep.
 - **MCP server** (`hcs-materials-mcp`, stdio): engines_list, structures_validate,
-  structures_convert, project_validate, simulations_validate_spec (validation only) and
-  results_summarize (read-only) + 2 resources + 2 prompts.
+  structures_convert, project_validate, simulations_validate_spec (validation only),
+  results_summarize (read-only) and **simulations_run** (approval-gated, bounded, workspace
+  confined) + 2 resources + 2 prompts.
 - **Rust crate** (`hcs-compute-core`): switched Lennard-Jones energy/forces, parity-tested.
 - **WASM kernel** (`@hcs-materials/wasm`): the Rust kernel compiled to wasm32-unknown-unknown
-  with a plain C ABI. The worker uses it for energy evaluation, FIRE relaxation and NVE MD, and
-  records the backend (`cpu`/`wasm`) in the result and provenance. Energy jobs are additionally
-  re-evaluated with the other implementation and the deviation is reported.
+  with a plain C ABI, built by a pinned Rust 1.96.0 toolchain. The loader keeps one growable
+  buffer arena (two allocations for the whole benchmark suite) and exposes `dispose()`. The
+  worker uses it for energy, FIRE relaxation and NVE MD, records the backend, and re-evaluates
+  energy jobs with the other implementation.
 
 ## Completed capabilities
 
@@ -40,26 +45,33 @@
 - Periodic cell mathematics, minimum-image distances, validation checks.
 - File IO with explicit failure modes and documented subsets.
 - Job state machine with illegal-transition rejection and structured events.
-- Provenance records with input hashes, environment, units and limitations.
+- Provenance records with input hashes, environment, units and limitations; resumed MD runs
+  record `resumed_from_steps` without mutating the user's spec.
+- MD checkpoint/restart that reproduces a continuous run bit-for-bit.
 - `.hcsproj` archive writer/reader with checksums, size limits and path-traversal rejection.
 - Portable HTML reproducibility report.
-- Cross-language reference fixtures and parity test (TS ↔ Rust, TS ↔ Python).
+- Cross-language reference fixtures and parity test (TS ↔ Rust, TS ↔ Python), regenerated
+  deterministically (pinned ids and timestamps).
+- Reusable WASM buffer arena (removes per-evaluation allocation).
+- Approval-gated MCP simulation tool with hard workload budgets and typed refusals.
+- CI that has actually run: typecheck/unit/build, benchmark parity, Rust (fmt, clippy, parity,
+  fixture and WASM drift), Python 3.12/3.13, Node 24 signal, Playwright E2E.
 
 ## Capabilities in progress
 
-- MCP simulation tools (blocked until a stable job API is exposed over MCP).
 - OPFS artefacts beyond trajectories (currently only trajectories are written to OPFS).
-- Reusable WASM buffers (currently allocated per force evaluation; correctness is unaffected).
+- Repo-wide Prettier formatting (the baseline tree does not pass `npm run fmt:check`).
 
 ## Known limitations
 
 - Only classical Lennard-Jones (He, Ne, Ar, Kr, Xe) and a 1D heat solver are implemented.
 - O(N²) pair loops; the UI limit is 20 000 atoms for supercells and 5 000 for MD.
 - NVE only; no thermostat or barostat.
-- No Tauri desktop app, no installers, no PyPI/npm publication, no CI run on GitHub yet.
+- No Tauri desktop app, no installers, no PyPI/npm publication.
 - The 3D viewer uses WebGL2; no WebGPU renderer is implemented.
 - Browser storage can be evicted; there is no automatic backup.
 - MCP stdio only; loopback HTTP transport is not implemented.
+- The committed WASM asset is byte-reproducible only with the pinned Rust toolchain.
 
 ## Scientific validation evidence
 
@@ -69,12 +81,13 @@
 | LJ pair minimum at 2^(1/6)σ = −ε | abs < 1e-12 eV | `packages/core/test/lj.test.ts` |
 | fcc cohesive energy bracket (truncated) | −9ε < E/atom < −6.5ε | `packages/core/test/lj.test.ts` |
 | NVE energy conservation, 108 atoms, 400 steps | < 1e-3 eV/atom (observed ~3e-7) | `packages/core/test/md.test.ts` |
+| Resumed MD = continuous MD | exact float equality (positions, velocities, energy) | `packages/core/test/md.test.ts`, `packages/cli/test/cli.test.ts` |
 | Translation invariance of energy | < 1e-9 eV | `packages/core/test/lj.test.ts` |
 | Zero net force in periodic cell | < 1e-9 eV/Å | TS + Rust tests |
 | RDF first peak at a/√2, coordination 12 | ±0.5 atoms | `packages/core/test/analysis.test.ts` |
 | Heat solver vs analytic sine mode | max abs error < 5e-4 | `packages/core/test/heat1d.test.ts` |
 | TS ↔ Rust energy/forces | abs < 1e-10 | `crates/compute-core/src/lib.rs` |
-| TS ↔ WASM energy/forces | abs < 1e-10, 8 tests | `packages/wasm/test/parity.test.ts` |
+| TS ↔ WASM energy/forces | abs < 1e-10, 13 tests incl. arena | `packages/wasm/test/` |
 | TS ↔ WASM relaxation minimum | abs < 1e-8 eV, 3 tests | `packages/wasm/test/kernels.test.ts` |
 | TS ↔ WASM first MD step | abs < 1e-10, same seed | `packages/wasm/test/kernels.test.ts` |
 | In-browser cross-check | tolerance 1e-8, asserted in E2E | worker + `tests/e2e` |
@@ -84,6 +97,7 @@
 | Archive tamper detection | checksum mismatch reported | TS + Python tests |
 | Archive path traversal | rejected | TS + Python tests |
 | MCP tool round-trip | official SDK client passes | `python/.../tests/test_mcp.py` |
+| MCP budget/approval refusals | 5 tests | `python/.../tests/test_mcp.py` |
 | Full acceptance workflow | 7 Playwright tests pass | `tests/e2e/workflow.spec.ts` |
 | CPU vs WASM timings | parity gate passed; baseline recorded | `benchmarks/results/latest.json` |
 
@@ -94,12 +108,10 @@
 
 ## Deployment
 
-- `vercel.json` and `.vercelignore` are prepared for a static deployment of `apps/web/dist`.
+- `vercel.json` and `.vercelignore` configure a static deployment of `apps/web/dist`.
 - The project is linked locally as `hcsmediacorp/hcs-material-research-kit`.
-- A deployment attempt on 2026-11-03 was rejected by the platform:
-  `api-deployments-free-per-day` (more than 100 deployments in 24 h on that account).
-  **No preview URL exists yet**; retry after the quota resets. Do not claim a deployment until a
-  preview has been opened and smoke-tested.
+- See the "Deployment evidence" section below for the URL and smoke test performed for this
+  release. If no URL is listed, no deployment has been verified.
 
 ## Browser/device matrix tested
 
@@ -112,32 +124,37 @@
 
 ## CI state
 
-- `.github/workflows/ci.yml` defines four jobs: typecheck/unit/build, Rust (fmt, clippy, parity,
-  fixture drift), Python (CLI + MCP) and Playwright E2E (Chromium).
-- **Not yet executed on GitHub** — no remote is configured in this workspace. Do not claim a
-  green CI badge until it has run.
-- Local equivalent: `npm run verify` plus `npm run test:e2e`.
+- `.github/workflows/ci.yml` runs five jobs: typecheck/unit/build + benchmark parity, Node 24
+  (non-blocking), Rust (fmt, clippy, parity, fixture and WASM drift), Python 3.12/3.13, and
+  Playwright E2E (Chromium).
+- The workflow executed for the first time on 2026-11-03. Run history and the release run are
+  linked in the "Deployment evidence" section after the release gate passes.
+- Local equivalent: `npm run verify` plus `npm run test:python`.
 
 ## Security/license state
 
-- `npm audit`: 0 vulnerabilities after upgrading React Router to 7.18.5 and Vitest to 4.1.12
-  (see `SECURITY.md`; npm 11 is required to install the tree).
+- `npm audit`: 0 vulnerabilities with npm 11.21.1.
 - No secrets in the repository; `.env*` ignored.
 - MIT license for HCS code; third-party notices documented per engine.
 - Archive and file parsers are bounded and reject unsafe paths.
+- The MCP simulation tool runs without a shell, forwards only a fixed environment allow-list,
+  confines output to the workspace and enforces workload budgets.
 
 ## Current blockers
 
-1. No remote/GitHub Actions run yet, so the CI workflow is defined but unproven.
-2. Vercel refused a preview deployment because the account's daily deployment quota
-   (`api-deployments-free-per-day`, >100) is exhausted. Retry after 24 h.
-3. GPU kernel validation requires a WebGPU-capable CI runner (not available yet).
-4. External scientific engines require licensed installations and isolated environments.
+1. Vercel preview/production deployment depends on the account's 24 h deployment window
+   (`api-deployments-free-per-day`, Hobby: 100 deployments/day). See deployment evidence.
+2. GPU kernel validation requires a WebGPU-capable CI runner (not available yet).
+3. External scientific engines require licensed installations and isolated environments.
 
-## Next 5 concrete tasks
+## Next 5 concrete tasks (v0.3.0)
 
-1. Reuse WASM buffers across force evaluations and re-run the benchmark gate.
-2. Implement MCP simulation tools over a stable, approval-gated job API.
-3. Add checkpoint/restart for long MD runs (cooperative pause).
-4. Add a Tauri shell and engine manager skeleton with honest unavailable states.
-5. Build the OPTIMADE provider connector with provenance and rate limiting.
+1. Repo-wide Prettier pass with a single formatting-only commit, then enable `fmt:check` in CI.
+2. WebGPU kernel (energy at minimum) with a CPU fallback and parity tests against WASM.
+3. Tauri shell with engine manager and honest unavailable states.
+4. OPTIMADE 1.3 provider connector with provenance, caching and rate limiting.
+5. Publication dry-run (`npm pack`, `python -m build`) without publishing.
+
+## Deployment evidence
+
+_Filled in at the end of the v0.2.0 release gate._

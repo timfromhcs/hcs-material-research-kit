@@ -64,8 +64,6 @@ jobs:
           node-version: 22
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - run: npm install -g npm@$NPM_VERSION
       - run: npm ci

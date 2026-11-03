@@ -1,0 +1,32 @@
+G0 baseline — 2026-11-03, commit 41d21a9 (branch master, no remote)
+Machine: Windows 11 x64, AMD Ryzen 7 7735HS, 24 GB RAM
+Toolchain: Node 22.23.1, npm 10.9.8 (repo requires 11), Rust 1.96.0, Python 3.14.6
+
+$ npm run verify
+  typecheck ............ pass (contracts, core, ui, visualization, wasm, cli, web)
+  vitest ............... 12 files, 121 tests passed
+  cargo test ........... 5 + 3 tests passed (hcs-compute-core, hcs-compute-wasm)
+  vite build ........... pass
+                          index 377.98 kB, react 180.08 kB, three 471.48 kB,
+                          worker 218.89 kB, wasm 57.80 kB, css 17.86 kB
+  playwright ........... 7 tests passed (Chrome, production bundle, 1.0 min)
+
+$ npm run test:python
+  FAILED: cmd cannot execute ".venv/Scripts/python.exe" (forward slashes).
+  Direct equivalent: .venv\Scripts\python.exe -m pytest -> 36 passed
+
+Defects found at G0 (fixed during this release):
+1. `npm run test:python` is broken on Windows; the documented command in
+   README.md does not work on the reference machine.
+2. `scripts/make-reference-fixtures.ts` embeds a random structure_id and a
+   timestamp, so the CI drift check `git diff --exit-code tests/fixtures/reference`
+   was guaranteed to fail on the first run.
+3. `npx tsx` is used by CI but tsx is not a dependency (unpinned download).
+4. README.md states inconsistent test counts (99/5/32 vs 121/8/36).
+5. `npm run fmt:check` does not pass on the baseline tree (prettier drift across
+   pre-existing files); it is therefore not part of the release gate. A
+   repo-wide formatting pass is deferred to v0.3.0 with its own review.
+
+Baseline is GREEN for typecheck, TypeScript, Rust, build and E2E. The two
+documentation defects above made it impossible to reproduce the documented
+workflow on Windows, which is why they are release blockers, not cosmetics.
