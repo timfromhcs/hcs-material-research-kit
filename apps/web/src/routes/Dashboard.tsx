@@ -227,7 +227,7 @@ export function Dashboard(): JSX.Element {
                       <div className="small">
                         {structure.composition?.reduced_formula ?? structure.display_name ?? structure.structure_id}
                       </div>
-                      <div className="tiny muted mono">{shortHash(shortHash(structure.structure_id))}</div>
+                      <div className="tiny muted mono">{structure.structure_id}</div>
                     </span>
                     <span className="spacer" />
                     <span className="tiny muted">{structure.sites.length} {t("common.atoms")}</span>

@@ -122,7 +122,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
             ...stored,
             jobs: stored.jobs.map((job) => ({ ...job, trajectoryLocation: job.trajectoryLocation ?? "none" })),
             activeStructureId: stored.activeStructureId ?? stored.structures[0]?.structure_id ?? null,
-            activeJobId: null,
+            activeJobId: stored.activeJobId ?? stored.jobs[0]?.job.job_id ?? null,
             loaded: true,
           });
         } else {

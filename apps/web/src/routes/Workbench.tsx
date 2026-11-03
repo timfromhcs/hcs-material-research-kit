@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LJ_NOBLE_GASES,
@@ -16,6 +16,7 @@ import { NumberInput } from "../components/NumberInput";
 import { useWorkspace, type StoredJob } from "../state/store";
 import { useSolver } from "../lib/useSolver";
 import { msdFromTrajectory } from "../lib/analysis";
+import { readTrajectory } from "../state/opfs";
 import { downloadText, safeFilename } from "../lib/download";
 import { formatNumber, formatSigned, stateTone } from "../lib/format";
 
@@ -50,6 +51,24 @@ export function Workbench(): JSX.Element {
   const provenance = live?.provenance ?? storedActive?.provenance;
   const job = live?.job ?? storedActive?.job;
   const trajectory = live?.trajectory ?? storedActive?.trajectory;
+
+  // A trajectory written to OPFS is loaded on demand so the project does not
+  // keep large arrays in IndexedDB.
+  useEffect(() => {
+    if (!storedActive || storedActive.trajectory) return;
+    if (storedActive.trajectoryLocation !== "opfs") return;
+    let cancelled = false;
+    void readTrajectory(storedActive.job.job_id).then((payload) => {
+      if (cancelled || !Array.isArray(payload)) return;
+      setLive({
+        ...storedActive,
+        trajectory: payload as NonNullable<StoredJob["trajectory"]>,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [storedActive]);
 
   const unsupportedSpecies = useMemo(() => {
     if (!structure) return [];

@@ -79,11 +79,13 @@
 
 ## Browser/device matrix tested
 
-- Chrome (desktop, 930×866 and 1280×800): studio, 3D viewer, MD run, MSD, provenance.
-- Chrome mobile viewport 390×844: layout, bottom navigation, viewer.
+- Chrome (desktop, 930×866 and 1280×800): studio, 3D viewer, MD run, MSD, provenance,
+  reproducibility-report download, `.hcsproj` export → re-import with checksum verification.
+- Chrome mobile viewport 390×844: layout, bottom navigation, viewer, no horizontal overflow.
 - Light and dark theme manually checked.
 - Firefox/Safari: not tested in this workspace.
 - WebGPU: adapter present (with a benign `powerPreference` warning on Windows); unused.
+- These checks are manual. Automated Playwright E2E tests are the next task, not a current claim.
 
 ## CI state
 
