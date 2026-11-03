@@ -1,0 +1,199 @@
+{
+  "_comment": "Canonical structure identity produced by @hcs-materials/core. The Python package must reproduce structure_hash, formula, volume and density exactly/in tolerance.",
+  "structure": {
+    "schema_version": "1.0.0",
+    "structure_id": "struct_mw11p4nw3s2y0j4",
+    "display_name": "NaCl (rocksalt)",
+    "length_unit": "angstrom",
+    "lattice": {
+      "vectors": [
+        [
+          5.64,
+          0,
+          0
+        ],
+        [
+          0,
+          5.64,
+          0
+        ],
+        [
+          0,
+          0,
+          5.64
+        ]
+      ]
+    },
+    "pbc": [
+      true,
+      true,
+      true
+    ],
+    "sites": [
+      {
+        "species": "Na",
+        "label": "Na1",
+        "fractional_position": [
+          0,
+          0,
+          0
+        ],
+        "occupancy": 1
+      },
+      {
+        "species": "Na",
+        "label": "Na2",
+        "fractional_position": [
+          0,
+          0.5,
+          0.5
+        ],
+        "occupancy": 1
+      },
+      {
+        "species": "Na",
+        "label": "Na3",
+        "fractional_position": [
+          0.5,
+          0,
+          0.5
+        ],
+        "occupancy": 1
+      },
+      {
+        "species": "Na",
+        "label": "Na4",
+        "fractional_position": [
+          0.5,
+          0.5,
+          0
+        ],
+        "occupancy": 1
+      },
+      {
+        "species": "Cl",
+        "label": "Cl5",
+        "fractional_position": [
+          0.5,
+          0,
+          0
+        ],
+        "occupancy": 1
+      },
+      {
+        "species": "Cl",
+        "label": "Cl6",
+        "fractional_position": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "occupancy": 1
+      },
+      {
+        "species": "Cl",
+        "label": "Cl7",
+        "fractional_position": [
+          0,
+          0,
+          0.5
+        ],
+        "occupancy": 1
+      },
+      {
+        "species": "Cl",
+        "label": "Cl8",
+        "fractional_position": [
+          0,
+          0.5,
+          0
+        ],
+        "occupancy": 1
+      }
+    ],
+    "source": {
+      "format": "generated",
+      "notes": "Prototype rocksalt"
+    },
+    "created_at": "2026-11-03T18:52:43.100Z",
+    "composition": {
+      "reduced_formula": "NaCl",
+      "elements": [
+        "Cl",
+        "Na"
+      ],
+      "amounts": {
+        "Na": 4,
+        "Cl": 4
+      },
+      "total_atoms": 8
+    },
+    "validation": {
+      "status": "valid",
+      "checks": [
+        {
+          "id": "lattice.finite",
+          "status": "pass",
+          "message": "Lattice is a finite 3x3 matrix."
+        },
+        {
+          "id": "lattice.volume",
+          "status": "pass",
+          "message": "Cell volume 179.4061 Å³.",
+          "details": {
+            "volume": 179.40614399999995
+          }
+        },
+        {
+          "id": "sites.nonempty",
+          "status": "pass",
+          "message": "8 site(s)."
+        },
+        {
+          "id": "sites.species",
+          "status": "pass",
+          "message": "All species map to known elements."
+        },
+        {
+          "id": "sites.positions",
+          "status": "pass",
+          "message": "All fractional positions are finite."
+        },
+        {
+          "id": "sites.occupancy",
+          "status": "pass",
+          "message": "Occupancies are within (0, 1]."
+        },
+        {
+          "id": "cell.periodicity",
+          "status": "pass",
+          "message": "Periodic axes: 111."
+        },
+        {
+          "id": "cell.skew",
+          "status": "pass",
+          "message": "Cell geometry acceptable (smallest lattice angle 90.0°)."
+        },
+        {
+          "id": "sites.overlap",
+          "status": "pass",
+          "message": "No unphysical overlaps below 0.5 Å (closest pair 2.820 Å).",
+          "details": {
+            "closestAngstrom": 2.8199999999999994,
+            "closestPair": [
+              0,
+              4
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expected": {
+    "structure_hash": "7e43707816b2ae961993dd52bc3353efb36a3ff081533562f1929f4ec2186fd6",
+    "reduced_formula": "NaCl",
+    "total_atoms": 8,
+    "cell_volume_angstrom3": 179.40614399999995,
+    "density_g_per_cm3": 2.163624965978958
+  }
+}

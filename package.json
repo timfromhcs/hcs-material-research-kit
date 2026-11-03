@@ -14,13 +14,19 @@
     "apps/web"
   ],
   "scripts": {
-    "build": "npm run build -w @hcs-materials/contracts && npm run build -w @hcs-materials/core && npm run build -w @hcs-materials/ui && npm run build -w @hcs-materials/visualization && npm run build -w @hcs-materials/web",
+    "build:packages": "npm run build -w @hcs-materials/contracts && npm run build -w @hcs-materials/core && npm run build -w @hcs-materials/ui && npm run build -w @hcs-materials/visualization",
+    "build": "npm run build:packages && npm run build -w @hcs-materials/web",
     "typecheck": "npm run typecheck -w @hcs-materials/contracts && npm run typecheck -w @hcs-materials/core && npm run typecheck -w @hcs-materials/ui && npm run typecheck -w @hcs-materials/visualization && npm run typecheck -w @hcs-materials/web",
-    "test": "vitest run",
+    "test": "npm run build:packages && vitest run",
     "test:watch": "vitest",
-    "dev": "npm run dev -w @hcs-materials/web",
+    "test:rust": "cargo test -p hcs-compute-core",
+    "test:python": "cd python/hcs_materials && .venv/Scripts/python.exe -m pytest",
+    "fixtures": "tsx scripts/make-reference-fixtures.ts",
+    "dev": "npm run build:packages && npm run dev -w @hcs-materials/web",
+    "preview": "npm run build && npm run preview -w @hcs-materials/web",
     "fmt": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
-    "fmt:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\""
+    "fmt:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\"",
+    "verify": "npm run typecheck && npm run test && npm run test:rust && npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

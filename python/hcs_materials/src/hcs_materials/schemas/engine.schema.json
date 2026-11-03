@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hcs-materials.local/engine/1.0.0",
+  "title": "EngineRecord",
+  "description": "Engine capability record. The UI may only offer an engine when installation_state is available and the platform/backend is supported.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "engine_id",
+    "name",
+    "version",
+    "provider",
+    "license",
+    "supported_tasks",
+    "execution_backends",
+    "installation_state"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "engine_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "provider": { "type": "string" },
+    "license": { "type": "string" },
+    "supported_tasks": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "structure.validate",
+          "energy.evaluate",
+          "structure.relax",
+          "md.run",
+          "analysis.rdf",
+          "analysis.msd",
+          "continuum.diffusion_1d",
+          "continuum.heat_1d"
+        ]
+      }
+    },
+    "supported_elements": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Explicit element whitelist; ['*'] means element-agnostic classical model."
+    },
+    "supported_phases": { "type": "array", "items": { "type": "string" } },
+    "platforms": { "type": "array", "items": { "enum": ["windows", "linux", "macos", "browser"] } },
+    "execution_backends": {
+      "type": "array",
+      "items": { "enum": ["cpu", "wasm", "webgpu", "vulkan", "cuda", "hip"] }
+    },
+    "precision_modes": { "type": "array", "items": { "enum": ["float64", "float32"] } },
+    "model_ids": { "type": "array", "items": { "type": "string" } },
+    "minimum_memory_mb": { "type": "number", "minimum": 0 },
+    "known_limits": { "type": "array", "items": { "type": "string" } },
+    "validation_cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": "string" },
+          "status": { "enum": ["passing", "failing", "not_run"] },
+          "tolerance": { "type": "string" }
+        }
+      }
+    },
+    "installation_state": {
+      "enum": ["builtin", "installed", "not_installed", "unsupported_platform", "unavailable"]
+    },
+    "installation_notes": { "type": "string" },
+    "fidelity_levels": { "type": "array", "items": { "type": "string" } },
+    "docs_url": { "type": "string" }
+  }
+}

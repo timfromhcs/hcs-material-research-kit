@@ -265,6 +265,20 @@ export function runJob(options: RunJobOptions): JobOutcome {
     controller.transition("running", `Running ${spec.task_type} with ${model.id}`);
     report("run", 0.05, `Running ${spec.task_type}`);
 
+    // Preflight: a cell whose supported cutoff reaches no other atom has no
+    // physics in it. Refusing is honest; returning E = 0 would look like data.
+    const preflight = computeEnergyForces(structure, model, { cutoff: effectiveCutoff });
+    if (preflight.pairCount === 0) {
+      return failJob(
+        controller,
+        {},
+        `No atom pair lies within the effective cutoff of ${effectiveCutoff.toFixed(2)} Å in this ` +
+          `${structure.sites.length}-atom cell, so the model has no interactions here. ` +
+          "Build a larger supercell in Structure Studio (or raise the cutoff) and run again.",
+        "lj.no_interactions",
+      );
+    }
+
     if (spec.task_type === "energy.evaluate") {
       const evaluatedNow = computeEnergyForces(structure, model, { cutoff: effectiveCutoff });
       report("analysis", 0.9, "Collecting single-point energy and forces");
@@ -466,6 +480,7 @@ export function runJob(options: RunJobOptions): JobOutcome {
         limitations: [
           ...model.limitations,
           "NVE only: the sample temperature is an output of the dynamics, not a controlled variable.",
+          "Temperature and kinetic energy oscillate because energy is exchanged with the potential; a short run does not establish an equilibrated temperature.",
           "Trajectory length is short by MD standards; transport coefficients from it are indicative at best.",
         ],
         result_structure: md.finalStructure,

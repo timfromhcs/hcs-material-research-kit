@@ -54,11 +54,11 @@ export async function detectHardware(): Promise<HardwareReport> {
   const reasons: string[] = [];
   const report: HardwareReport = {
     platform: isBrowser ? "browser" : "node",
-    os: isBrowser ? navigator.platform || "unknown" : process.platform,
-    architecture: isBrowser ? "unknown" : process.arch,
+    os: isBrowser ? navigator.platform || "unknown" : nodePlatform(),
+    architecture: isBrowser ? "unknown" : nodeArchitecture(),
     cpuThreads: isBrowser
       ? navigator.hardwareConcurrency || 1
-      : Math.max(1, (await import("node:os")).cpus().length),
+      : nodeThreads(),
     wasm: { available: false, simd: false, threads: false },
     webgpu: { available: false, reason: "not probed" },
     storage: { supported: false },
@@ -152,8 +152,6 @@ export async function detectHardware(): Promise<HardwareReport> {
     if (typeof deviceMemory === "number") report.deviceMemoryGb = deviceMemory;
     report.userAgent = navigator.userAgent;
   } else {
-    const os = await import("node:os");
-    report.deviceMemoryGb = Math.round((os.totalmem() / 1024 ** 3) * 10) / 10;
     report.webgpu = {
       available: false,
       reason: "Native WebGPU/Vulkan kernel not built into this Node build; CPU reference path is used.",
@@ -162,6 +160,35 @@ export async function detectHardware(): Promise<HardwareReport> {
   }
 
   return report;
+}
+
+/**
+ * Node globals are read through `globalThis` so this module stays bundleable
+ * for the browser without externalising `node:os`.
+ */
+interface NodeLikeProcess {
+  platform?: string;
+  arch?: string;
+  availableParallelism?: () => number;
+  memoryUsage?: () => { rss: number };
+}
+
+function nodeProcess(): NodeLikeProcess | undefined {
+  const candidate = (globalThis as { process?: NodeLikeProcess }).process;
+  return candidate && typeof candidate === "object" ? candidate : undefined;
+}
+
+function nodePlatform(): string {
+  return nodeProcess()?.platform ?? "unknown";
+}
+
+function nodeArchitecture(): string {
+  return nodeProcess()?.arch ?? "unknown";
+}
+
+function nodeThreads(): number {
+  const threads = nodeProcess()?.availableParallelism?.();
+  return typeof threads === "number" && threads > 0 ? threads : 1;
 }
 
 /** Human-readable one-liner used in the status bar. */

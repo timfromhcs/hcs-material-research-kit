@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hcs-materials.local/simulation/1.0.0",
+  "title": "SimulationSpec",
+  "description": "Immutable job input specification. Never mutated after a job leaves the created state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "task_type",
+    "structure_ref",
+    "engine_id",
+    "fidelity_level",
+    "parameters"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_type": {
+      "enum": [
+        "structure.validate",
+        "energy.evaluate",
+        "structure.relax",
+        "md.run",
+        "analysis.rdf",
+        "analysis.msd",
+        "continuum.diffusion_1d",
+        "continuum.heat_1d"
+      ]
+    },
+    "structure_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["structure_id", "structure_hash"],
+      "properties": {
+        "structure_id": { "type": "string" },
+        "structure_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "engine_id": { "type": "string", "minLength": 1 },
+    "model_id": { "type": "string" },
+    "fidelity_level": {
+      "enum": [
+        "illustrative",
+        "classical_model",
+        "ml_potential",
+        "semi_empirical",
+        "first_principles",
+        "continuum_model",
+        "benchmark_validated",
+        "experiment_referenced"
+      ]
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Engine-specific, schema-validated parameter block. Defaults are never silently invented by the UI.",
+      "additionalProperties": true
+    },
+    "thermodynamic_conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "temperature": { "type": "number", "minimum": 0 },
+        "pressure": { "type": "number" },
+        "ensemble": { "enum": ["NVE", "NVT", "NPT", "none"] }
+      }
+    },
+    "boundary_conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "periodic": { "type": "array", "items": { "type": "boolean" }, "minItems": 3, "maxItems": 3 },
+        "description": { "type": "string" }
+      }
+    },
+    "compute_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backend": { "enum": ["auto", "cpu", "wasm", "webgpu", "vulkan"] },
+        "precision": { "enum": ["float64", "float32"] },
+        "memory_budget_mb": { "type": "number", "exclusiveMinimum": 0 },
+        "max_threads": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "seed": { "type": "integer", "minimum": 0 },
+    "timeout_seconds": { "type": "number", "exclusiveMinimum": 0 },
+    "checkpoint_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "interval_steps": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "requested_outputs": {
+      "type": "array",
+      "items": {
+        "enum": ["energy", "forces", "trajectory", "rdf", "msd", "thermo", "field", "structure"]
+      }
+    },
+    "notes": { "type": "string", "maxLength": 4000 }
+  }
+}

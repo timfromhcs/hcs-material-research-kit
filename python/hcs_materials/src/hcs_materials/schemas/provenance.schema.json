@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hcs-materials.local/provenance/1.0.0",
+  "title": "ProvenanceRecord",
+  "description": "Complete provenance for one result. Any result without a complete provenance record is not exportable as a research record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provenance_id",
+    "recorded_at",
+    "fidelity_level",
+    "software",
+    "inputs",
+    "units"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "provenance_id": { "type": "string", "minLength": 1 },
+    "recorded_at": { "type": "string", "format": "date-time" },
+    "fidelity_level": {
+      "enum": [
+        "illustrative",
+        "classical_model",
+        "ml_potential",
+        "semi_empirical",
+        "first_principles",
+        "continuum_model",
+        "benchmark_validated",
+        "experiment_referenced"
+      ]
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "equation_reference": { "type": "string" },
+        "model_id": { "type": "string" },
+        "model_version": { "type": "string" },
+        "parameters": { "type": "object" },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "limitations": { "type": "array", "items": { "type": "string" } },
+        "validation_state": {
+          "enum": ["unvalidated", "unit_tested", "analytically_verified", "benchmark_verified"]
+        }
+      }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "commit": { "type": "string" },
+        "engine_id": { "type": "string" },
+        "engine_version": { "type": "string" },
+        "adapter_version": { "type": "string" },
+        "executable_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_hash"],
+      "properties": {
+        "input_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "normalized_input_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "structure_id": { "type": "string" },
+        "structure_hash": { "type": "string" },
+        "dataset_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["provider", "record_id"],
+            "properties": {
+              "provider": { "type": "string" },
+              "record_id": { "type": "string" },
+              "uri": { "type": "string" },
+              "retrieved_at": { "type": "string", "format": "date-time" },
+              "license": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "os": { "type": "string" },
+        "architecture": { "type": "string" },
+        "runtime": { "type": "string" },
+        "backend": {
+          "enum": ["cpu", "wasm", "webgpu", "vulkan", "cuda", "hip", "unknown"]
+        },
+        "precision": { "enum": ["float64", "float32", "mixed", "unknown"] },
+        "device_name": { "type": "string" },
+        "threads": { "type": "integer", "minimum": 1 },
+        "random_seed": { "type": "integer" },
+        "deterministic": { "type": "boolean" }
+      }
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Unit per reported quantity, e.g. { energy: 'eV', length: 'angstrom' }.",
+      "properties": {
+        "energy": { "type": "string" },
+        "length": { "type": "string" },
+        "force": { "type": "string" },
+        "time": { "type": "string" },
+        "temperature": { "type": "string" }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  }
+}

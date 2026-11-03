@@ -119,6 +119,16 @@ describe("runJob: energy evaluation", () => {
     expect(outcome.error?.code).toBe("fidelity_mismatch");
   });
 
+  it("refuses a cell in which the model has no interactions", () => {
+    // One conventional fcc cell: nearest pair (3.72 Å) is beyond the cutoff the
+    // cell can support (2.63 Å), so E = 0 would be an artefact, not a result.
+    const structure = argon(1, 5.26);
+    const outcome = runJob({ spec: spec(structure), structure });
+    expect(outcome.job.state).toBe("failed");
+    expect(outcome.error?.code).toBe("lj.no_interactions");
+    expect(outcome.error?.message).toMatch(/supercell/i);
+  });
+
   it("fails a structurally invalid input instead of computing garbage", () => {
     const structure = argon();
     const collapsed: Structure = {

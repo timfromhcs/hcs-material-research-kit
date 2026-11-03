@@ -1,0 +1,78 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typescript:
+    name: TypeScript, tests and studio build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Upload studio bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: hcs-studio-dist
+          path: apps/web/dist
+          retention-days: 7
+
+  rust:
+    name: Rust kernels and cross-language parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: npm ci
+      - run: npm run build:packages
+      - name: Regenerate reference fixtures and fail on drift
+        run: |
+          npx tsx scripts/make-reference-fixtures.ts
+          git diff --exit-code tests/fixtures/reference
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test -p hcs-compute-core
+
+  python:
+    name: Python package, CLI and MCP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package with test and MCP extras
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "./python/hcs_materials[dev]"
+      - name: Run tests
+        working-directory: python/hcs_materials
+        run: python -m pytest -q
+
+  desktop-placeholder:
+    name: Desktop packaging (not implemented)
+    runs-on: ubuntu-latest
+    if: false
+    steps:
+      - run: echo "Tauri packaging is not implemented yet; see ROADMAP.md Phase 1/8."

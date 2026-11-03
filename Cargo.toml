@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["crates/compute-core"]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+authors = ["hcsmedia and timfromhcs"]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

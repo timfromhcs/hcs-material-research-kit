@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HCS Materials lattice mark">
+  <g fill="none" stroke="#4fd6c4" stroke-width="2.6" stroke-linejoin="round">
+    <path d="M32 10 L50.5 20.75 V42.25 L32 53 L13.5 42.25 V20.75 Z"/>
+    <path d="M32 10 V32 M13.5 42.25 L32 32 L50.5 42.25 M13.5 20.75 L32 32"/>
+  </g>
+  <g fill="#4fd6c4">
+    <circle cx="32" cy="10" r="3.6"/>
+    <circle cx="50.5" cy="42.25" r="3.6"/>
+    <circle cx="13.5" cy="42.25" r="3.6"/>
+  </g>
+  <circle cx="32" cy="32" r="4" fill="#e8eef1"/>
+</svg>

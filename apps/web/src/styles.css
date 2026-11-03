@@ -1,0 +1,211 @@
+:root {
+  --app-max: 1560px;
+}
+
+.workspace > * {
+  max-width: var(--app-max);
+}
+
+@media (max-width: 760px) {
+  .lattice-art {
+    max-width: 190px;
+  }
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.55fr);
+  gap: var(--s-4);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.three-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--s-4);
+}
+
+.site-table {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.site-table tr[aria-selected="true"] {
+  background: var(--accent-soft);
+}
+
+.site-table tbody tr {
+  cursor: pointer;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: var(--s-5);
+  align-items: center;
+  padding: var(--s-6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(1200px 320px at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    var(--bg-raised);
+  box-shadow: var(--shadow-panel);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.hero h1 {
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+}
+
+.hero p {
+  color: var(--text-secondary);
+  max-width: 64ch;
+}
+
+.lattice-art {
+  width: 100%;
+  max-width: 280px;
+  justify-self: center;
+  height: auto;
+  color: var(--accent);
+  opacity: 0.95;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--s-3);
+}
+
+.quick-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  padding: var(--s-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition: border-color var(--motion-fast) ease, background var(--motion-fast) ease;
+}
+
+.quick-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.quick-card strong {
+  font-size: var(--text-sm);
+}
+
+.job-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  max-height: 340px;
+  overflow: auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 var(--s-3);
+  overflow-x: auto;
+}
+
+.tab {
+  padding: var(--s-3) var(--s-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab[aria-selected="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.toast {
+  position: fixed;
+  right: var(--s-4);
+  bottom: 56px;
+  z-index: 40;
+  max-width: 420px;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-overlay);
+  box-shadow: var(--shadow-panel);
+  font-size: var(--text-sm);
+}
+
+.toast[data-tone="err"] {
+  border-color: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+.toast[data-tone="ok"] {
+  border-color: color-mix(in srgb, var(--ok) 50%, transparent);
+}
+
+.drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
+}
+
+pre.code-block {
+  max-height: 320px;
+  overflow: auto;
+  padding: var(--s-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 2px;
+}
+
+.lang-switch button {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.lang-switch button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
