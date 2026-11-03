@@ -34,7 +34,8 @@ new surface area.
   job, `workflow_dispatch`, and action pins updated to the current majors
   (`checkout@v7`, `setup-node@v7`, `setup-python@v7`, `upload-artifact@v7`).
 - **`rust-toolchain.toml`** pinning Rust 1.96.0 and the wasm target so the
-  committed `.wasm` asset is rebuildable byte-for-byte.
+  committed `.wasm` asset is rebuilt with a known compiler; CI verifies the
+  asset's manifest hash and runs the full WASM suite against a fresh rebuild.
 - **Documentation**: `docs/plan/2026-11-03-v0.2.0-long-horizon.md` (researched
   open questions, phase gates, test loops) and evidence under `docs/plan/evidence/`.
 

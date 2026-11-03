@@ -26,7 +26,9 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
   use: {
-    baseURL: "http://localhost:4173",
+    // Set HCS_E2E_BASE_URL to smoke-test an already deployed build instead of
+    // starting the local preview server.
+    baseURL: process.env.HCS_E2E_BASE_URL ?? "http://localhost:4173",
     channel: process.env.PW_CHANNEL ?? "chrome",
     viewport: { width: 1280, height: 900 },
     trace: "retain-on-failure",
@@ -34,13 +36,15 @@ export default defineConfig({
     acceptDownloads: true,
   },
   projects: [{ name: "chrome" }],
-  webServer: {
-    command: "npm run build && npm run preview -w @hcs-materials/web -- --port 4173 --strictPort",
-    cwd: repoRoot,
-    url: "http://localhost:4173",
-    reuseExistingServer: !process.env.CI,
-    timeout: 240_000,
-    stdout: "pipe",
-    stderr: "pipe",
-  },
+  webServer: process.env.HCS_E2E_BASE_URL
+    ? undefined
+    : {
+        command: "npm run build && npm run preview -w @hcs-materials/web -- --port 4173 --strictPort",
+        cwd: repoRoot,
+        url: "http://localhost:4173",
+        reuseExistingServer: !process.env.CI,
+        timeout: 240_000,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
 });

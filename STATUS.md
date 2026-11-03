@@ -71,7 +71,9 @@
 - The 3D viewer uses WebGL2; no WebGPU renderer is implemented.
 - Browser storage can be evicted; there is no automatic backup.
 - MCP stdio only; loopback HTTP transport is not implemented.
-- The committed WASM asset is byte-reproducible only with the pinned Rust toolchain.
+- The committed WASM asset is built by a pinned toolchain, but byte identity across operating
+  systems is not claimed: the compiler embeds platform metadata. CI verifies the manifest hash
+  and that a fresh rebuild passes the full WASM test suite.
 
 ## Scientific validation evidence
 

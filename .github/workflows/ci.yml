@@ -75,10 +75,13 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test -p hcs-compute-core -p hcs-compute-wasm
-      - name: Rebuild WASM and fail on drift
+      - name: Verify the committed WASM asset matches its manifest
+        run: node scripts/check-wasm-asset.mjs
+      - name: Rebuild WASM and run the WASM suite against the fresh build
         run: |
           npm run build:wasm
-          git diff --exit-code packages/wasm/wasm
+          npx vitest run packages/wasm
+          git checkout -- packages/wasm/wasm
 
   python:
     name: Python ${{ matrix.python-version }}, CLI and MCP

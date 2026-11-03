@@ -6,6 +6,9 @@ research record with provenance.
 
 > Made with love by **hcsmedia** and **timfromhcs**.
 
+**Repository:** https://github.com/timfromhcs/hcs-material-research-kit
+**Live studio:** https://hcs-material-research-kit.vercel.app
+
 [![tests](https://img.shields.io/badge/TypeScript%20tests-132%20passing-4fd6c4)](#verification)
 [![rust](https://img.shields.io/badge/Rust%20tests-8%20passing-4fd6c4)](#verification)
 [![python](https://img.shields.io/badge/Python%2FMCP-41%20passing-4fd6c4)](#verification)

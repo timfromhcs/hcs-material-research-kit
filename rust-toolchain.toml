@@ -1,6 +1,7 @@
-# Pinned so the committed WebAssembly asset can be rebuilt byte-for-byte.
-# The exact compiler is recorded in packages/wasm/wasm/MANIFEST.json; changing
-# the channel here requires rebuilding the asset and updating that manifest.
+# Pinned so the committed WebAssembly asset is always rebuilt with the compiler
+# recorded in packages/wasm/wasm/MANIFEST.json. Byte identity across operating
+# systems is not guaranteed (the compiler embeds build metadata); CI therefore
+# verifies the asset hash and runs the full WASM suite against a fresh rebuild.
 [toolchain]
 channel = "1.96.0"
 components = ["rustfmt", "clippy"]
