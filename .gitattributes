@@ -1,0 +1,13 @@
+# Store text as LF in the repository and check it out as LF on every platform.
+# Without this, Windows' autocrlf turns the working tree into CRLF after a merge
+# and `prettier --check` (endOfLine: lf) fails locally while CI stays green.
+* text=auto eol=lf
+
+# Binary artefacts: never touch these.
+*.wasm binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.zip binary
+*.hcsproj binary
