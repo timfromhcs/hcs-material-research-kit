@@ -56,10 +56,11 @@ hcs-materials-mcp --root ./projects
 ```
 
 Exposed tools: `engines_list`, `structures_validate`, `structures_convert`,
-`project_validate`. Resources: `hcs://engine-registry`,
-`hcs://science/fidelity-levels`. Prompts: `review_simulation_methodology`,
-`diagnose_convergence_failure`. All project paths are confined to `--root`, and
-there is no shell or arbitrary-Python tool.
+`project_validate`, `simulations_validate_spec` (validation only, starts nothing) and
+`results_summarize` (read-only quantities/provenance from an archive). Resources:
+`hcs://engine-registry`, `hcs://science/fidelity-levels`. Prompts:
+`review_simulation_methodology`, `diagnose_convergence_failure`. All project paths are confined
+to `--root`, and there is no shell or arbitrary-Python tool.
 
 ## Scientific integrity
 

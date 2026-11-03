@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-11-03T20:30:53.508Z",
+  "commit": "15922378337bd1a63902cd27abf48b48bca5e692",
+  "node": "v22.23.1",
+  "platform": "win32 10.0.26200 x64",
+  "cpu": "AMD Ryzen 7 7735HS with Radeon Graphics        ",
+  "logical_cpus": 16,
+  "memory_gb": 19.8,
+  "workload": {
+    "structure": "fcc argon, a = 5.26 Å",
+    "model": "lj.noble-gases.v1",
+    "cutoff": "model default, clamped by the cell",
+    "warmup": 3
+  },
+  "correctness": {
+    "max_delta_energy_ev": 0,
+    "max_delta_force_ev_per_a": 4.336808689942018e-18,
+    "tolerance": 1e-10,
+    "passed": true
+  },
+  "timings": [
+    {
+      "label": "energy.evaluate 108 atoms (CPU)",
+      "iterations": 40,
+      "median_ms": 0.81195,
+      "min_ms": 0.5876,
+      "max_ms": 3.8373
+    },
+    {
+      "label": "energy.evaluate 108 atoms (WASM)",
+      "iterations": 40,
+      "median_ms": 0.16635,
+      "min_ms": 0.1372,
+      "max_ms": 0.3059
+    },
+    {
+      "label": "energy.evaluate 500 atoms (CPU)",
+      "iterations": 15,
+      "median_ms": 5.5259,
+      "min_ms": 5.1102,
+      "max_ms": 5.9772
+    },
+    {
+      "label": "energy.evaluate 500 atoms (WASM)",
+      "iterations": 15,
+      "median_ms": 2.1564,
+      "min_ms": 2.0254,
+      "max_ms": 2.416
+    },
+    {
+      "label": "md.run 108 atoms, 100 steps (CPU)",
+      "iterations": 3,
+      "median_ms": 449.8245,
+      "min_ms": 443.0907,
+      "max_ms": 475.9605
+    },
+    {
+      "label": "md.run 108 atoms, 100 steps (WASM)",
+      "iterations": 3,
+      "median_ms": 380.0993,
+      "min_ms": 366.7886,
+      "max_ms": 380.8242
+    },
+    {
+      "label": "structure.relax 32 atoms, 200 steps (CPU)",
+      "iterations": 3,
+      "median_ms": 0.7107,
+      "min_ms": 0.6865,
+      "max_ms": 1.0086
+    },
+    {
+      "label": "structure.relax 32 atoms, 200 steps (WASM)",
+      "iterations": 3,
+      "median_ms": 0.6401,
+      "min_ms": 0.6272,
+      "max_ms": 0.6649
+    }
+  ],
+  "notes": [
+    "Single-threaded. Each WASM force evaluation copies buffers into linear memory; this is included in the timing.",
+    "Timings are wall-clock samples from one machine and are not a general performance claim."
+  ]
+}

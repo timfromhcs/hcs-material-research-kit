@@ -18,6 +18,8 @@ The MCP server exposes only operations that are implemented, tested and side-eff
 | `structures_validate` | pure function, no filesystem |
 | `structures_convert` | pure function, returns text |
 | `project_validate` | reads one archive inside the configured root |
+| `simulations_validate_spec` | validates spec + structure against registry/rules; starts nothing |
+| `results_summarize` | reads recorded quantities/provenance from an archive in the configured root |
 
 Resources: `hcs://engine-registry`, `hcs://science/fidelity-levels`.
 Prompts: `review_simulation_methodology`, `diagnose_convergence_failure`.
@@ -25,6 +27,11 @@ Prompts: `review_simulation_methodology`, `diagnose_convergence_failure`.
 There is **no** shell tool, no arbitrary Python tool, no file write tool and no simulation tool
 in this release. Project paths are resolved against `--root` and rejected if they escape it.
 Transport is stdio only; loopback HTTP is not implemented and therefore not offered.
+
+`simulations_validate_spec` performs no computation: it checks engine availability, supported
+task, declared fidelity, supported elements, structure validation and the structure hash, and
+returns every blocking issue so an agent can correct the input. `results_summarize` is read-only
+and reports missing fields as missing.
 
 ## Consequences
 

@@ -14,6 +14,7 @@
 | Architecture: browser runtime | [`architecture/browser-runtime.md`](architecture/browser-runtime.md) |
 | Engines and capability matrix | [`engines/engine-registry.md`](engines/engine-registry.md) |
 | Security and privacy | [`security/threat-model.md`](security/threat-model.md) |
+| Benchmarks | [`../benchmarks/README.md`](../benchmarks/README.md) |
 | Tutorial | [`tutorials/first-calculation.md`](tutorials/first-calculation.md) |
 | Research baseline and verification | [`research/baseline.md`](research/baseline.md) |
 

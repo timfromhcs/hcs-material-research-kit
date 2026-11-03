@@ -1,0 +1,12 @@
+# Files that are not part of the static studio deployment.
+.venv/
+**/.venv/
+target/
+crates/
+python/
+test-results/
+playwright-report/
+.playwright-mcp/
+docs/
+*.png
+.git/

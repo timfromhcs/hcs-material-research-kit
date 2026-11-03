@@ -21,9 +21,10 @@ from . import __version__
 from .contracts import ContractViolation, validate_contract
 from .io import StructureIOError, read_structure, write_structure
 from .project import ProjectError, read_project, summarize_project
-from .registry import PLANNED_ENGINES, list_engines
+from .registry import PLANNED_ENGINES, list_engines, require_engine
 from .structure import (
     Structure,
+    base_symbol,
     cell_volume,
     structure_hash,
     validate_structure,
@@ -110,6 +111,151 @@ def create_server(root: str | Path):
         except (ValueError, ProjectError) as error:
             return {"ok": False, "error": str(error)}
         return {"ok": result.checksums_verified, **summarize_project(result)}
+
+    @server.tool()
+    def simulations_validate_spec(spec: dict[str, Any], structure: dict[str, Any]) -> dict[str, Any]:
+        """Validate a SimulationSpec against the registry and structure before any run.
+
+        This performs no computation. It reports every blocking issue it finds
+        (unknown engine, unsupported task, undeclared fidelity, structure hash
+        mismatch, unsupported elements, invalid structure) so an agent can fix
+        the input instead of starting a doomed job.
+        """
+        issues: list[str] = []
+        warnings: list[str] = []
+
+        try:
+            validate_contract("structure", structure)
+        except ContractViolation as error:
+            return {"ok": False, "issues": [str(error)], "warnings": []}
+
+        from .io import read_hcs_json
+
+        parsed = read_hcs_json(json.dumps(structure))
+        report = validate_structure(parsed)
+        if report.status == "invalid":
+            issues.append(
+                "structure is invalid: "
+                + "; ".join(check.message for check in report.checks if check.status == "fail")
+            )
+        elif report.status == "warning":
+            warnings.extend(check.message for check in report.checks if check.status == "warning")
+
+        try:
+            validate_contract("simulation", spec)
+        except ContractViolation as error:
+            return {"ok": False, "issues": [str(error)], "warnings": warnings}
+
+        engine = None
+        try:
+            engine = require_engine(str(spec.get("engine_id", "")))
+        except LookupError as error:
+            issues.append(str(error))
+
+        task_type = str(spec.get("task_type", ""))
+        fidelity = str(spec.get("fidelity_level", ""))
+        if engine is not None:
+            if task_type not in engine.supported_tasks:
+                issues.append(
+                    f"engine '{engine.engine_id}' does not support task '{task_type}' "
+                    f"(supported: {', '.join(engine.supported_tasks)})"
+                )
+            if engine.fidelity_levels and fidelity not in engine.fidelity_levels:
+                issues.append(
+                    f"engine '{engine.engine_id}' does not declare fidelity '{fidelity}' "
+                    f"(declared: {', '.join(engine.fidelity_levels)})"
+                )
+            supported = set(engine.supported_elements)
+            if supported and "*" not in supported:
+                elements = {base_symbol(site.species) for site in parsed.sites}
+                missing = sorted(elements - supported)
+                if missing:
+                    issues.append(
+                        f"engine '{engine.engine_id}' has no parameters for: {', '.join(missing)}"
+                    )
+
+        reference = spec.get("structure_ref") or {}
+        expected_hash = str(reference.get("structure_hash", ""))
+        actual_hash = structure_hash(parsed)
+        if expected_hash != actual_hash:
+            issues.append(
+                "structure_ref.structure_hash does not match the supplied structure "
+                f"(expected {expected_hash[:16]}…, actual {actual_hash[:16]}…)"
+            )
+
+        if task_type == "md.run":
+            ensemble = (spec.get("thermodynamic_conditions") or {}).get("ensemble")
+            if ensemble and ensemble not in ("NVE", "none"):
+                issues.append(
+                    f"ensemble '{ensemble}' is not implemented; only NVE is available in this build"
+                )
+
+        return {
+            "ok": not issues,
+            "issues": issues,
+            "warnings": warnings,
+            "structure_hash": actual_hash,
+            "validation_status": report.status,
+            "engine": (
+                {
+                    "engine_id": engine.engine_id,
+                    "version": engine.version,
+                    "supported_tasks": engine.supported_tasks,
+                    "fidelity_levels": engine.fidelity_levels,
+                    "known_limits": engine.known_limits,
+                }
+                if engine is not None
+                else None
+            ),
+            "note": "Validation only. No simulation was started by this tool.",
+        }
+
+    @server.tool()
+    def results_summarize(relative_path: str) -> dict[str, Any]:
+        """Summarize recorded results inside a .hcsproj archive (read-only)."""
+        try:
+            path = workspace.resolve(relative_path)
+            result = read_project(path)
+        except (ValueError, ProjectError) as error:
+            return {"ok": False, "error": str(error)}
+
+        jobs: list[dict[str, Any]] = []
+        for job in result.jobs[:50]:
+            bundle = job.get("result") or {}
+            provenance = job.get("provenance") or {}
+            jobs.append(
+                {
+                    "job_id": job["job_id"],
+                    "state": (job.get("status") or {}).get("state"),
+                    "task_type": (job.get("input") or {}).get("task_type"),
+                    "fidelity_level": bundle.get("fidelity_level"),
+                    "backend": (provenance.get("environment") or {}).get("backend"),
+                    "result_status": bundle.get("status"),
+                    "quantities": [
+                        {
+                            "name": quantity.get("name"),
+                            "value": quantity.get("value"),
+                            "unit": quantity.get("unit"),
+                        }
+                        for quantity in (bundle.get("quantities") or [])[:50]
+                    ],
+                    "convergence": bundle.get("convergence"),
+                    "limitations": (bundle.get("limitations") or [])[:20],
+                    "warnings": (bundle.get("warnings") or [])[:20],
+                }
+            )
+
+        return {
+            "ok": result.checksums_verified,
+            "project": {
+                "project_id": result.project.get("project_id"),
+                "name": result.project.get("name"),
+                "checksums_verified": result.checksums_verified,
+            },
+            "jobs": jobs,
+            "warnings": result.warnings,
+            "note": "Read-only summary. Missing fields are reported as missing, never filled in.",
+        }
 
     @server.resource("hcs://engine-registry")
     def engine_registry() -> str:

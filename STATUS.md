@@ -23,7 +23,8 @@
 - **Python CLI** (`hcs-materials`): doctor, hardware, engines list/inspect, structure
   validate/convert, project create/validate, report build.
 - **MCP server** (`hcs-materials-mcp`, stdio): engines_list, structures_validate,
-  structures_convert, project_validate + 2 resources + 2 prompts.
+  structures_convert, project_validate, simulations_validate_spec (validation only) and
+  results_summarize (read-only) + 2 resources + 2 prompts.
 - **Rust crate** (`hcs-compute-core`): switched Lennard-Jones energy/forces, parity-tested.
 - **WASM kernel** (`@hcs-materials/wasm`): the Rust kernel compiled to wasm32-unknown-unknown
   with a plain C ABI. The worker uses it for energy evaluation, FIRE relaxation and NVE MD, and
@@ -82,11 +83,21 @@
 | Archive path traversal | rejected | TS + Python tests |
 | MCP tool round-trip | official SDK client passes | `python/.../tests/test_mcp.py` |
 | Full acceptance workflow | 7 Playwright tests pass | `tests/e2e/workflow.spec.ts` |
+| CPU vs WASM timings | parity gate passed; baseline recorded | `benchmarks/results/latest.json` |
 
 ## Native hardware tested
 
 - Windows 11 x64, AMD Ryzen 7 7735HS (16 threads), 24 GB RAM, Radeon 680M (Vulkan-capable).
 - The CPU reference path was used for all test runs; no Vulkan or WebGPU kernel exists yet.
+
+## Deployment
+
+- `vercel.json` and `.vercelignore` are prepared for a static deployment of `apps/web/dist`.
+- The project is linked locally as `hcsmediacorp/hcs-material-research-kit`.
+- A deployment attempt on 2026-11-03 was rejected by the platform:
+  `api-deployments-free-per-day` (more than 100 deployments in 24 h on that account).
+  **No preview URL exists yet**; retry after the quota resets. Do not claim a deployment until a
+  preview has been opened and smoke-tested.
 
 ## Browser/device matrix tested
 
@@ -116,12 +127,14 @@
 ## Current blockers
 
 1. No remote/GitHub Actions run yet, so the CI workflow is defined but unproven.
-2. GPU kernel validation requires a WebGPU-capable CI runner (not available yet).
-3. External scientific engines require licensed installations and isolated environments.
+2. Vercel refused a preview deployment because the account's daily deployment quota
+   (`api-deployments-free-per-day`, >100) is exhausted. Retry after 24 h.
+3. GPU kernel validation requires a WebGPU-capable CI runner (not available yet).
+4. External scientific engines require licensed installations and isolated environments.
 
 ## Next 5 concrete tasks
 
-1. Reuse WASM buffers across force evaluations and benchmark large cells.
+1. Reuse WASM buffers across force evaluations and re-run the benchmark gate.
 2. Implement MCP simulation tools over a stable, approval-gated job API.
 3. Add checkpoint/restart for long MD runs (cooperative pause).
 4. Add a Tauri shell and engine manager skeleton with honest unavailable states.

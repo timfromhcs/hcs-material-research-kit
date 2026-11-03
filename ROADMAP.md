@@ -100,10 +100,11 @@ Discovery page by design — it would be a fake surface.
 | Documentation set | Done for this slice | `README.md`, `docs/` |
 | Windows/Linux installers | **Not started** | |
 | PyPI/npm publication | **Not started** | names unverified |
-| Vercel production deployment | **Not started** | `vercel.json` prepared |
+| Vercel project + config | Prepared, deployment blocked | linked `hcsmediacorp/hcs-material-research-kit`; quota `api-deployments-free-per-day` |
 | Security/license audit | Partial | `SECURITY.md`, engine notes |
 
-**Gate status:** not met.
+**Gate status:** not met. A preview deployment must succeed and be smoke-tested before this
+phase can close.
 
 ## Phase 9 — Advanced research expansion
 

@@ -33,6 +33,7 @@ A working vertical slice, not a mock-up:
 | Python CLI | Implemented | 32 tests |
 | MCP v2 stdio server | Implemented (subset) | official SDK client tests |
 | Automated acceptance workflow | Implemented | 7 Playwright tests on the production bundle |
+| Reproducible benchmark harness | Implemented | `benchmarks/`, committed baseline with parity gate |
 | WebGPU kernels, DFT/LAMMPS/ML potentials, Tauri app | **Not implemented** | see `ROADMAP.md` |
 
 The browser and native editions do not share every solver — they share schemas, workflows,
@@ -120,7 +121,6 @@ docs/                    Science, architecture, decisions, security, tutorials
 ## Verification
 
 Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96):
-
 ```text
 TypeScript 111 tests passing   vitest run (includes 11 TS ↔ WASM tests)
 Rust         8 tests passing   cargo test -p hcs-compute-core -p hcs-compute-wasm
@@ -135,6 +135,12 @@ Key scientific checks:
 - forces equal the negative numerical energy gradient (relative deviation < 1e-5);
 - NVE total-energy drift < 1e-3 eV/atom over 400 steps on a 108-atom argon cell;
 - TypeScript and Rust agree within **1e-10 eV** on a 32-atom reference structure;
+- the WASM kernel drives energy, relaxation and MD in the browser and is re-checked against the
+  TypeScript kernel on every energy job (observed deviation ~1e-18);
+- a committed benchmark baseline (`benchmarks/results/latest.json`) records CPU vs WASM timings
+  with a parity gate; on the development machine WASM is ~4.7× faster for a 108-atom energy
+  evaluation and ~1.2× for MD (buffer copies per step included). Machine-specific, not a general
+  performance claim;
 - 1D heat solver matches the analytic Fourier-mode decay within 5e-4;
 - fcc RDF first peak at `a/√2`, coordination number 12 ± 0.5;
 - silicon diamond density 2.329 g/cm³ and rock-salt NaCl 2.165 g/cm³ within 1.5 %.
@@ -146,7 +152,6 @@ GitHub in this workspace yet.
 
 Read `STATUS.md` for what is done, what is blocked and what comes next, and `ROADMAP.md`
 for the phase gates. Known limitations of this release:
-
 - the only physics engine is a **classical Lennard-Jones reference** for He/Ne/Ar/Kr/Xe;
 - O(N²) pair loop (documented; fine for a few thousand atoms);
 - no DFT, no ML potentials, no LAMMPS, no CALPHAD, no phase field beyond the 1D heat solver;
