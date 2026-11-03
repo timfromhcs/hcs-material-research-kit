@@ -25,11 +25,11 @@ import { atomicMass } from "../elements.js";
 import { accelerationFromForce, KB_EV_PER_K, SQRT_EV_PER_U_TO_A_PER_PS, U_A2_PER_PS2_TO_EV } from "../units.js";
 
 export interface MdOptions {
-  /** Number of integration steps. */
+  /** Number of integration steps to perform in this call. */
   steps: number;
   /** Timestep in ps (1 fs = 0.001 ps). */
   timestep: number;
-  /** Initial temperature in K. */
+  /** Initial temperature in K (ignored when `initialState` is supplied). */
   temperature: number;
   seed?: number;
   /** Sample total energy every N steps; default 10. */
@@ -40,8 +40,36 @@ export interface MdOptions {
   cutoff?: number;
   /** Optional alternative implementation (e.g. WASM); must match the CPU contract. */
   energyKernel?: EnergyForcesKernel;
+  /**
+   * Resume from a checkpoint instead of drawing fresh velocities. Positions and
+   * velocities are Cartesian (Å and Å/ps); `step` is the number of steps already
+   * completed, so time-series entries carry the correct absolute time.
+   */
+  initialState?: MdInitialState;
   /** Called after each sampled step; return false to cancel. */
   onStep?: (info: MdStepInfo) => boolean | void;
+}
+
+export interface MdInitialState {
+  positionsCartesian: Vec3[];
+  velocities: Vec3[];
+  step: number;
+}
+
+/**
+ * Portable MD checkpoint. It carries exactly the state a velocity-Verlet run
+ * needs to continue bit-for-bit: positions, velocities and the absolute step.
+ * The structure hash and timestep are recorded so a checkpoint can never be
+ * applied to a different cell or a different time step.
+ */
+export interface MdCheckpoint {
+  schema_version: "1.0.0";
+  structure_hash: string;
+  steps_completed: number;
+  timestep_ps: number;
+  seed: number;
+  positions: Vec3[];
+  velocities: Vec3[];
 }
 
 export interface MdStepInfo {
@@ -62,6 +90,14 @@ export interface MdTrajectoryFrame {
 
 export interface MdResult {
   finalStructure: Structure;
+  /** Cartesian positions at the end of the run (Å), for checkpoints. */
+  finalPositions: Vec3[];
+  /** Velocities at the end of the run (Å/ps), for checkpoints. */
+  finalVelocities: Vec3[];
+  /** Number of steps already completed before this call (0 for a fresh run). */
+  initialStep: number;
+  /** Absolute step index reached by this run. */
+  finalStep: number;
   initialPotentialEv: number;
   finalPotentialEv: number;
   initialKineticEv: number;
@@ -143,8 +179,31 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
   }
 
   const masses = structure.sites.map((site) => atomicMass(site.species) * (site.occupancy ?? 1));
-  const positions = structure.sites.map((site) => fractionalToCartesian(structure, site.fractional_position));
-  const { velocities } = initialVelocities(structure, options.temperature, seed);
+  const resumed = options.initialState;
+  if (resumed) {
+    if (resumed.positionsCartesian.length !== structure.sites.length) {
+      throw new Error(
+        `Checkpoint carries ${resumed.positionsCartesian.length} positions but the structure has ` +
+          `${structure.sites.length} sites; refusing to mix two structures.`,
+      );
+    }
+    if (resumed.velocities.length !== structure.sites.length) {
+      throw new Error(
+        `Checkpoint carries ${resumed.velocities.length} velocities but the structure has ` +
+          `${structure.sites.length} sites; refusing to mix two structures.`,
+      );
+    }
+    if (!Number.isInteger(resumed.step) || resumed.step < 0) {
+      throw new Error("Checkpoint step must be a non-negative integer");
+    }
+  }
+  const positions = resumed
+    ? resumed.positionsCartesian.map((position) => [...position] as Vec3)
+    : structure.sites.map((site) => fractionalToCartesian(structure, site.fractional_position));
+  const velocities = resumed
+    ? resumed.velocities.map((velocity) => [...velocity] as Vec3)
+    : initialVelocities(structure, options.temperature, seed).velocities;
+  const initialStep = resumed?.step ?? 0;
 
   const kineticOf = (vel: Vec3[]): number => {
     let kinetic = 0;
@@ -191,7 +250,8 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
   const trajectory: MdTrajectoryFrame[] = [];
   const unwrapped: Vec3[][] = [];
   let cancelled = false;
-  let step = 0;
+  let step = initialStep;
+  const targetStep = initialStep + options.steps;
 
   const record = (stepIndex: number, kinetic: number, potential: number): void => {
     const timePs = stepIndex * options.timestep;
@@ -205,16 +265,20 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
     energySeries.totalEv.push(kinetic + potential);
   };
 
-  record(0, initialKineticEv, initialPotentialEv);
+  record(initialStep, initialKineticEv, initialPotentialEv);
   if (trajectoryInterval > 0) {
-    trajectory.push({ step: 0, timePs: 0, positions: positions.map((p) => [...p] as Vec3) });
+    trajectory.push({
+      step: initialStep,
+      timePs: initialStep * options.timestep,
+      positions: positions.map((p) => [...p] as Vec3),
+    });
     unwrapped.push(positions.map((p) => [...p] as Vec3));
   }
 
   const dt = options.timestep;
   let forces = evaluated.forces;
 
-  while (step < options.steps) {
+  while (step < targetStep) {
     step++;
     // Half-kick with the current forces, then drift.
     for (let i = 0; i < positions.length; i++) {
@@ -247,7 +311,7 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
     // continuous coordinates suitable for mean-square displacement.
 
     const kinetic = kineticOf(velocities);
-    if (step % sampleInterval === 0 || step === options.steps) {
+    if (step % sampleInterval === 0 || step === targetStep) {
       record(step, kinetic, evaluated.energy);
       if (options.onStep) {
         const keep = options.onStep({
@@ -283,9 +347,16 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
   const meanTemperature = temperatures.length
     ? temperatures.reduce((a, b) => a + b, 0) / temperatures.length
     : options.temperature;
+  const initialTemperatureK = resumed
+    ? (2 * initialKineticEv) / (Math.max(1, 3 * positions.length - 3) * KB_EV_PER_K)
+    : options.temperature;
 
   return {
     finalStructure,
+    finalPositions: positions.map((position) => [...position] as Vec3),
+    finalVelocities: velocities.map((velocity) => [...velocity] as Vec3),
+    initialStep,
+    finalStep: step,
     initialPotentialEv,
     finalPotentialEv: finalEvaluated.energy,
     initialKineticEv,
@@ -293,9 +364,9 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
     energyDriftEv: drift,
     energyDriftEvPerAtom: drift / positions.length,
     relativeEnergyDrift: Math.abs(initialTotal) > 0 ? drift / Math.abs(initialTotal) : Number.NaN,
-    steps: step,
+    steps: step - initialStep,
     timestepPs: dt,
-    initialTemperatureK: options.temperature,
+    initialTemperatureK,
     meanTemperatureK: meanTemperature,
     temperatureSeries,
     energySeries,

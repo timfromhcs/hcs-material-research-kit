@@ -15,7 +15,7 @@ import { getLJModel, type LJModel } from "../kernels/lj.js";
 import { computeEnergyForces, maxCutoffForCell } from "../kernels/lj.js";
 import type { EnergyForcesKernel } from "../kernels/relax.js";
 import { relaxFire } from "../kernels/relax.js";
-import { runMd, type MdTrajectoryFrame } from "../kernels/md.js";
+import { runMd, type MdCheckpoint, type MdTrajectoryFrame } from "../kernels/md.js";
 import { computeRdf } from "../kernels/analysis.js";
 import { structureHash, validateStructure } from "../structure.js";
 import { newId } from "../structure.js";
@@ -48,6 +48,8 @@ export interface RunJobOptions {
    * error behaviour; the job records which backend produced the numbers.
    */
   energyKernel?: EnergyForcesKernel;
+  /** Continue an MD run from a checkpoint (only valid for `md.run`). */
+  mdResume?: MdCheckpoint;
   now?: () => Date;
 }
 
@@ -56,6 +58,8 @@ export interface JobOutcome {
   result?: ResultBundle;
   provenance?: ProvenanceRecord;
   trajectory?: MdTrajectoryFrame[];
+  /** Final MD state, so a caller can persist a checkpoint. */
+  mdCheckpoint?: MdCheckpoint;
   error?: { code: string; message: string };
 }
 
@@ -177,6 +181,14 @@ export function runJob(options: RunJobOptions): JobOutcome {
         `Fidelity level '${spec.fidelity_level}' is not declared by engine '${engine.engine_id}' ` +
           `(${fidelityLevels.join(", ")}). Refusing to label a result with a fidelity it does not have.`,
         "fidelity_mismatch",
+      );
+    }
+    if (options.mdResume && spec.task_type !== "md.run") {
+      return failJob(
+        controller,
+        {},
+        `A checkpoint was supplied but the task is '${spec.task_type}'. Checkpoints only apply to md.run.`,
+        "resume_not_applicable",
       );
     }
     const structureErrors = validate("structure", structure);
@@ -415,6 +427,42 @@ export function runJob(options: RunJobOptions): JobOutcome {
       const wantTrajectory = (spec.requested_outputs ?? []).includes("trajectory");
       const trajectoryInterval = wantTrajectory ? Math.max(1, Math.floor(steps / 100)) : 0;
 
+      const resume = options.mdResume;
+      if (resume) {
+        if (resume.structure_hash !== structureHash(structure)) {
+          return failJob(
+            controller,
+            {},
+            "Checkpoint structure_hash does not match this structure. A checkpoint only continues " +
+              "the exact cell it was written for.",
+            "checkpoint_structure_mismatch",
+          );
+        }
+        if (Math.abs(resume.timestep_ps - timestep) > 1e-12) {
+          return failJob(
+            controller,
+            {},
+            `Checkpoint timestep ${resume.timestep_ps} ps does not match the requested ${timestep} ps. ` +
+              "Changing the timestep would silently change the integrator; restart instead.",
+            "checkpoint_timestep_mismatch",
+          );
+        }
+        if (resume.positions.length !== structure.sites.length) {
+          return failJob(
+            controller,
+            {},
+            `Checkpoint has ${resume.positions.length} positions but the structure has ` +
+              `${structure.sites.length} sites.`,
+            "checkpoint_shape_mismatch",
+          );
+        }
+        controller.progress(
+          "resume",
+          0.04,
+          `Resuming from checkpoint at step ${resume.steps_completed}`,
+        );
+      }
+
       const md = runMd(structure, model, {
         steps,
         timestep,
@@ -424,8 +472,22 @@ export function runJob(options: RunJobOptions): JobOutcome {
         energyKernel: evaluate,
         sampleInterval,
         trajectoryInterval,
+        ...(resume
+          ? {
+              initialState: {
+                positionsCartesian: resume.positions,
+                velocities: resume.velocities,
+                step: resume.steps_completed,
+              },
+            }
+          : {}),
         onStep: ({ step, totalEv }) => {
-          report("md", Math.min(0.95, 0.05 + 0.9 * (step / steps)), `Step ${step}/${steps}, E_total=${totalEv.toFixed(4)} eV`);
+          const localStep = step - (resume?.steps_completed ?? 0);
+          report(
+            "md",
+            Math.min(0.95, 0.05 + 0.9 * (localStep / steps)),
+            `Step ${localStep}/${steps} (total ${step}), E_total=${totalEv.toFixed(4)} eV`,
+          );
           return !cancelled();
         },
       });
@@ -481,6 +543,8 @@ export function runJob(options: RunJobOptions): JobOutcome {
           { name: "relative_energy_drift", value: md.relativeEnergyDrift, unit: "1" },
           { name: "final_potential_energy", value: md.finalPotentialEv, unit: CANONICAL_UNITS.energy },
           { name: "steps", value: md.steps, unit: "1" },
+          { name: "steps_resumed_from", value: md.initialStep, unit: "1" },
+          { name: "final_step", value: md.finalStep, unit: "1" },
           { name: "timestep", value: md.timestepPs, unit: CANONICAL_UNITS.time },
           { name: "ensemble", value: "NVE", unit: "1" },
           { name: "compute_backend", value: backend, unit: "1" },
@@ -503,7 +567,19 @@ export function runJob(options: RunJobOptions): JobOutcome {
         provenance_ref: "",
       };
       controller.transition("completed", "MD run completed");
-      return finish(controller, result, spec, structure, engine, model, options, now, md.trajectory);
+      const mdCheckpoint: MdCheckpoint = {
+        schema_version: "1.0.0",
+        structure_hash: structureHash(structure),
+        steps_completed: md.finalStep,
+        timestep_ps: timestep,
+        seed: spec.seed ?? 12345,
+        positions: md.finalPositions,
+        velocities: md.finalVelocities,
+      };
+      return finish(controller, result, spec, structure, engine, model, options, now, md.trajectory, {
+        mdCheckpoint,
+        ...(resume ? { resumedFrom: resume.steps_completed } : {}),
+      });
     }
 
     if (spec.task_type === "analysis.rdf") {
@@ -588,6 +664,7 @@ function finish(
   options: RunJobOptions,
   now: () => Date,
   trajectory: MdTrajectoryFrame[] | undefined,
+  extras: { mdCheckpoint?: MdCheckpoint; resumedFrom?: number } = {},
 ): JobOutcome {
   const backendQuantity = result.quantities.find((quantity) => quantity.name === "compute_backend");
   const backend = backendQuantity?.value === "wasm" ? "wasm" : "cpu";
@@ -600,6 +677,9 @@ function finish(
     randomSeed: spec.seed,
     deterministic: spec.seed !== undefined,
     recordedAt: now().toISOString(),
+    ...(extras.resumedFrom !== undefined
+      ? { parameters: { ...spec.parameters, resumed_from_steps: extras.resumedFrom } }
+      : {}),
   });
   const finalResult: ResultBundle = {
     ...result,
@@ -620,6 +700,7 @@ function finish(
     result: finalResult,
     provenance,
     ...(trajectory ? { trajectory } : {}),
+    ...(extras.mdCheckpoint ? { mdCheckpoint: extras.mdCheckpoint } : {}),
     ...(options.projectId ? {} : {}),
   };
 }

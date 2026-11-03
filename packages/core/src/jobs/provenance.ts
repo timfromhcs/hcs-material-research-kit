@@ -17,6 +17,13 @@ export interface ProvenanceInput {
   warnings?: string[];
   provenanceId?: string;
   recordedAt?: string;
+  /**
+   * Method parameters to record instead of `spec.parameters`. Used when the run
+   * consumed additional inputs that are not part of the spec (for example a
+   * resumed MD checkpoint), so the record stays complete without mutating the
+   * user's spec.
+   */
+  parameters?: Record<string, unknown>;
 }
 
 export function buildProvenance(input: ProvenanceInput): ProvenanceRecord {
@@ -31,7 +38,6 @@ export function buildProvenance(input: ProvenanceInput): ProvenanceRecord {
     parameters: spec.parameters,
     fidelity_level: spec.fidelity_level,
   });
-
   const assumptions: string[] = [];
   const limitations: string[] = [];
   let methodName: string = spec.task_type;
@@ -60,7 +66,7 @@ export function buildProvenance(input: ProvenanceInput): ProvenanceRecord {
       equation_reference: equationReference,
       model_id: spec.model_id,
       model_version: model ? "1" : undefined,
-      parameters: spec.parameters,
+      parameters: input.parameters ?? spec.parameters,
       assumptions,
       limitations,
       validation_state: model ? "analytically_verified" : "unit_tested",

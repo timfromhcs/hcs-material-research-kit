@@ -143,3 +143,87 @@ describe("NVE molecular dynamics", () => {
     expect(totalMassAmu(structure)).toBeGreaterThan(0);
   });
 });
+
+describe("MD checkpoint and restart", () => {
+  const options = { timestep: 0.002, temperature: 60, seed: 42, sampleInterval: 10 } as const;
+
+  it("resuming after 50 steps reproduces one continuous 100-step run exactly", () => {
+    const structure = argon(2, 5.3);
+    const continuous = runMd(structure, ARGON, { ...options, steps: 100 });
+
+    const first = runMd(structure, ARGON, { ...options, steps: 50 });
+    const resumed = runMd(structure, ARGON, {
+      ...options,
+      steps: 50,
+      initialState: {
+        positionsCartesian: first.finalPositions,
+        velocities: first.finalVelocities,
+        step: first.finalStep,
+      },
+    });
+
+    expect(resumed.initialStep).toBe(50);
+    expect(resumed.finalStep).toBe(100);
+    expect(resumed.steps).toBe(50);
+    expect(resumed.finalPositions).toEqual(continuous.finalPositions);
+    expect(resumed.finalVelocities).toEqual(continuous.finalVelocities);
+    expect(Math.abs(resumed.finalPotentialEv - continuous.finalPotentialEv)).toBeLessThan(1e-12);
+    expect(resumed.energySeries.timePs[0]).toBeCloseTo(0.1, 12);
+    expect(resumed.trajectory).toHaveLength(0);
+  });
+
+  it("keeps the checkpoint state intact through a JSON round-trip", () => {
+    const structure = argon(2, 5.3);
+    const direct = runMd(structure, ARGON, { ...options, steps: 20 });
+    const restored = JSON.parse(
+      JSON.stringify({
+        positions: direct.finalPositions,
+        velocities: direct.finalVelocities,
+        step: direct.finalStep,
+      }),
+    );
+    const fromJson = runMd(structure, ARGON, {
+      ...options,
+      steps: 20,
+      initialState: {
+        positionsCartesian: restored.positions,
+        velocities: restored.velocities,
+        step: restored.step,
+      },
+    });
+    const continuous = runMd(structure, ARGON, { ...options, steps: 40 });
+    expect(fromJson.finalPositions).toEqual(continuous.finalPositions);
+    expect(fromJson.finalVelocities).toEqual(continuous.finalVelocities);
+  });
+
+  it("refuses a checkpoint whose atom count does not match the structure", () => {
+    const structure = argon(2, 5.3);
+    expect(() =>
+      runMd(structure, ARGON, {
+        ...options,
+        steps: 10,
+        initialState: {
+          positionsCartesian: [[0, 0, 0]],
+          velocities: [[0, 0, 0]],
+          step: 5,
+        },
+      }),
+    ).toThrow(/Checkpoint carries 1 positions/);
+  });
+
+  it("refuses a negative checkpoint step", () => {
+    const structure = argon(2, 5.3);
+    const positions = structure.sites.map(() => [0, 0, 0] as [number, number, number]);
+    expect(() =>
+      runMd(structure, ARGON, {
+        ...options,
+        steps: 10,
+        initialState: {
+          positionsCartesian: positions,
+          velocities: positions.map((position) => [...position] as [number, number, number]),
+          step: -1,
+        },
+      }),
+    ).toThrow(/non-negative integer/);
+  });
+});

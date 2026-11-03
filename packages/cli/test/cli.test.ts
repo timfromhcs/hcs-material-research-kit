@@ -164,4 +164,142 @@ describe("hcs-sim CLI", () => {
     expect(result.status).toBe(3);
     expect(result.stdout + result.stderr).toMatch(/planned but not implemented/);
   });
+
+  it("writes an MD checkpoint and resumes it exactly", () => {
+    const dir = mkdtempSync(join(tmpdir(), "hcs-cli-resume-"));
+    const structure = argonCell();
+    const structurePath = join(dir, "ar.json");
+    writeFileSync(structurePath, `${JSON.stringify(structure, null, 2)}\n`, "utf8");
+
+    const mdSpec = (steps: number): SimulationSpec => ({
+      schema_version: "1.0.0",
+      task_id: "md_resume",
+      task_type: "md.run",
+      structure_ref: {
+        structure_id: structure.structure_id,
+        structure_hash: structureHash(structure),
+      },
+      engine_id: "hcs.lj-reference",
+      model_id: "lj.noble-gases.v1",
+      fidelity_level: "classical_model",
+      parameters: { steps, timestepPs: 0.002, temperatureK: 60, sampleInterval: 10 },
+      seed: 42,
+    });
+    const writeSpec = (name: string, steps: number): string => {
+      const path = join(dir, name);
+      writeFileSync(path, `${JSON.stringify(mdSpec(steps), null, 2)}\n`, "utf8");
+      return path;
+    };
+
+    const firstOut = join(dir, "first");
+    const first = run([
+      "run",
+      "--structure",
+      structurePath,
+      "--spec",
+      writeSpec("spec-20.json", 20),
+      "--out",
+      firstOut,
+      "--json",
+    ]);
+    expect(first.status, first.stderr).toBe(0);
+    expect(existsSync(join(firstOut, "checkpoint.json"))).toBe(true);
+    const checkpoint = JSON.parse(readFileSync(join(firstOut, "checkpoint.json"), "utf8"));
+    expect(checkpoint.steps_completed).toBe(20);
+    expect(checkpoint.structure_hash).toBe(structureHash(structure));
+    expect(checkpoint.positions).toHaveLength(structure.sites.length);
+
+    const resumedOut = join(dir, "resumed");
+    const resumed = run([
+      "run",
+      "--structure",
+      structurePath,
+      "--spec",
+      writeSpec("spec-20b.json", 20),
+      "--out",
+      resumedOut,
+      "--resume",
+      join(firstOut, "checkpoint.json"),
+      "--json",
+    ]);
+    expect(resumed.status, resumed.stderr).toBe(0);
+    const resumedResult = JSON.parse(readFileSync(join(resumedOut, "result.json"), "utf8"));
+    const quantity = (name: string): number =>
+      resumedResult.quantities.find((entry: { name: string }) => entry.name === name).value;
+    expect(quantity("steps_resumed_from")).toBe(20);
+    expect(quantity("final_step")).toBe(40);
+    expect(quantity("steps")).toBe(20);
+    const resumedProvenance = JSON.parse(readFileSync(join(resumedOut, "provenance.json"), "utf8"));
+    expect(resumedProvenance.method.parameters.resumed_from_steps).toBe(20);
+
+    const continuousOut = join(dir, "continuous");
+    const continuous = run([
+      "run",
+      "--structure",
+      structurePath,
+      "--spec",
+      writeSpec("spec-40.json", 40),
+      "--out",
+      continuousOut,
+      "--json",
+    ]);
+    expect(continuous.status, continuous.stderr).toBe(0);
+    const continuousResult = JSON.parse(readFileSync(join(continuousOut, "result.json"), "utf8"));
+    const continuousEnergy = continuousResult.quantities.find(
+      (entry: { name: string }) => entry.name === "final_potential_energy",
+    ).value;
+    expect(quantity("final_potential_energy")).toBe(continuousEnergy);
+    expect(resumedResult.result_structure.sites.map((site: { fractional_position: number[] }) => site.fractional_position))
+      .toEqual(
+        continuousResult.result_structure.sites.map(
+          (site: { fractional_position: number[] }) => site.fractional_position,
+        ),
+      );
+  });
+
+  it("refuses a checkpoint from a different structure", () => {
+    const dir = mkdtempSync(join(tmpdir(), "hcs-cli-resume-mismatch-"));
+    const structure = argonCell();
+    const structurePath = join(dir, "ar.json");
+    writeFileSync(structurePath, JSON.stringify(structure));
+    const specPath = join(dir, "spec.json");
+    writeFileSync(
+      specPath,
+      JSON.stringify({
+        schema_version: "1.0.0",
+        task_id: "t",
+        task_type: "md.run",
+        structure_ref: { structure_id: "x", structure_hash: structureHash(structure) },
+        engine_id: "hcs.lj-reference",
+        fidelity_level: "classical_model",
+        parameters: { steps: 5, timestepPs: 0.001 },
+      }),
+    );
+    const checkpointPath = join(dir, "checkpoint.json");
+    writeFileSync(
+      checkpointPath,
+      JSON.stringify({
+        schema_version: "1.0.0",
+        structure_hash: "0".repeat(64),
+        steps_completed: 5,
+        timestep_ps: 0.001,
+        seed: 1,
+        positions: structure.sites.map(() => [0, 0, 0]),
+        velocities: structure.sites.map(() => [0, 0, 0]),
+      }),
+    );
+    const result = run([
+      "run",
+      "--structure",
+      structurePath,
+      "--spec",
+      specPath,
+      "--out",
+      join(dir, "out"),
+      "--resume",
+      checkpointPath,
+    ]);
+    expect(result.status).toBe(3);
+    expect(result.stdout + result.stderr).toMatch(/does not match this structure/);
+  });
 });

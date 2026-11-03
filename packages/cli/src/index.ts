@@ -30,6 +30,7 @@ import {
   totalMassAmu,
   validateStructure,
   type EnergyForcesKernel,
+  type MdCheckpoint,
   type SimulationSpec,
   type Structure,
 } from "@hcs-materials/core";
@@ -74,6 +75,7 @@ Usage:
   hcs-sim inspect <structure-file> [--json]
   hcs-sim engines [--planned]
   hcs-sim run --structure <file> --spec <spec.json> [--out <dir>] [--backend auto|cpu|wasm]
+              [--resume <checkpoint.json>]
 
 Exit codes: 0 success, 2 usage error, 3 validation or run failure.
 
@@ -82,12 +84,53 @@ Notes:
   * Only engines implemented in this build are accepted; planned engines are listed,
     never executed.
   * The WASM backend is used by default when the asset is available; the result records
-    which backend produced the numbers.`);
+    which backend produced the numbers.
+  * md.run writes checkpoint.json into the output directory; --resume continues that
+    exact cell and timestep for the number of steps in the spec.`);
 }
 
 function readStructure(path: string): Structure {
   const text = readFileSync(path, "utf8");
   return importStructure(text, basename(path)).structure;
+}
+
+function isVec3(value: unknown): value is [number, number, number] {
+  return (
+    Array.isArray(value) &&
+    value.length === 3 &&
+    value.every((entry) => typeof entry === "number" && Number.isFinite(entry))
+  );
+}
+
+function readCheckpoint(path: string): MdCheckpoint {
+  const parsed = JSON.parse(readFileSync(path, "utf8")) as unknown;
+  if (!parsed || typeof parsed !== "object") throw new Error("Checkpoint must be a JSON object");
+  const candidate = parsed as Partial<MdCheckpoint>;
+  if (candidate.schema_version !== "1.0.0") {
+    throw new Error(`Unsupported checkpoint schema_version '${String(candidate.schema_version)}'`);
+  }
+  if (typeof candidate.structure_hash !== "string" || candidate.structure_hash.length === 0) {
+    throw new Error("Checkpoint is missing structure_hash");
+  }
+  if (!Number.isInteger(candidate.steps_completed) || (candidate.steps_completed ?? -1) < 0) {
+    throw new Error("Checkpoint steps_completed must be a non-negative integer");
+  }
+  if (typeof candidate.timestep_ps !== "number" || !(candidate.timestep_ps > 0)) {
+    throw new Error("Checkpoint timestep_ps must be positive");
+  }
+  if (typeof candidate.seed !== "number" || !Number.isInteger(candidate.seed)) {
+    throw new Error("Checkpoint seed must be an integer");
+  }
+  if (!Array.isArray(candidate.positions) || !candidate.positions.every(isVec3)) {
+    throw new Error("Checkpoint positions must be an array of [x, y, z] triples");
+  }
+  if (!Array.isArray(candidate.velocities) || !candidate.velocities.every(isVec3)) {
+    throw new Error("Checkpoint velocities must be an array of [x, y, z] triples");
+  }
+  if (candidate.positions.length !== candidate.velocities.length) {
+    throw new Error("Checkpoint positions and velocities have different lengths");
+  }
+  return candidate as MdCheckpoint;
 }
 
 async function loadKernel(backend: string): Promise<{ kernel?: EnergyForcesKernel; note: string }> {
@@ -205,11 +248,19 @@ async function main(argv: string[]): Promise<number> {
       const { kernel, note } = await loadKernel(backend);
       console.error(note);
 
+      const resumeFile = typeof flags.resume === "string" ? flags.resume : undefined;
+      const resume = resumeFile ? readCheckpoint(resumeFile) : undefined;
+      if (resume && spec.task_type !== "md.run") {
+        console.error(`error: --resume only applies to md.run (spec task is '${spec.task_type}')`);
+        return EXIT_USAGE;
+      }
+
       const outcome = runJob({
         spec,
         structure,
         projectId: "cli",
         ...(kernel ? { energyKernel: kernel } : {}),
+        ...(resume ? { mdResume: resume } : {}),
         onProgress: (update) => {
           if (process.stderr.isTTY && !json) {
             process.stderr.write(`\r${update.phase} ${(update.fraction * 100).toFixed(0)}%   `);
@@ -245,6 +296,7 @@ async function main(argv: string[]): Promise<number> {
         writeFileSync(join(outDir, "report.html"), html, "utf8");
       }
       if (outcome.trajectory) write("trajectory.json", outcome.trajectory);
+      if (outcome.mdCheckpoint) write("checkpoint.json", outcome.mdCheckpoint);
       if (outcome.result?.result_structure) {
         writeFileSync(
           join(outDir, "structure.cif"),
