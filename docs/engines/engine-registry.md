@@ -8,11 +8,15 @@ UI or called through MCP.
 
 | Engine | Tasks | Elements | Backends | Fidelity | License note |
 |---|---|---|---|---|---|
-| `hcs.lj-reference` | energy, relax, md, rdf | He, Ne, Ar, Kr, Xe | cpu (TS), cpu (Rust) | `classical_model` | HCS code MIT; parameters are literature estimates |
+| `hcs.lj-reference` | energy, relax, md, rdf | He, Ne, Ar, Kr, Xe | cpu (TS), cpu (Rust), wasm (energy only) | `classical_model` | HCS code MIT; parameters are literature estimates |
 | `hcs.heat1d-reference` | heat_1d, diffusion_1d | — | cpu (TS) | `continuum_model` | MIT |
 
 Execution backends are probed, not assumed: WebGPU adapters are detected and reported, but no
 HCS kernel currently has a WebGPU implementation, so the CPU path is used and the UI says so.
+
+The WASM backend is the Rust kernel compiled with a C ABI (`crates/compute-wasm`). It currently
+covers energy/force evaluation only and is used in two ways: as a parity test in CI and as an
+in-browser cross-check on every single-point job. Relaxation and MD run the TypeScript kernel.
 
 ## Planned (not implemented, not runnable)
 

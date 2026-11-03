@@ -1,0 +1,11 @@
+{
+  "crate": "hcs-compute-wasm",
+  "profile": "release",
+  "target": "wasm32-unknown-unknown",
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "sha256": "6ad8c024a18d86edc6d154938da85bcf91ab33e09a3af68b0993ae602ae6a265",
+  "bytes": 57797,
+  "abi_version": 1,
+  "source": "crates/compute-wasm/src/lib.rs + crates/compute-core/src/lib.rs",
+  "rebuild": "npm run build:wasm"
+}

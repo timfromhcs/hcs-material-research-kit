@@ -25,6 +25,9 @@
 - **MCP server** (`hcs-materials-mcp`, stdio): engines_list, structures_validate,
   structures_convert, project_validate + 2 resources + 2 prompts.
 - **Rust crate** (`hcs-compute-core`): switched Lennard-Jones energy/forces, parity-tested.
+- **WASM kernel** (`@hcs-materials/wasm`): the Rust kernel compiled to wasm32-unknown-unknown
+  with a plain C ABI; the worker runs it as a second implementation on every energy job and
+  reports the deviation.
 
 ## Completed capabilities
 
@@ -42,7 +45,7 @@
 
 - MCP simulation tools (blocked until a stable job API is exposed over MCP).
 - OPFS artefacts beyond trajectories (currently only trajectories are written to OPFS).
-- WASM build of the Rust kernel (parity test next).
+- Extending the WASM backend from energy/forces to relaxation and MD.
 
 ## Known limitations
 
@@ -67,6 +70,8 @@
 | RDF first peak at a/√2, coordination 12 | ±0.5 atoms | `packages/core/test/analysis.test.ts` |
 | Heat solver vs analytic sine mode | max abs error < 5e-4 | `packages/core/test/heat1d.test.ts` |
 | TS ↔ Rust energy/forces | abs < 1e-10 | `crates/compute-core/src/lib.rs` |
+| TS ↔ WASM energy/forces | abs < 1e-10, 8 tests | `packages/wasm/test/parity.test.ts` |
+| In-browser cross-check | tolerance 1e-8, asserted in E2E | worker + `tests/e2e` |
 | TS ↔ Python structure identity hash | exact equality | `python/.../tests/test_structure.py` |
 | Silicon density 2.329 g/cm³ | within 1 % | `packages/core/test/structure.test.ts` |
 | NaCl density 2.165 g/cm³ | within 1.5 % | TS + Python tests |
@@ -113,7 +118,7 @@
 
 ## Next 5 concrete tasks
 
-1. Compile `compute-core` to WASM and add TS ↔ WASM parity plus a worker backend switch.
+1. Extend the WASM backend to relaxation and MD via a kernel abstraction in the job runner.
 2. Implement MCP simulation tools over a stable, approval-gated job API.
 3. Add checkpoint/restart for long MD runs (cooperative pause).
 4. Add a Tauri shell and engine manager skeleton with honest unavailable states.

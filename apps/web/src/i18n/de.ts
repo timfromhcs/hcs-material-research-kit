@@ -286,6 +286,13 @@ export const de: Record<TranslationKey, string> = {
   "axis.msd": "MSD",
   "axis.g": "g(r)",
 
+  "workbench.crossCheck": "Vergleich der Implementierungen",
+  "workbench.crossCheckDeltaE": "Energieabweichung (TS vs. WASM)",
+  "workbench.crossCheckDeltaF": "Maximale Kraftabweichung (TS vs. WASM)",
+  "workbench.crossCheckPassed": "Beide Implementierungen stimmen innerhalb der Toleranz überein.",
+  "workbench.crossCheckFailed": "Die Implementierungen weichen über die Toleranz hinaus ab. Ergebnis nicht verwenden.",
+  "workbench.crossCheckUnavailable": "WASM-Vergleich nicht verfügbar",
+
   "science.disclaimer":
     "Virtuelle Simulationen sind an ihr Modell gebunden. Ein Ergebnis ist kein Laborbeweis, keine Syntheseaussage und keine Zertifizierung.",
   "science.localOnly": "Local-first: keine Struktur und kein Ergebnis wird hochgeladen.",

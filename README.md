@@ -6,8 +6,8 @@ research record with provenance.
 
 > Made with love by **hcsmedia** and **timfromhcs**.
 
-[![tests](https://img.shields.io/badge/TypeScript%20tests-99%20passing-4fd6c4)](#verification)
-[![rust](https://img.shields.io/badge/Rust%20parity-5%20passing-4fd6c4)](#verification)
+[![tests](https://img.shields.io/badge/TypeScript%20tests-107%20passing-4fd6c4)](#verification)
+[![rust](https://img.shields.io/badge/Rust%20tests-8%20passing-4fd6c4)](#verification)
 [![python](https://img.shields.io/badge/Python%2FMCP-32%20passing-4fd6c4)](#verification)
 [![e2e](https://img.shields.io/badge/Playwright%20E2E-7%20passing-4fd6c4)](#verification)
 
@@ -29,6 +29,7 @@ A working vertical slice, not a mock-up:
 | `.hcsproj` archive with checksums and path safety | Implemented | tamper/traversal tests (TS + Python) |
 | Browser studio (EN/DE/FR, dark/light, responsive) | Implemented | Vite build, Playwright E2E |
 | Rust CPU kernel with cross-language parity | Implemented | 1e-10 eV agreement with TS |
+| WASM kernel + in-browser cross-check | Implemented (energy/forces) | 8 parity tests, E2E assertion |
 | Python CLI | Implemented | 32 tests |
 | MCP v2 stdio server | Implemented (subset) | official SDK client tests |
 | Automated acceptance workflow | Implemented | 7 Playwright tests on the production bundle |
@@ -90,7 +91,9 @@ packages/contracts       Canonical JSON Schemas + Ajv validators
 packages/core            Domain model, IO, kernels, jobs, archives, reports
 packages/ui              Design tokens + accessible primitives (hand-written CSS)
 packages/visualization    Three.js structure viewer, accessible SVG plots
+packages/wasm            WASM loader + committed hcs_compute.wasm (+ manifest)
 crates/compute-core      Rust CPU kernel, parity-tested against the TS reference
+crates/compute-wasm      C-ABI entry points for wasm32-unknown-unknown
 python/hcs_materials     CLI, project archives, MCP server (official v2 SDK)
 schemas/                 Single source of truth for all contracts
 tests/fixtures           Structure fixtures and cross-language reference outputs
@@ -118,11 +121,11 @@ docs/                    Science, architecture, decisions, security, tutorials
 Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96):
 
 ```text
-TypeScript  99 tests passing   vitest run
-Rust         5 tests passing   cargo test -p hcs-compute-core
+TypeScript 107 tests passing   vitest run (includes 8 TS ↔ WASM parity tests)
+Rust         8 tests passing   cargo test -p hcs-compute-core -p hcs-compute-wasm
 Python      32 tests passing   pytest (includes real MCP client/server round-trip)
 Playwright   7 tests passing   production bundle, Chrome channel
-Web build   vite build ok      ~372 kB app + 471 kB three + 215 kB worker (pre-gzip)
+Web build   vite build ok      ~375 kB app + 471 kB three + 218 kB worker + 58 kB wasm
 npm audit   0 vulnerabilities
 ```
 

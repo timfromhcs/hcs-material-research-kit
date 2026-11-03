@@ -1,0 +1,13 @@
+[package]
+name = "hcs-compute-wasm"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "WebAssembly C-ABI bindings for the HCS CPU reference kernels"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+hcs-compute-core = { path = "../compute-core" }

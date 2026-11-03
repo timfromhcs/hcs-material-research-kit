@@ -150,6 +150,8 @@ export interface EnergyForces {
   /** True when the cutoff had to be reduced to stay inside the minimum-image sphere. */
   cutoffReduced: boolean;
   modelId: string;
+  /** Which implementation produced the numbers. */
+  backend: "cpu" | "wasm";
 }
 
 export interface LJEvaluationOptions {
@@ -332,6 +334,7 @@ export function computeEnergyForces(
     cutoff,
     cutoffReduced,
     modelId: model.id,
+    backend: "cpu",
   };
 }
 

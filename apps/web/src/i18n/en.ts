@@ -272,6 +272,13 @@ export const en = {
   "axis.msd": "MSD",
   "axis.g": "g(r)",
 
+  "workbench.crossCheck": "Cross-implementation check",
+  "workbench.crossCheckDeltaE": "Energy deviation (TS vs WASM)",
+  "workbench.crossCheckDeltaF": "Max force deviation (TS vs WASM)",
+  "workbench.crossCheckPassed": "Both implementations agree within tolerance.",
+  "workbench.crossCheckFailed": "Implementations disagree beyond tolerance. Do not trust this result.",
+  "workbench.crossCheckUnavailable": "WASM cross-check unavailable",
+
   "science.disclaimer":
     "Virtual simulations are conditional on their model. A result is not laboratory proof, not a synthesis claim and not a certification.",
   "science.localOnly": "Local-first: no structure or result is uploaded.",

@@ -30,6 +30,7 @@
 | [0007](decisions/ADR-0007-mcp-surface.md) | MCP surface limited to implemented tools |
 | [0008](decisions/ADR-0008-third-party-licensing.md) | Third-party licensing and model parameters |
 | [0009](decisions/ADR-0009-honest-failure-modes.md) | Honest failure instead of silent clamping |
+| [0010](decisions/ADR-0010-wasm-abi.md) | WASM kernel ABI without wasm-bindgen |
 
 ## Documentation rules
 

@@ -61,6 +61,8 @@ test("runs a single-point energy and reports units and limits", async ({ page })
   await expect(
     page.getByText("Two-body only: no three-body, many-body, electrostatic or quantum contributions."),
   ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cross-implementation check" })).toBeVisible();
+  await expect(page.getByText("Both implementations agree within tolerance.")).toBeVisible();
 });
 
 test("runs NVE dynamics, computes the MSD and downloads a report", async ({ page }) => {

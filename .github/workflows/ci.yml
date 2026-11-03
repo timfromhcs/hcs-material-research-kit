@@ -57,7 +57,11 @@ jobs:
           git diff --exit-code tests/fixtures/reference
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets -- -D warnings
-      - run: cargo test -p hcs-compute-core
+      - run: cargo test -p hcs-compute-core -p hcs-compute-wasm
+      - name: Rebuild WASM and fail on drift
+        run: |
+          npm run build:wasm
+          git diff --exit-code packages/wasm/wasm
 
   python:
     name: Python package, CLI and MCP

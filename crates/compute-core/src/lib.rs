@@ -28,7 +28,7 @@ pub struct Structure {
     pub sites: Vec<Site>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
 pub struct PairParameters {
     pub epsilon_ev: f64,
     pub sigma_angstrom: f64,
@@ -118,17 +118,36 @@ fn norm(a: [f64; 3]) -> f64 {
     dot(a, a).sqrt()
 }
 
-/// Evaluates the switched Lennard-Jones energy and forces for a single species.
+/// Evaluates the switched Lennard-Jones energy and forces with per-site
+/// parameters, applying Lorentz–Berthelot mixing for unlike pairs.
 ///
 /// `requested_cutoff` is clamped to `max_cutoff_for_cell`; the cutoff actually
 /// used is returned so callers can record it.
-pub fn energy_forces_single_species(
+pub fn energy_forces_with_site_params(
     structure: &Structure,
-    params: &PairParameters,
+    site_params: &[PairParameters],
     requested_cutoff: f64,
 ) -> Result<EnergyForces, KernelError> {
     if structure.sites.is_empty() {
         return Err(KernelError("empty structure".into()));
+    }
+    if site_params.len() != structure.sites.len() {
+        return Err(KernelError(format!(
+            "expected {} site parameter sets, got {}",
+            structure.sites.len(),
+            site_params.len()
+        )));
+    }
+    if let Some(bad) = site_params.iter().find(|p| {
+        !(p.epsilon_ev.is_finite()
+            && p.epsilon_ev > 0.0
+            && p.sigma_angstrom.is_finite()
+            && p.sigma_angstrom > 0.0)
+    }) {
+        return Err(KernelError(format!(
+            "invalid pair parameters (epsilon={}, sigma={})",
+            bad.epsilon_ev, bad.sigma_angstrom
+        )));
     }
     if requested_cutoff.is_nan() || requested_cutoff <= 0.0 {
         return Err(KernelError("cutoff must be positive".into()));
@@ -175,12 +194,16 @@ pub fn energy_forces_single_species(
             }
             pair_count += 1;
 
+            // Lorentz–Berthelot mixing, identical to the TypeScript engine.
+            let sigma = 0.5 * (site_params[i].sigma_angstrom + site_params[j].sigma_angstrom);
+            let epsilon = (site_params[i].epsilon_ev * site_params[j].epsilon_ev).sqrt();
+
             let inv_r2 = 1.0 / r2;
-            let s2 = params.sigma_angstrom * params.sigma_angstrom * inv_r2;
+            let s2 = sigma * sigma * inv_r2;
             let s6 = s2 * s2 * s2;
             let s12 = s6 * s6;
-            let unswitched = 4.0 * params.epsilon_ev * (s12 - s6);
-            let f_scalar = 24.0 * params.epsilon_ev * (s6 - 2.0 * s12) * inv_r2;
+            let unswitched = 4.0 * epsilon * (s12 - s6);
+            let f_scalar = 24.0 * epsilon * (s6 - 2.0 * s12) * inv_r2;
 
             let (switch_value, factor) = if r2 <= r_on2 {
                 (1.0, f_scalar)
@@ -211,6 +234,16 @@ pub fn energy_forces_single_species(
         pair_count,
         cutoff,
     })
+}
+
+/// Convenience wrapper for a single-species system.
+pub fn energy_forces_single_species(
+    structure: &Structure,
+    params: &PairParameters,
+    requested_cutoff: f64,
+) -> Result<EnergyForces, KernelError> {
+    let per_site = vec![*params; structure.sites.len()];
+    energy_forces_with_site_params(structure, &per_site, requested_cutoff)
 }
 
 #[cfg(test)]

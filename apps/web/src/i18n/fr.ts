@@ -284,6 +284,13 @@ export const fr: Record<TranslationKey, string> = {
   "axis.msd": "MSD",
   "axis.g": "g(r)",
 
+  "workbench.crossCheck": "Contrôle croisé des implémentations",
+  "workbench.crossCheckDeltaE": "Écart d'énergie (TS vs WASM)",
+  "workbench.crossCheckDeltaF": "Écart maximal de force (TS vs WASM)",
+  "workbench.crossCheckPassed": "Les deux implémentations concordent dans la tolérance.",
+  "workbench.crossCheckFailed": "Les implémentations divergent au-delà de la tolérance. Ne pas utiliser ce résultat.",
+  "workbench.crossCheckUnavailable": "Contrôle WASM indisponible",
+
   "science.disclaimer":
     "Les simulations virtuelles dépendent de leur modèle. Un résultat n'est pas une preuve de laboratoire, ni une affirmation de synthèse, ni une certification.",
   "science.localOnly": "Local-first : aucune structure ni résultat n'est envoyé.",

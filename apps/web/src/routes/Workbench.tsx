@@ -51,6 +51,8 @@ export function Workbench(): JSX.Element {
   const provenance = live?.provenance ?? storedActive?.provenance;
   const job = live?.job ?? storedActive?.job;
   const trajectory = live?.trajectory ?? storedActive?.trajectory;
+  const crossCheck = live?.crossCheck ?? storedActive?.crossCheck;
+  const crossCheckError = live?.crossCheckError ?? storedActive?.crossCheckError;
 
   // A trajectory written to OPFS is loaded on demand so the project does not
   // keep large arrays in IndexedDB.
@@ -136,6 +138,8 @@ export function Workbench(): JSX.Element {
         log: outcome.job.events.map((event) => `${event.at} ${event.state} ${event.message}`).join("\n"),
         trajectory: outcome.trajectory,
         trajectoryLocation: outcome.trajectory ? "memory" : "none",
+        crossCheck: outcome.crossCheck,
+        crossCheckError: outcome.crossCheckError,
       };
       setLive(entry);
       if (outcome.job.state === "completed" || outcome.job.state === "failed") {
@@ -456,8 +460,46 @@ export function Workbench(): JSX.Element {
                 ) : null
               ) : null}
 
-              <h3 style={{ marginTop: 18 }}>{t("workbench.limitations")}</h3>
-              <ul className="small secondary" style={{ margin: 0, paddingLeft: 18 }}>
+              {(crossCheck || crossCheckError) && (
+                <section style={{ marginTop: 18 }}>
+                  <div className="row" style={{ justifyContent: "space-between" }}>
+                    <h3>{t("workbench.crossCheck")}</h3>
+                    {crossCheck && (
+                      <Badge tone={crossCheck.passed ? "ok" : "err"}>
+                        {crossCheck.passed ? t("workbench.crossCheckPassed") : t("workbench.crossCheckFailed")}
+                      </Badge>
+                    )}
+                  </div>
+                  {crossCheck ? (
+                    <div className="grid-3" style={{ marginTop: 10 }}>
+                      <Stat
+                        label={t("workbench.crossCheckDeltaE")}
+                        value={crossCheck.maxDeltaEnergyEv.toExponential(2)}
+                        unit="eV"
+                        hint={`${crossCheck.pairCount} pairs · tolerance ${crossCheck.tolerance} eV`}
+                      />
+                      <Stat
+                        label={t("workbench.crossCheckDeltaF")}
+                        value={crossCheck.maxDeltaForceEvPerA.toExponential(2)}
+                        unit="eV/Å"
+                        hint={`tolerance ${crossCheck.tolerance} eV/Å`}
+                      />
+                      <Stat
+                        label="WASM"
+                        value={crossCheck.wasmEnergyEv.toFixed(9)}
+                        unit="eV"
+                        hint={`${crossCheck.backend} · ${crossCheck.passed ? "✓" : "✗"}`}
+                      />
+                    </div>
+                  ) : (
+                    <Callout tone="info">
+                      {t("workbench.crossCheckUnavailable")}: {crossCheckError}
+                    </Callout>
+                  )}
+                </section>
+              )}
+
+              <h3 style={{ marginTop: 18 }}>{t("workbench.limitations")}</h3>              <ul className="small secondary" style={{ margin: 0, paddingLeft: 18 }}>
                 {result.limitations.map((limitation, index) => (
                   <li key={index}>{limitation}</li>
                 ))}

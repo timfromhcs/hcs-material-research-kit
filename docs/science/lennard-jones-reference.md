@@ -89,11 +89,28 @@ elements. Any publication must re-verify them against a cited source.
 | Deterministic for fixed seed | `md.test.ts` | exact |
 | RDF first peak at `a/√2`, CN = 12 | `analysis.test.ts` | ±0.5 |
 | TS ↔ Rust parity | `crates/compute-core` | < 1e-10 eV |
+| TS ↔ WASM parity (browser kernel) | `packages/wasm/test/parity.test.ts` | < 1e-10 eV, 8 tests |
+| In-browser cross-check on every energy job | worker + E2E test | tolerance 1e-8 eV / eV/Å |
 
 ## Reproducing the reference values
 
 ```bash
 npm run build:packages
 npx tsx scripts/make-reference-fixtures.ts   # writes tests/fixtures/reference/lj-argon-32.json
-cargo test -p hcs-compute-core
+cargo test -p hcs-compute-core -p hcs-compute-wasm
+npm run build:wasm                            # rebuilds packages/wasm/wasm/hcs_compute.wasm
+npx vitest run packages/wasm                   # TS ↔ WASM parity
 ```
+
+## Two independent implementations
+
+The same physics exists twice: in TypeScript (`packages/core`) and in Rust
+(`crates/compute-core`, compiled to WebAssembly for the browser). They are compared:
+
+1. in CI against a committed reference fixture (1e-10 eV);
+2. in the browser on every single-point energy job, where the worker re-evaluates the cell with
+   the WASM kernel and reports the maximum deviation. A deviation above 1e-8 eV is surfaced as
+   an error, not silently accepted.
+
+Relaxation and MD currently use the TypeScript kernel; only the energy/force evaluation has a
+WASM path. This is stated in the UI rather than implied.

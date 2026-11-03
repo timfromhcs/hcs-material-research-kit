@@ -46,6 +46,16 @@ export interface StoredJob {
     fitLagPs: [number, number];
     warnings: string[];
   };
+  crossCheck?: {
+    backend: "wasm";
+    tolerance: number;
+    maxDeltaEnergyEv: number;
+    maxDeltaForceEvPerA: number;
+    wasmEnergyEv: number;
+    pairCount: number;
+    passed: boolean;
+  };
+  crossCheckError?: string;
 }
 
 export interface ProjectInfo {

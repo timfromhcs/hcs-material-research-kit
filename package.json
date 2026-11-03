@@ -15,12 +15,12 @@
     "apps/web"
   ],
   "scripts": {
-    "build:packages": "npm run build -w @hcs-materials/contracts && npm run build -w @hcs-materials/core && npm run build -w @hcs-materials/ui && npm run build -w @hcs-materials/visualization",
+    "build:packages": "npm run build -w @hcs-materials/contracts && npm run build -w @hcs-materials/core && npm run build -w @hcs-materials/ui && npm run build -w @hcs-materials/visualization && npm run build -w @hcs-materials/wasm",
     "build": "npm run build:packages && npm run build -w @hcs-materials/web",
-    "typecheck": "npm run typecheck -w @hcs-materials/contracts && npm run typecheck -w @hcs-materials/core && npm run typecheck -w @hcs-materials/ui && npm run typecheck -w @hcs-materials/visualization && npm run typecheck -w @hcs-materials/web",
+    "typecheck": "npm run typecheck -w @hcs-materials/contracts && npm run typecheck -w @hcs-materials/core && npm run typecheck -w @hcs-materials/ui && npm run typecheck -w @hcs-materials/visualization && npm run typecheck -w @hcs-materials/wasm && npm run typecheck -w @hcs-materials/web",
     "test": "npm run build:packages && vitest run",
     "test:watch": "vitest",
-    "test:rust": "cargo test -p hcs-compute-core",
+    "test:rust": "cargo test -p hcs-compute-core -p hcs-compute-wasm",
     "test:python": "cd python/hcs_materials && .venv/Scripts/python.exe -m pytest",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
     "fixtures": "tsx scripts/make-reference-fixtures.ts",
@@ -28,7 +28,8 @@
     "preview": "npm run build && npm run preview -w @hcs-materials/web",
     "fmt": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
     "fmt:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\"",
-    "verify": "npm run typecheck && npm run test && npm run test:rust && npm run build"
+    "verify": "npm run typecheck && npm run test && npm run test:rust && npm run build && npm run test:e2e",
+    "build:wasm": "node scripts/build-wasm.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

@@ -42,8 +42,12 @@ First development preview: a tested vertical slice, not a mock interface.
 - **End-to-end tests**: seven Playwright tests against the production bundle covering create →
   validate → energy → NVE MD → MSD → report download → archive export → re-import with
   checksum verification, element refusal, language/theme persistence and the mobile viewport.
+- **WebAssembly kernel**: `crates/compute-wasm` compiles the Rust kernel to
+  `wasm32-unknown-unknown` with a C ABI and no imports; `@hcs-materials/wasm` loads it with ABI
+  validation. The solver worker re-evaluates every single-point energy with it and reports the
+  maximum deviation from the TypeScript reference (8 parity tests, tolerance 1e-8 in the UI).
 - **CI definition**: `.github/workflows/ci.yml` with typecheck/unit/build, Rust (fmt, clippy,
-  parity, fixture drift), Python (CLI + MCP) and Playwright E2E jobs.
+  parity, fixture and WASM drift), Python (CLI + MCP) and Playwright E2E jobs.
 
 ### Changed
 
