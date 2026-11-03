@@ -135,9 +135,13 @@ const report = {
     tolerance: 1e-10,
     passed: true,
   },
+  wasm_arena: {
+    allocations_total: kernel.arenaAllocations,
+    capacity_atoms: kernel.arenaCapacityAtoms,
+  },
   timings: [...energy108, ...energy500, ...md, ...relax],
   notes: [
-    "Single-threaded. Each WASM force evaluation copies buffers into linear memory; this is included in the timing.",
+    "Single-threaded. The WASM kernel reuses one growable buffer arena; allocation counts are recorded above.",
     "Timings are wall-clock samples from one machine and are not a general performance claim.",
   ],
 };
@@ -168,5 +172,8 @@ for (const entry of report.timings) {
 console.log(
   `parity: ΔE=${report.correctness.max_delta_energy_ev.toExponential(2)} eV, ` +
     `ΔF=${report.correctness.max_delta_force_ev_per_a.toExponential(2)} eV/Å`,
+);
+console.log(
+  `wasm arena: ${report.wasm_arena.allocations_total} allocations, capacity ${report.wasm_arena.capacity_atoms} atoms`,
 );
 console.log("wrote benchmarks/results/latest.json");

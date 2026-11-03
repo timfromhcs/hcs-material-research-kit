@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-03T20:30:53.508Z",
-  "commit": "15922378337bd1a63902cd27abf48b48bca5e692",
+  "generated_at": "2026-11-03T21:18:10.416Z",
+  "commit": "41d21a9b845b160eeffb71356b59c50a4632bd01",
   "node": "v22.23.1",
   "platform": "win32 10.0.26200 x64",
   "cpu": "AMD Ryzen 7 7735HS with Radeon Graphics        ",
@@ -18,66 +18,70 @@
     "tolerance": 1e-10,
     "passed": true
   },
+  "wasm_arena": {
+    "allocations_total": 2,
+    "capacity_atoms": 500
+  },
   "timings": [
     {
       "label": "energy.evaluate 108 atoms (CPU)",
       "iterations": 40,
-      "median_ms": 0.81195,
-      "min_ms": 0.5876,
-      "max_ms": 3.8373
+      "median_ms": 0.6544,
+      "min_ms": 0.602,
+      "max_ms": 4.2418
     },
     {
       "label": "energy.evaluate 108 atoms (WASM)",
       "iterations": 40,
-      "median_ms": 0.16635,
-      "min_ms": 0.1372,
-      "max_ms": 0.3059
+      "median_ms": 0.1555,
+      "min_ms": 0.1314,
+      "max_ms": 0.5456
     },
     {
       "label": "energy.evaluate 500 atoms (CPU)",
       "iterations": 15,
-      "median_ms": 5.5259,
-      "min_ms": 5.1102,
-      "max_ms": 5.9772
+      "median_ms": 5.4036,
+      "min_ms": 5.223,
+      "max_ms": 6.0608
     },
     {
       "label": "energy.evaluate 500 atoms (WASM)",
       "iterations": 15,
-      "median_ms": 2.1564,
-      "min_ms": 2.0254,
-      "max_ms": 2.416
+      "median_ms": 2.0689,
+      "min_ms": 2.0267,
+      "max_ms": 2.2049
     },
     {
       "label": "md.run 108 atoms, 100 steps (CPU)",
       "iterations": 3,
-      "median_ms": 449.8245,
-      "min_ms": 443.0907,
-      "max_ms": 475.9605
+      "median_ms": 447.3,
+      "min_ms": 429.2185,
+      "max_ms": 468.3451
     },
     {
       "label": "md.run 108 atoms, 100 steps (WASM)",
       "iterations": 3,
-      "median_ms": 380.0993,
-      "min_ms": 366.7886,
-      "max_ms": 380.8242
+      "median_ms": 378.4979,
+      "min_ms": 375.4504,
+      "max_ms": 407.708
     },
     {
       "label": "structure.relax 32 atoms, 200 steps (CPU)",
       "iterations": 3,
-      "median_ms": 0.7107,
-      "min_ms": 0.6865,
-      "max_ms": 1.0086
+      "median_ms": 0.7143,
+      "min_ms": 0.7044,
+      "max_ms": 0.7238
     },
     {
       "label": "structure.relax 32 atoms, 200 steps (WASM)",
       "iterations": 3,
-      "median_ms": 0.6401,
-      "min_ms": 0.6272,
-      "max_ms": 0.6649
+      "median_ms": 0.675,
+      "min_ms": 0.637,
+      "max_ms": 0.6957
     }
   ],
   "notes": [
-    "Single-threaded. Each WASM force evaluation copies buffers into linear memory; this is included in the timing.",
+    "Single-threaded. The WASM kernel reuses one growable buffer arena; allocation counts are recorded above.",
     "Timings are wall-clock samples from one machine and are not a general performance claim."
   ]
 }
