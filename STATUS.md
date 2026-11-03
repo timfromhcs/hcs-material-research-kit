@@ -9,6 +9,8 @@
 - **Browser studio** (`apps/web`): Dashboard, Structure Studio, Simulation Workbench, Jobs,
   Data & Provenance, Settings. Static Vite build, HashRouter, EN/DE/FR, dark and light theme,
   responsive down to 390 px.
+- **Automated end-to-end suite** (`tests/e2e`): seven Playwright tests against the production
+  bundle, covering the full acceptance workflow including downloads and archive re-import.
 - **Structure Studio**: create 9 prototypes, import CIF/POSCAR/XYZ/extXYZ/HCS JSON, supercells,
   substitution, vacancies, atom insertion/movement, validation panel, 3D viewer (Three.js,
   WebGL2), export in four formats.
@@ -38,9 +40,9 @@
 
 ## Capabilities in progress
 
-- Playwright E2E automation for the browser workflows (manual checks done; see below).
 - MCP simulation tools (blocked until a stable job API is exposed over MCP).
 - OPFS artefacts beyond trajectories (currently only trajectories are written to OPFS).
+- WASM build of the Rust kernel (parity test next).
 
 ## Known limitations
 
@@ -71,6 +73,7 @@
 | Archive tamper detection | checksum mismatch reported | TS + Python tests |
 | Archive path traversal | rejected | TS + Python tests |
 | MCP tool round-trip | official SDK client passes | `python/.../tests/test_mcp.py` |
+| Full acceptance workflow | 7 Playwright tests pass | `tests/e2e/workflow.spec.ts` |
 
 ## Native hardware tested
 
@@ -79,37 +82,39 @@
 
 ## Browser/device matrix tested
 
-- Chrome (desktop, 930×866 and 1280×800): studio, 3D viewer, MD run, MSD, provenance,
-  reproducibility-report download, `.hcsproj` export → re-import with checksum verification.
-- Chrome mobile viewport 390×844: layout, bottom navigation, viewer, no horizontal overflow.
-- Light and dark theme manually checked.
+- **Automated** (Chromium 144, production bundle): create → validate → run energy → run NVE MD →
+  MSD → report download → project export → re-import with checksum verification; element
+  refusal; language/theme persistence; mobile viewport without horizontal overflow.
+- Manual (Chrome, Windows 11, 930×866 and 1280×800): visual review of both themes.
 - Firefox/Safari: not tested in this workspace.
 - WebGPU: adapter present (with a benign `powerPreference` warning on Windows); unused.
-- These checks are manual. Automated Playwright E2E tests are the next task, not a current claim.
 
 ## CI state
 
-- `.github/workflows/ci.yml` defines typecheck, tests, Rust and Python jobs.
+- `.github/workflows/ci.yml` defines four jobs: typecheck/unit/build, Rust (fmt, clippy, parity,
+  fixture drift), Python (CLI + MCP) and Playwright E2E (Chromium).
 - **Not yet executed on GitHub** — no remote is configured in this workspace. Do not claim a
   green CI badge until it has run.
+- Local equivalent: `npm run verify` plus `npm run test:e2e`.
 
 ## Security/license state
 
+- `npm audit`: 0 vulnerabilities after upgrading React Router to 7.18.5 and Vitest to 4.1.12
+  (see `SECURITY.md`; npm 11 is required to install the tree).
 - No secrets in the repository; `.env*` ignored.
 - MIT license for HCS code; third-party notices documented per engine.
-- `npm audit` currently reports advisories in the dev toolchain (see `SECURITY.md`).
 - Archive and file parsers are bounded and reject unsafe paths.
 
 ## Current blockers
 
-1. No network-independent way to validate the Vercel deployment from this workspace.
+1. No remote/GitHub Actions run yet, so the CI workflow is defined but unproven.
 2. GPU kernel validation requires a WebGPU-capable CI runner (not available yet).
 3. External scientific engines require licensed installations and isolated environments.
 
 ## Next 5 concrete tasks
 
-1. Add Playwright E2E tests for the create → simulate → export → re-import workflow.
-2. Implement the browser companion / MCP simulation tools over a stable job API.
-3. Add a WASM build of `compute-core` and verify TS ↔ WASM parity.
-4. Add a native (Tauri) shell and engine manager skeleton with honest unavailable states.
+1. Compile `compute-core` to WASM and add TS ↔ WASM parity plus a worker backend switch.
+2. Implement MCP simulation tools over a stable, approval-gated job API.
+3. Add checkpoint/restart for long MD runs (cooperative pause).
+4. Add a Tauri shell and engine manager skeleton with honest unavailable states.
 5. Build the OPTIMADE provider connector with provenance and rate limiting.

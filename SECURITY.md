@@ -29,16 +29,21 @@ You will receive an acknowledgement, an assessment and a coordinated disclosure 
 
 ## Known advisories in the development toolchain
 
-`npm audit` reports advisories in development-only dependencies (test runner and its
-transitive packages). They are not shipped in the static bundle, but they are tracked here and
-should be resolved before publication:
+`npm audit` reports **0 vulnerabilities** at the time of writing. Two upgrades were required:
 
-- 2 critical / 1 high / 5 moderate advisories reported by `npm audit` at the time of writing;
-- mitigation: upgrade the test/build toolchain as a single coordinated change and re-run the
-  full `npm run verify` gate.
+- `react-router-dom` 6 → 7.18.5 (open-redirect and constructor-injection advisories in
+  ≤ 7.17.0). Only `HashRouter`, `Routes`, `Route`, `NavLink` and `useNavigate` are used, all of
+  which kept their API.
+- `vitest` 2 → 4.1.12. The duplicate `vitest` 2 devDependency in `packages/core` pulled in
+  `tinypool` ≤ 2.1.1 (critical) and Vite 5; it was removed because the workspace root owns the
+  test runner.
 
-Do not run `npm audit fix --force` without reviewing the version changes: it can silently
-alter Vite or the test runner major version.
+**npm 11 is required** to install this tree: npm 10's arborist fails on the Vitest 4 peer graph
+(`Cannot read properties of null (reading 'edgesOut')`). The root `package.json` pins
+`packageManager: npm@11.21.1` and CI installs npm 11 explicitly. Keep this in mind on fresh
+machines; `npx npm@11 install` is the fallback.
+
+Do not run `npm audit fix --force` without reviewing version changes.
 
 ## Secrets
 

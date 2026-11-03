@@ -95,6 +95,7 @@ function TopBar(): JSX.Element {
         <button
           type="button"
           className="btn btn-ghost btn-sm"
+          data-testid="theme-toggle"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label={theme === "dark" ? t("common.light") : t("common.dark")}
           title={theme === "dark" ? t("common.light") : t("common.dark")}

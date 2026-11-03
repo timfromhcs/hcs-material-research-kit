@@ -9,6 +9,7 @@ research record with provenance.
 [![tests](https://img.shields.io/badge/TypeScript%20tests-99%20passing-4fd6c4)](#verification)
 [![rust](https://img.shields.io/badge/Rust%20parity-5%20passing-4fd6c4)](#verification)
 [![python](https://img.shields.io/badge/Python%2FMCP-32%20passing-4fd6c4)](#verification)
+[![e2e](https://img.shields.io/badge/Playwright%20E2E-7%20passing-4fd6c4)](#verification)
 
 ---
 
@@ -26,10 +27,11 @@ A working vertical slice, not a mock-up:
 | 1D heat/diffusion solver | Implemented | analytic Fourier-mode comparison |
 | Job lifecycle, events, warnings, provenance | Implemented | state-machine tests, job tests |
 | `.hcsproj` archive with checksums and path safety | Implemented | tamper/traversal tests (TS + Python) |
-| Browser studio (EN/DE/FR, dark/light, responsive) | Implemented | Vite build, mobile/desktop checks |
+| Browser studio (EN/DE/FR, dark/light, responsive) | Implemented | Vite build, Playwright E2E |
 | Rust CPU kernel with cross-language parity | Implemented | 1e-10 eV agreement with TS |
 | Python CLI | Implemented | 32 tests |
 | MCP v2 stdio server | Implemented (subset) | official SDK client tests |
+| Automated acceptance workflow | Implemented | 7 Playwright tests on the production bundle |
 | WebGPU kernels, DFT/LAMMPS/ML potentials, Tauri app | **Not implemented** | see `ROADMAP.md` |
 
 The browser and native editions do not share every solver — they share schemas, workflows,
@@ -39,6 +41,7 @@ file formats and provenance. `docs/engines/engine-registry.md` states this expli
 
 ```bash
 # 1. Install JS dependencies and build the packages + studio
+#    npm 11 is required (npm 10 cannot resolve the Vitest 4 peer graph)
 npm install
 npm run build
 
@@ -49,7 +52,12 @@ npm run dev            # http://localhost:5173
 npm test               # TypeScript: 99 tests
 npm run test:rust      # Rust parity: 5 tests
 npm run test:python    # Python + MCP: 32 tests (needs the venv below)
+npm run test:e2e       # Playwright: 7 acceptance tests (uses installed Chrome)
 ```
+
+On a machine with npm 10, install the pinned package manager first: `npm i -g npm@11`.
+For a machine without Chrome, run `npx playwright install --with-deps chromium` and set
+`PW_CHANNEL=chromium`.
 
 Python package:
 
@@ -113,7 +121,9 @@ Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96):
 TypeScript  99 tests passing   vitest run
 Rust         5 tests passing   cargo test -p hcs-compute-core
 Python      32 tests passing   pytest (includes real MCP client/server round-trip)
-Web build   vite build ok      ~371 kB app + 471 kB three + 214 kB worker (pre-gzip)
+Playwright   7 tests passing   production bundle, Chrome channel
+Web build   vite build ok      ~372 kB app + 471 kB three + 215 kB worker (pre-gzip)
+npm audit   0 vulnerabilities
 ```
 
 Key scientific checks:
@@ -139,7 +149,7 @@ for the phase gates. Known limitations of this release:
 - no Tauri desktop app, no installers, no PyPI/npm publication;
 - browser storage is IndexedDB + OPFS and can be evicted — export archives;
 - MCP exposes structure/project tools only (no simulation tool yet);
-- E2E browser tests are manual; Playwright automation is on the roadmap.
+- E2E tests cover Chromium only; Firefox/Safari are untested.
 
 ## License
 

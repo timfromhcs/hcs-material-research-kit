@@ -9,9 +9,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # npm 10's arborist cannot resolve the Vitest 4 peer graph; pin npm 11.
+  NPM_VERSION: "11"
+
 jobs:
   typescript:
-    name: TypeScript, tests and studio build
+    name: TypeScript, unit tests and studio build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,6 +23,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: npm install -g npm@$NPM_VERSION
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
@@ -43,6 +48,7 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+      - run: npm install -g npm@$NPM_VERSION
       - run: npm ci
       - run: npm run build:packages
       - name: Regenerate reference fixtures and fail on drift
@@ -70,9 +76,28 @@ jobs:
         working-directory: python/hcs_materials
         run: python -m pytest -q
 
-  desktop-placeholder:
-    name: Desktop packaging (not implemented)
+  e2e:
+    name: End-to-end acceptance workflow (Chromium)
     runs-on: ubuntu-latest
-    if: false
     steps:
-      - run: echo "Tauri packaging is not implemented yet; see ROADMAP.md Phase 1/8."
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install -g npm@$NPM_VERSION
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          CI: "true"
+          PW_CHANNEL: chromium
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7

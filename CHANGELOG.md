@@ -39,7 +39,21 @@ First development preview: a tested vertical slice, not a mock interface.
   `project`, `report`) and an MCP v2 stdio server (4 tools, 2 resources, 2 prompts).
 - **Documentation**: science notes, architecture, ADRs, security threat model, tutorial,
   status and roadmap.
-- **CI definition**: `.github/workflows/ci.yml` for typecheck, tests, Rust and Python.
+- **End-to-end tests**: seven Playwright tests against the production bundle covering create →
+  validate → energy → NVE MD → MSD → report download → archive export → re-import with
+  checksum verification, element refusal, language/theme persistence and the mobile viewport.
+- **CI definition**: `.github/workflows/ci.yml` with typecheck/unit/build, Rust (fmt, clippy,
+  parity, fixture drift), Python (CLI + MCP) and Playwright E2E jobs.
+
+### Changed
+
+- `react-router-dom` 6 → 7.18.5 (fixes open-redirect and constructor-injection advisories;
+  HashRouter/Routes/NavLink API unchanged).
+- `vitest` 2 → 4.1.12; the duplicate `vitest` 2 devDependency in `packages/core` was removed
+  (it pulled `tinypool` and Vite 5 into the tree).
+- npm 11 is now required to install the workspace (`packageManager: npm@11.21.1`) because npm
+  10's arborist fails on the Vitest 4 peer graph.
+- `npm audit` now reports **0 vulnerabilities**.
 
 ### Fixed during development
 
