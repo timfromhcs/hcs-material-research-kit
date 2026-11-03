@@ -167,6 +167,10 @@
   `Referrer-Policy: no-referrer`, `Permissions-Policy` and HSTS present;
   `X-Vercel-Cache: HIT`.
 - **Smoke test:** the full Playwright acceptance suite was run against the URL
-  (`HCS_E2E_BASE_URL=https://hcs-material-research-kit.vercel.app`) and passed
-  7/7 in 12.6 s, including the WASM energy job, NVE MD + MSD, report download and
-  archive re-import with checksum verification.
+  (`HCS_E2E_BASE_URL=https://hcs-material-research-kit.vercel.app`) and passed 7/7 in 36.2 s,
+  including the WASM energy job, NVE MD + MSD, report download and archive re-import with
+  checksum verification.
+- **Pending redeploy:** a deployment of the formatting-only commit `6fa0e52` was refused by
+  Vercel on 2026-11-03 23:15 UTC with `api-deployments-free-per-day` (>100 deployments in
+  24 h). Production still serves the v0.2.0 build from `c24db2c`; the commit changes no
+  behaviour. Retry after the window resets.
