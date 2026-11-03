@@ -18,6 +18,7 @@
 | Tutorial | [`tutorials/first-calculation.md`](tutorials/first-calculation.md) |
 | CLI tutorial | [`tutorials/cli.md`](tutorials/cli.md) |
 | Research baseline and verification | [`research/baseline.md`](research/baseline.md) |
+| v0.2.0 release plan and evidence | [`plan/2026-11-03-v0.2.0-long-horizon.md`](plan/2026-11-03-v0.2.0-long-horizon.md) |
 
 ## Architecture decision records
 

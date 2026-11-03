@@ -23,7 +23,7 @@ its domain and wrong outside it.
 - `benchmark_validated` is never assigned automatically; it requires an explicit benchmark run.
 - A fidelity label never implies laboratory proof, synthesis or certification.
 
-## Current mapping in v0.1.0
+## Current mapping in v0.2.0
 
 | Engine | Level | Notes |
 |---|---|---|

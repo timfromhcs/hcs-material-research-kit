@@ -1,7 +1,7 @@
 # Lennard-Jones reference engine
 
 **Engine id:** `hcs.lj-reference` · **Model id:** `lj.noble-gases.v1` ·
-**Fidelity:** `classical_model` · **Version:** 0.1.0
+**Fidelity:** `classical_model` · **Version:** 0.2.0
 
 ## Purpose
 
