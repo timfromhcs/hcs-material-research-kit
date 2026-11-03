@@ -160,8 +160,9 @@
 ## Deployment evidence
 
 - **Production URL:** https://hcs-material-research-kit.vercel.app
-- **Deployed:** 2026-11-03 21:29 UTC, Vercel CLI 65.9.0, project
-  `hcsmediacorp/hcs-material-research-kit` (static build of `apps/web/dist`).
+- **Deployed:** 2026-11-03 21:40 UTC, Vercel CLI 65.9.0, project
+  `hcsmediacorp/hcs-material-research-kit` (static build of `apps/web/dist`), from the
+  release commit `c24db2c` (tag `v0.2.0`).
 - **HTTP check:** `200 OK`, `text/html; charset=utf-8`, 1054 bytes, with
   `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
   `Referrer-Policy: no-referrer`, `Permissions-Policy` and HSTS present;
