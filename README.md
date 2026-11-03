@@ -13,6 +13,7 @@ research record with provenance.
 [![rust](https://img.shields.io/badge/Rust%20tests-8%20passing-4fd6c4)](#verification)
 [![python](https://img.shields.io/badge/Python%2FMCP-41%20passing-4fd6c4)](#verification)
 [![e2e](https://img.shields.io/badge/Playwright%20E2E-7%20passing-4fd6c4)](#verification)
+[![ci](https://github.com/timfromhcs/hcs-material-research-kit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/timfromhcs/hcs-material-research-kit/actions/workflows/ci.yml)
 
 ---
 
@@ -166,8 +167,10 @@ Key scientific checks:
 - fcc RDF first peak at `a/√2`, coordination number 12 ± 0.5;
 - silicon diamond density 2.329 g/cm³ and rock-salt NaCl 2.165 g/cm³ within 1.5 %.
 
-No CI badge is claimed: `.github/workflows/ci.yml` exists but has not been executed on
-GitHub in this workspace yet.
+CI has run on GitHub: the five jobs (TypeScript/unit/build + benchmark parity, Node 24,
+Rust parity, Python 3.12/3.13, Playwright) are green for the v0.2.0 release commit. The live
+studio at https://hcs-material-research-kit.vercel.app was smoke-tested with the full
+Playwright suite against the deployed build.
 
 ## Status and limits
 

@@ -129,8 +129,8 @@
 - `.github/workflows/ci.yml` runs five jobs: typecheck/unit/build + benchmark parity, Node 24
   (non-blocking), Rust (fmt, clippy, parity, fixture and WASM drift), Python 3.12/3.13, and
   Playwright E2E (Chromium).
-- The workflow executed for the first time on 2026-11-03. Run history and the release run are
-  linked in the "Deployment evidence" section after the release gate passes.
+- The workflow executed for the first time on 2026-11-03. All release jobs are green on
+  `release/0.2.0`; the release run is linked in the GitHub release notes.
 - Local equivalent: `npm run verify` plus `npm run test:python`.
 
 ## Security/license state
@@ -159,4 +159,14 @@
 
 ## Deployment evidence
 
-_Filled in at the end of the v0.2.0 release gate._
+- **Production URL:** https://hcs-material-research-kit.vercel.app
+- **Deployed:** 2026-11-03 21:29 UTC, Vercel CLI 65.9.0, project
+  `hcsmediacorp/hcs-material-research-kit` (static build of `apps/web/dist`).
+- **HTTP check:** `200 OK`, `text/html; charset=utf-8`, 1054 bytes, with
+  `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
+  `Referrer-Policy: no-referrer`, `Permissions-Policy` and HSTS present;
+  `X-Vercel-Cache: HIT`.
+- **Smoke test:** the full Playwright acceptance suite was run against the URL
+  (`HCS_E2E_BASE_URL=https://hcs-material-research-kit.vercel.app`) and passed
+  7/7 in 12.6 s, including the WASM energy job, NVE MD + MSD, report download and
+  archive re-import with checksum verification.
