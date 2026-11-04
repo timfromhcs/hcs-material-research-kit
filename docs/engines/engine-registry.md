@@ -6,18 +6,31 @@ UI or called through MCP.
 
 ## Implemented (runnable)
 
-| Engine                 | Tasks                  | Elements           | Backends                                 | Fidelity          | License note                                      |
-| ---------------------- | ---------------------- | ------------------ | ---------------------------------------- | ----------------- | ------------------------------------------------- |
-| `hcs.lj-reference`     | energy, relax, md, rdf | He, Ne, Ar, Kr, Xe | cpu (TS), cpu (Rust), wasm (energy only) | `classical_model` | HCS code MIT; parameters are literature estimates |
-| `hcs.heat1d-reference` | heat_1d, diffusion_1d  | —                  | cpu (TS)                                 | `continuum_model` | MIT                                               |
+| Engine                 | Tasks                  | Elements           | Backends                                    | Fidelity          | License note                                      |
+| ---------------------- | ---------------------- | ------------------ | ------------------------------------------- | ----------------- | ------------------------------------------------- |
+| `hcs.lj-reference`     | energy, relax, md, rdf | He, Ne, Ar, Kr, Xe | cpu (TS), cpu (Rust), wasm, webgpu (energy) | `classical_model` | HCS code MIT; parameters are literature estimates |
+| `hcs.sw-silicon`       | energy, relax, md, rdf | Si                 | cpu (TS)                                    | `classical_model` | HCS code MIT; 1985 parameters are published data  |
+| `hcs.heat1d-reference` | heat_1d, diffusion_1d  | —                  | cpu (TS)                                    | `continuum_model` | MIT                                               |
 
-Execution backends are probed, not assumed: WebGPU adapters are detected and reported, but no
-HCS kernel currently has a WebGPU implementation, so the CPU path is used and the UI says so.
+Ensembles: `hcs.lj-reference` and `hcs.sw-silicon` run **NVE** and **Langevin NVT**. There is no
+barostat, so **NPT is refused** with `unsupported_ensemble`; the message names the missing
+component.
 
 The WASM backend is the Rust kernel compiled with a C ABI (`crates/compute-wasm`). It covers
-energy/force evaluation, FIRE relaxation and NVE molecular dynamics, and is used for the actual
-computation in the browser. Every result records `compute_backend`; single-point energy jobs are
-additionally re-evaluated with the other implementation and the deviation is shown.
+Lennard-Jones energy/force evaluation, FIRE relaxation and NVE/NVT molecular dynamics, and is
+used for the actual computation in the browser. Every result records `compute_backend`;
+single-point energy jobs are additionally re-evaluated with another implementation and the
+deviation is shown.
+
+The WebGPU backend (`@hcs-materials/webgpu`) is a WGSL Lennard-Jones kernel used for single-point
+energy/force jobs. It is f32, and every GPU result is cross-checked against the f64 TypeScript
+kernel before it is presented. MD and relaxation stay on WASM/CPU because the reference runner
+is synchronous. If a caller forces `backend: "webgpu"` and no adapter exists, the job fails with
+the reason instead of silently falling back.
+
+The Stillinger–Weber engine is CPU-only in this release. Its cutoff is mandatory (`a·σ ≈
+3.771 Å`), so a cell that cannot support it is refused with the required supercell size rather
+than truncated.
 
 ## Planned (not implemented, not runnable)
 
@@ -32,7 +45,11 @@ additionally re-evaluated with the other implementation and the deviation is sho
 | MatGL v3                 | energy, relax           | pinned package/checkpoint pair (v3 weights are not numerically compatible with v2) |
 | pycalphad                | phase diagram           | TDB data licensing and native module                                               |
 | FiPy / MOOSE / OpenPhase | phase field             | native installation and validated model classes                                    |
-| OPTIMADE connectors      | database search         | provider terms, rate limits, API-key handling                                      |
+| NPT barostat             | md                      | cell dynamics and stress; a wrong barostat is worse than an honest refusal         |
+
+OPTIMADE is **implemented** as an import path in the Python/desktop editions (CLI + MCP), not as
+an atomistic engine. The browser cannot call providers directly because they send no CORS
+headers.
 
 ## Definition of done for adding an engine
 

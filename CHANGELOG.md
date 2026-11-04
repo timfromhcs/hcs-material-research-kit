@@ -4,6 +4,60 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for public APIs.
 
+## [0.3.0] — 2026-11-04
+
+The all-platform release: real many-body physics, finite temperature, a GPU tier, a desktop app,
+materials-data import and an agent transport that follows the 2026-07-28 specification.
+
+### Added
+
+- **Stillinger–Weber silicon engine** (`hcs.sw-silicon`, `sw.silicon.v1`): two- and three-body
+  terms with the published 1985 parameters, analytic forces, a mandatory full cutoff and
+  refusals for unsupported elements, truncated cutoffs and cells too small for the potential.
+  Validated by numerical gradients, an independent three-body expression, a lattice-constant
+  scan and NVE conservation.
+- **Langevin NVT** (BAOAB splitting) with an exact Ornstein–Uhlenbeck step, ensemble-aware
+  degrees of freedom, NVT convergence/warnings and a counter-based RNG keyed by `(seed, step)`
+  so a resumed run is bit-identical. NPT remains refused.
+- **WebGPU Lennard-Jones kernel** (`@hcs-materials/webgpu`): WGSL compute shader, one invocation
+  per atom, integer pair counter, worker dispatch for single-point jobs, WASM/CPU fallback and a
+  mandatory f64 CPU cross-check. Provenance records `float32` for the GPU path.
+- **Powder XRD**: reciprocal-lattice enumeration, Bragg condition, structure factor with 99
+  published scattering coefficient sets, Lorentz–polarisation, multiplicity, Gaussian profile,
+  a live Studio panel and CSV export.
+- **Tauri 2 desktop shell** with NSIS and MSI installers, one read-only `app_info` command and an
+  explicit CSP; a CI matrix for Linux and macOS bundles.
+- **OPTIMADE 1.3 client**: four verified HTTPS providers, disk cache with TTL, rate limiting,
+  typed errors, provider/record/URI/licence provenance, CLI commands and three bounded MCP
+  tools.
+- **MCP Streamable HTTP**: loopback-only, bearer token (header or `?token=`), 1 MB body cap,
+  stateless mode, JSON responses; stdio stays the default.
+- **Command palette** (Ctrl/Cmd-K) for navigation, theme and language, with arrow/Enter/Escape
+  handling and a visible focus path.
+- Engine and model selection in the Workbench, with honest refusals for undeclared models and
+  too-small cells.
+
+### Changed
+
+- Toolchain: React 19.3, Vite 8.3 (Rolldown), Vitest 5.1, three 0.187, TypeScript 5.9.
+- The mobile shell keeps the top bar (project, search, language, theme) instead of hiding it,
+  and the status bar is compacted.
+- Workbench panel labels now distinguish "Calculation setup" from "Task" and "Trajectory and
+  result structure" from the button that sends a structure to the Studio.
+- The studio empty state explains how to start instead of repeating the panel title.
+
+### Fixed
+
+- Prettier no longer fails on the untracked `.serena/` tool directory.
+- PyPI metadata points at the real repository and the description is plain ASCII.
+- WebGPU provenance no longer claims `float64` for an f32 kernel.
+- The `manualChunks` configuration uses the function form required by Rolldown.
+
+### Removed
+
+- The "NVE only" limitation text and the disabled model selector; both were replaced by real
+  behaviour (NVT and engine/model selection).
+
 ## [Unreleased]
 
 ### Changed

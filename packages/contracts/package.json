@@ -1,6 +1,6 @@
 {
   "name": "@hcs-materials/contracts",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Canonical JSON Schema contracts and runtime validators for the HCS Material Research Kit.",
   "license": "MIT",
   "type": "module",

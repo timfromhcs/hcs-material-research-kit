@@ -144,6 +144,20 @@ test("runs Langevin NVT and reports the realised temperature", async ({ page }) 
   await expect(page.getByText("mean_temperature")).toBeVisible();
 });
 
+test("opens the command palette with the keyboard and navigates", async ({ page }) => {
+  await page.keyboard.press("Control+k");
+  await expect(page.getByRole("dialog", { name: "Command palette" })).toBeVisible();
+  await page.getByRole("combobox").fill("studio");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#\/studio/);
+  await expect(page.getByRole("heading", { name: "Structure Studio" })).toBeVisible();
+
+  await page.keyboard.press("Control+k");
+  await expect(page.getByRole("dialog", { name: "Command palette" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Command palette" })).toBeHidden();
+});
+
 test("exports a project archive, re-imports it and verifies the checksums", async ({ page }) => {
   await createArgonRun(page);
   await page.getByRole("link", { name: "Dashboard" }).click();

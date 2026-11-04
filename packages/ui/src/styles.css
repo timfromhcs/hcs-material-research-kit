@@ -931,14 +931,30 @@ button.list-item:hover {
 @media (max-width: 760px) {
   .app-shell {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 52px minmax(0, 1fr) auto auto;
+    grid-template-rows: 52px auto minmax(0, 1fr) auto auto;
     grid-template-areas:
       "brand"
+      "topbar"
       "main"
       "status"
       "rail";
   }
   .topbar {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--s-2);
+    padding: 6px var(--s-3);
+  }
+  .topbar-context .secondary,
+  .topbar-context .muted,
+  .topbar-context .badge,
+  .topbar > .row > .badge {
+    display: none;
+  }
+  .topbar-title {
+    max-width: 110px;
+  }
+  .palette-trigger kbd {
     display: none;
   }
   .rail {
@@ -947,25 +963,34 @@ button.list-item:hover {
     border-right: 0;
     border-top: 1px solid var(--border-subtle);
     padding: var(--s-2);
-    gap: var(--s-2);
+    gap: var(--s-1);
   }
   .rail-item {
     flex-direction: column;
     gap: 2px;
-    min-width: 58px;
-    padding: 6px 4px;
-    font-size: 0.6rem;
+    min-width: 54px;
+    padding: 6px 3px;
+    font-size: 0.58rem;
     text-align: center;
   }
   .rail-label {
     display: block;
-    font-size: 0.58rem;
+    font-size: 0.55rem;
     line-height: 1.15;
+    max-width: 66px;
   }
   .rail-group {
     display: none;
   }
   .workspace {
     padding: var(--s-3);
+  }
+  .status-bar {
+    padding: 4px var(--s-3);
+    gap: 4px;
+    font-size: 0.62rem;
+  }
+  .status-bar .status-cluster:first-child span:nth-child(2) {
+    display: none;
   }
 }

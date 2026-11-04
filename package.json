@@ -1,7 +1,7 @@
 {
   "name": "hcs-material-research-kit",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Local-first virtual materials research studio: structures, reproducible classical simulations, provenance.",
   "license": "MIT",
   "author": "hcsmedia and timfromhcs",

@@ -141,6 +141,8 @@ export const fr: Record<TranslationKey, string> = {
   "studio.showBonds": "Liaisons (aide visuelle)",
   "studio.showCell": "Maille élémentaire",
   "studio.needStructure": "Créez ou importez une structure pour commencer.",
+  "studio.needStructureHint":
+    "Créez un cristal à droite, déposez un fichier CIF/POSCAR/XYZ ici ou importez une structure JSON HCS.",
   "studio.deleteStructure": "Supprimer la structure",
   "studio.viewerNote":
     "Les liaisons sont tracées à partir des rayons covalents comme aide visuelle. Ce n'est pas une affirmation sur la liaison électronique.",
@@ -151,6 +153,8 @@ export const fr: Record<TranslationKey, string> = {
     "Exécutez des calculs de référence documentés dans un Web Worker. Les résultats incluent convergence, limites et provenance.",
   "workbench.structure": "Structure d'entrée",
   "workbench.task": "Tâche",
+  "workbench.setup": "Configuration du calcul",
+  "workbench.trajectoryPanel": "Trajectoire et structure de résultat",
   "workbench.taskEnergy": "Énergie et forces en un point",
   "workbench.taskRelax": "Relaxation FIRE",
   "workbench.taskMd": "Dynamique moléculaire",
@@ -332,4 +336,17 @@ export const fr: Record<TranslationKey, string> = {
   "science.disclaimer":
     "Les simulations virtuelles dépendent de leur modèle. Un résultat n'est pas une preuve de laboratoire, ni une affirmation de synthèse, ni une certification.",
   "science.localOnly": "Local-first : aucune structure ni résultat n'est envoyé.",
+
+  "command.title": "Palette de commandes",
+  "command.open": "Recherche et commandes",
+  "command.openShort": "Recherche",
+  "command.placeholder": "Rechercher pages, thème et langue…",
+  "command.noResults": "Aucune commande correspondante",
+  "command.navigate": "Navigation",
+  "command.appearance": "Apparence",
+  "command.language": "Langue",
+  "command.toggleTheme": "Basculer le thème sombre/clair",
+  "command.move": "déplacer",
+  "command.run": "exécuter",
+  "command.close": "fermer",
 };

@@ -1,6 +1,6 @@
 {
   "name": "@hcs-materials/web",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "HCS Material Research Kit browser studio (static, local-first).",
   "license": "MIT",
@@ -12,11 +12,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@hcs-materials/contracts": "0.2.0",
-    "@hcs-materials/core": "0.2.0",
-    "@hcs-materials/ui": "0.2.0",
-    "@hcs-materials/visualization": "0.2.0",
-    "@hcs-materials/webgpu": "0.2.0",
+    "@hcs-materials/contracts": "0.3.0",
+    "@hcs-materials/core": "0.3.0",
+    "@hcs-materials/ui": "0.3.0",
+    "@hcs-materials/visualization": "0.3.0",
+    "@hcs-materials/webgpu": "0.3.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",

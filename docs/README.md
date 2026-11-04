@@ -6,6 +6,8 @@
 | Current state                      | [`../STATUS.md`](../STATUS.md)                                                     |
 | Phases and gates                   | [`../ROADMAP.md`](../ROADMAP.md)                                                   |
 | Science: Lennard-Jones reference   | [`science/lennard-jones-reference.md`](science/lennard-jones-reference.md)         |
+| Science: Stillinger–Weber silicon  | [`science/stillinger-weber-silicon.md`](science/stillinger-weber-silicon.md)       |
+| Science: powder XRD                | [`science/xrd.md`](science/xrd.md)                                                 |
 | Science: 1D heat equation          | [`science/heat-equation-reference.md`](science/heat-equation-reference.md)         |
 | Science: fidelity labels           | [`science/fidelity-levels.md`](science/fidelity-levels.md)                         |
 | Science: units and conventions     | [`science/units-and-conventions.md`](science/units-and-conventions.md)             |
@@ -17,8 +19,10 @@
 | Benchmarks                         | [`../benchmarks/README.md`](../benchmarks/README.md)                               |
 | Tutorial                           | [`tutorials/first-calculation.md`](tutorials/first-calculation.md)                 |
 | CLI tutorial                       | [`tutorials/cli.md`](tutorials/cli.md)                                             |
+| OPTIMADE import tutorial           | [`tutorials/optimade.md`](tutorials/optimade.md)                                   |
 | Research baseline and verification | [`research/baseline.md`](research/baseline.md)                                     |
 | v0.2.0 release plan and evidence   | [`plan/2026-11-03-v0.2.0-long-horizon.md`](plan/2026-11-03-v0.2.0-long-horizon.md) |
+| v0.3.0 release plan and evidence   | [`plan/2026-11-04-v0.3.0-frontier.md`](plan/2026-11-04-v0.3.0-frontier.md)         |
 
 ## Architecture decision records
 
@@ -34,6 +38,10 @@
 | [0008](decisions/ADR-0008-third-party-licensing.md)     | Third-party licensing and model parameters      |
 | [0009](decisions/ADR-0009-honest-failure-modes.md)      | Honest failure instead of silent clamping       |
 | [0010](decisions/ADR-0010-wasm-abi.md)                  | WASM kernel ABI without wasm-bindgen            |
+| [0011](decisions/ADR-0011-langevin-thermostat.md)       | Langevin NVT instead of a velocity rescale      |
+| [0012](decisions/ADR-0012-webgpu-kernel.md)             | WebGPU kernel with a mandatory CPU cross-check  |
+| [0013](decisions/ADR-0013-tauri-desktop.md)             | Tauri desktop shell without extra privileges    |
+| [0014](decisions/ADR-0014-mcp-http.md)                  | Loopback Streamable HTTP with a bearer token    |
 
 ## Documentation rules
 

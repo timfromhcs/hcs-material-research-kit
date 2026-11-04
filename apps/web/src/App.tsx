@@ -15,6 +15,7 @@ import {
   IconShield,
   IconSun,
 } from "./components/icons";
+import { CommandPalette } from "./components/CommandPalette";
 import { Dashboard } from "./routes/Dashboard";
 import { StructureStudio } from "./routes/StructureStudio";
 import { Workbench } from "./routes/Workbench";
@@ -51,11 +52,18 @@ const NAV_ITEMS = [
   { to: "/settings", key: "nav.settings", icon: IconSettings, group: "system" },
 ] as const;
 
-function TopBar(): JSX.Element {
+function TopBar({
+  theme,
+  onToggleTheme,
+  onOpenPalette,
+}: {
+  theme: Theme;
+  onToggleTheme: () => void;
+  onOpenPalette: () => void;
+}): JSX.Element {
   const { t, lang, setLang } = useI18n();
   const { project, structures, activeStructureId, jobs } = useWorkspace();
   const { report } = useHardware();
-  const [theme, setTheme] = useTheme();
   const active = structures.find((structure) => structure.structure_id === activeStructureId);
   const running = jobs.filter((job) => job.job.state === "running").length;
 
@@ -75,6 +83,17 @@ function TopBar(): JSX.Element {
         {running > 0 && <Badge tone="info">{`${running} ${t("common.running")}`}</Badge>}
       </div>
       <div className="row">
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm palette-trigger"
+          onClick={onOpenPalette}
+          aria-label={t("command.open")}
+          title={t("command.open")}
+        >
+          <span className="palette-trigger-label">{t("command.open")}</span>
+          <span className="palette-trigger-short">{t("command.openShort")}</span>
+          <kbd>Ctrl K</kbd>
+        </button>
         {report && (
           <Badge tone={report.webgpu.available ? "info" : "neutral"} title={report.webgpu.reason}>
             {report.selectedBackend.toUpperCase()}
@@ -96,7 +115,7 @@ function TopBar(): JSX.Element {
           type="button"
           className="btn btn-ghost btn-sm"
           data-testid="theme-toggle"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={onToggleTheme}
           aria-label={theme === "dark" ? t("common.light") : t("common.dark")}
           title={theme === "dark" ? t("common.light") : t("common.dark")}
         >
@@ -131,6 +150,21 @@ function StatusBar(): JSX.Element {
 
 function Shell(): JSX.Element {
   const { t } = useI18n();
+  const [theme, setTheme] = useTheme();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const toggleTheme = (): void => setTheme(theme === "dark" ? "light" : "dark");
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="app-shell">
       <div className="brand">
@@ -140,7 +174,16 @@ function Shell(): JSX.Element {
           <div className="brand-sub">{t("app.tagline")}</div>
         </div>
       </div>
-      <TopBar />
+      <TopBar
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onOpenPalette={() => setPaletteOpen(true)}
+      />
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onToggleTheme={toggleTheme}
+      />
       <nav className="rail" aria-label={t("app.name")}>
         {NAV_ITEMS.map((item, index) => {
           const previous = NAV_ITEMS[index - 1];

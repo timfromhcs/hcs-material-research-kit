@@ -1,6 +1,6 @@
 {
   "name": "@hcs-materials/wasm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "WebAssembly loader for the HCS CPU reference kernel",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@hcs-materials/core": "0.2.0"
+    "@hcs-materials/core": "0.3.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

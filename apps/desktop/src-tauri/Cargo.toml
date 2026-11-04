@@ -1,6 +1,6 @@
 [package]
 name = "hcs-desktop"
-version = "0.2.0"
+version = "0.3.0"
 description = "Desktop shell for the HCS Material Research Kit"
 authors = ["hcsmedia and timfromhcs"]
 license = "MIT"

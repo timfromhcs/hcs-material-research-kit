@@ -273,7 +273,7 @@ export function StructureStudio(): JSX.Element {
               </>
             ) : (
               <div className="panel-body">
-                <p className="muted small">{t("studio.needStructure")}</p>
+                <p className="muted small">{t("studio.needStructureHint")}</p>
               </div>
             )}
           </Panel>

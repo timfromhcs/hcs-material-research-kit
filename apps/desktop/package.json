@@ -1,6 +1,6 @@
 {
   "name": "@hcs-materials/desktop",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Tauri 2 desktop shell for the HCS Material Research Kit.",
   "license": "MIT",

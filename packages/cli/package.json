@@ -1,6 +1,6 @@
 {
   "name": "@hcs-materials/cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Node CLI for running HCS simulation specs locally (CPU or WASM kernel)",
   "license": "MIT",
   "type": "module",
@@ -16,8 +16,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@hcs-materials/core": "0.2.0",
-    "@hcs-materials/wasm": "0.2.0"
+    "@hcs-materials/core": "0.3.0",
+    "@hcs-materials/wasm": "0.3.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

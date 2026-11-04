@@ -140,6 +140,8 @@ export const de: Record<TranslationKey, string> = {
   "studio.showBonds": "Bindungen (Hilfsdarstellung)",
   "studio.showCell": "Elementarzelle",
   "studio.needStructure": "Erstelle oder importiere zuerst eine Struktur.",
+  "studio.needStructureHint":
+    "Erstelle rechts einen Kristall, ziehe eine CIF/POSCAR/XYZ-Datei hierher oder importiere eine HCS-JSON-Struktur.",
   "studio.deleteStructure": "Struktur löschen",
   "studio.viewerNote":
     "Bindungen werden aus kovalenten Radien als visuelle Hilfe gezeichnet. Das ist keine Aussage über elektronische Bindung.",
@@ -150,6 +152,8 @@ export const de: Record<TranslationKey, string> = {
     "Dokumentierte Referenzrechnungen in einem Web Worker. Ergebnisse enthalten Konvergenz, Grenzen und Herkunft.",
   "workbench.structure": "Eingangsstruktur",
   "workbench.task": "Aufgabe",
+  "workbench.setup": "Berechnung einrichten",
+  "workbench.trajectoryPanel": "Trajektorie und Ergebnisstruktur",
   "workbench.taskEnergy": "Einzelpunkt-Energie und Kräfte",
   "workbench.taskRelax": "FIRE-Geometrieoptimierung",
   "workbench.taskMd": "Molekulardynamik",
@@ -330,4 +334,17 @@ export const de: Record<TranslationKey, string> = {
   "science.disclaimer":
     "Virtuelle Simulationen sind an ihr Modell gebunden. Ein Ergebnis ist kein Laborbeweis, keine Syntheseaussage und keine Zertifizierung.",
   "science.localOnly": "Local-first: keine Struktur und kein Ergebnis wird hochgeladen.",
+
+  "command.title": "Befehlspalette",
+  "command.open": "Suche und Befehle",
+  "command.openShort": "Suche",
+  "command.placeholder": "Seiten, Theme und Sprache durchsuchen…",
+  "command.noResults": "Kein passender Befehl",
+  "command.navigate": "Navigation",
+  "command.appearance": "Darstellung",
+  "command.language": "Sprache",
+  "command.toggleTheme": "Dunkles/helles Theme umschalten",
+  "command.move": "bewegen",
+  "command.run": "ausführen",
+  "command.close": "schließen",
 };

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hcs-materials"
-version = "0.2.0"
+version = "0.3.0"
 description = "HCS Material Research Kit - local-first structure validation, simulations, project archives and MCP tools"
 readme = "README.md"
 license = { text = "MIT" }

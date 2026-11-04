@@ -137,6 +137,8 @@ export const en = {
   "studio.showBonds": "Bonds (visual aid)",
   "studio.showCell": "Unit cell",
   "studio.needStructure": "Create or import a structure to begin.",
+  "studio.needStructureHint":
+    "Create a crystal on the right, drop a CIF/POSCAR/XYZ file here, or import an HCS JSON structure.",
   "studio.deleteStructure": "Delete structure",
   "studio.viewerNote":
     "Bonds are drawn from covalent radii as a visual aid. They are not a statement about electronic bonding.",
@@ -147,6 +149,8 @@ export const en = {
     "Run documented reference calculations in a Web Worker. Results include convergence, limits and provenance.",
   "workbench.structure": "Input structure",
   "workbench.task": "Task",
+  "workbench.setup": "Calculation setup",
+  "workbench.trajectoryPanel": "Trajectory and result structure",
   "workbench.taskEnergy": "Single-point energy and forces",
   "workbench.taskRelax": "FIRE geometry relaxation",
   "workbench.taskMd": "Molecular dynamics",
@@ -326,6 +330,19 @@ export const en = {
   "science.disclaimer":
     "Virtual simulations are conditional on their model. A result is not laboratory proof, not a synthesis claim and not a certification.",
   "science.localOnly": "Local-first: no structure or result is uploaded.",
+
+  "command.title": "Command palette",
+  "command.open": "Search and commands",
+  "command.openShort": "Search",
+  "command.placeholder": "Search pages, theme and language…",
+  "command.noResults": "No matching command",
+  "command.navigate": "Navigate",
+  "command.appearance": "Appearance",
+  "command.language": "Language",
+  "command.toggleTheme": "Toggle dark/light theme",
+  "command.move": "move",
+  "command.run": "run",
+  "command.close": "close",
 } as const;
 
 export type TranslationKey = keyof typeof en;

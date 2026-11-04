@@ -317,7 +317,7 @@ export function Workbench(): JSX.Element {
 
       <div className="two-col">
         <div className="stack">
-          <Panel title={t("workbench.task")} subtitle={t("workbench.structure")}>
+          <Panel title={t("workbench.setup")} subtitle={t("workbench.structure")}>
             <div className="stack" style={{ gap: 12 }}>
               <Field label={t("workbench.structure")} htmlFor="wb-structure">
                 <select
@@ -853,7 +853,7 @@ export function Workbench(): JSX.Element {
             )}
           </Panel>
 
-          <Panel title={t("workbench.resultStructure")} subtitle={t("workbench.msd")}>
+          <Panel title={t("workbench.trajectoryPanel")} subtitle={t("workbench.msd")}>
             {trajectory && trajectory.length > 1 ? (
               <p className="small secondary">
                 {trajectory.length} frames · Δt ={" "}
