@@ -194,10 +194,30 @@ test.describe("mobile", () => {
     const nav = page.getByRole("navigation", { name: "HCS Material Research Kit" });
     await expect(nav.getByRole("link", { name: "Structure Studio" })).toBeVisible();
     await expect(page.locator("canvas")).toBeVisible();
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
+    const overflow = await page.evaluate(() => {
+      const html = document.documentElement;
+      const offenders: Array<Record<string, unknown>> = [];
+      for (const element of document.querySelectorAll("body *")) {
+        const rect = element.getBoundingClientRect();
+        if (rect.right > html.clientWidth + 0.5 || rect.left < -0.5) {
+          offenders.push({
+            tag: element.tagName,
+            cls: String(element.className).slice(0, 60),
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+          });
+        }
+      }
+      return {
+        value: html.scrollWidth - html.clientWidth,
+        scrollWidth: html.scrollWidth,
+        clientWidth: html.clientWidth,
+        offenders: offenders.slice(0, 8),
+      };
+    });
+    console.log("MOBILE-OVERFLOW", JSON.stringify(overflow));
+    expect(overflow.value).toBeLessThanOrEqual(1);
     await expect(page.locator(".status-bar")).toBeVisible();
   });
 });
