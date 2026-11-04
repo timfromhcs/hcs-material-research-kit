@@ -140,8 +140,10 @@
 ## CI state
 
 - `.github/workflows/ci.yml`: five jobs (typecheck/unit/build + benchmark parity, Node 24,
-  Rust, Python 3.12/3.13, Playwright).
-- `.github/workflows/desktop.yml`: Tauri bundles on Windows, Ubuntu and macOS (unsigned).
+  Rust, Python 3.12/3.13, Playwright). Green on the release commit:
+  https://github.com/timfromhcs/hcs-material-research-kit/actions/runs/41818225953
+- `.github/workflows/desktop.yml`: Tauri bundles on Windows, Ubuntu and macOS (unsigned). All
+  three green: https://github.com/timfromhcs/hcs-material-research-kit/actions/runs/41818226014
 - Local equivalent: `npm run verify:full` (verify + Python).
 
 ## Security/license state
@@ -174,17 +176,15 @@
 ## Deployment evidence
 
 - **Production URL:** https://hcs-material-research-kit.vercel.app
-- **v0.3.0 build:** deployed 2026-11-04 09:34 UTC from tag `v0.3.0`, Vercel CLI
-  65.9.0, project `hcsmediacorp/hcs-material-research-kit` (static build of
-  `apps/web/dist`).
-- **HTTP check:** `200 OK`, `text/html; charset=utf-8`, 1153 bytes, with
-  `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
-  `Referrer-Policy: no-referrer`, `Permissions-Policy` and HSTS present;
-  `X-Vercel-Cache: HIT`. The served HTML references the v0.3.0 bundle
-  (`/assets/index-VTRTgMDa.js`).
-- **Smoke test:** the full Playwright acceptance suite was run against the URL
-  (`HCS_E2E_BASE_URL=https://hcs-material-research-kit.vercel.app`) and passed
-  10/10 in 27.6 s, including SW silicon, WebGPU energy, NVE and NVT MD, XRD/CSV,
-  the command palette, report download and archive re-import with checksum
-  verification.
+- **Release:** https://github.com/timfromhcs/hcs-material-research-kit/releases/tag/v0.3.0
+  (Windows NSIS + MSI attached; Linux/macOS bundles in the desktop workflow artifacts).
+- **v0.3.0 build:** deployed 2026-11-04 from tag `v0.3.0`, Vercel CLI 65.9.0, project
+  `hcsmediacorp/hcs-material-research-kit` (static build of `apps/web/dist`).
+- **HTTP check:** `200 OK`, `text/html; charset=utf-8`, security headers present
+  (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS),
+  `X-Vercel-Cache: HIT`.
+- **Smoke test:** the full Playwright acceptance suite was run against the URL with Chromium
+  (the same browser as CI) and passed 10/10 in 27.6 s, including SW silicon, WebGPU energy,
+  NVE and NVT MD, XRD/CSV, the command palette, report download, archive re-import and a
+  390 px viewport with zero horizontal overflow.
 - **v0.2.0 build:** deployed 2026-11-03 from `c24db2c`; smoke-tested 7/7.
