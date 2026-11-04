@@ -16,6 +16,7 @@
     "@hcs-materials/core": "0.2.0",
     "@hcs-materials/ui": "0.2.0",
     "@hcs-materials/visualization": "0.2.0",
+    "@hcs-materials/webgpu": "0.2.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",
@@ -25,6 +26,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",
+    "@webgpu/types": "^0.1.74",
     "typescript": "^5.9.3",
     "vite": "^8.3.5"
   }

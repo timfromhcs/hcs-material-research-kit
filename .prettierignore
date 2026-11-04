@@ -37,4 +37,4 @@ package-lock.json
 Cargo.lock
 
 # Verbatim tool output kept as release evidence.
-docs/plan/evidence/B-mcp-run.txt
+docs/plan/evidence/*.txt

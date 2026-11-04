@@ -26,3 +26,4 @@ playwright-report/
 .vercel
 .env*
 .serena/
+apps/desktop/src-tauri/gen/

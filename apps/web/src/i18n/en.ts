@@ -302,14 +302,16 @@ export const en = {
   "axis.g": "g(r)",
 
   "workbench.crossCheck": "Cross-implementation check",
-  "workbench.crossCheckDeltaE": "Energy deviation (TS vs WASM)",
-  "workbench.crossCheckDeltaF": "Max force deviation (TS vs WASM)",
+  "workbench.crossCheckDeltaE": "Energy deviation (TS vs accelerator)",
+  "workbench.crossCheckDeltaF": "Max force deviation (TS vs accelerator)",
   "workbench.crossCheckPassed": "Both implementations agree within tolerance.",
   "workbench.crossCheckFailed":
     "Implementations disagree beyond tolerance. Do not trust this result.",
   "workbench.crossCheckUnavailable": "WASM cross-check unavailable",
 
   "workbench.cpuFallback": "The TypeScript CPU kernel is used instead.",
+  "workbench.webgpuFallback":
+    "WebGPU was requested but is unavailable; the WASM/CPU path ran instead",
 
   "studio.measurement": "Measurement",
   "studio.distance": "Distance",

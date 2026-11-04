@@ -1,0 +1,24 @@
+[package]
+name = "hcs-desktop"
+version = "0.2.0"
+description = "Desktop shell for the HCS Material Research Kit"
+authors = ["hcsmedia and timfromhcs"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.82"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Standalone workspace: the Tauri app must not be pulled into the kernel
+# workspace, whose members are the compute crates only.
+[workspace]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

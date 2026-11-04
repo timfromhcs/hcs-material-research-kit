@@ -308,14 +308,16 @@ export const fr: Record<TranslationKey, string> = {
   "axis.g": "g(r)",
 
   "workbench.crossCheck": "Contrôle croisé des implémentations",
-  "workbench.crossCheckDeltaE": "Écart d'énergie (TS vs WASM)",
-  "workbench.crossCheckDeltaF": "Écart maximal de force (TS vs WASM)",
+  "workbench.crossCheckDeltaE": "Écart d'énergie (TS vs accélérateur)",
+  "workbench.crossCheckDeltaF": "Écart maximal de force (TS vs accélérateur)",
   "workbench.crossCheckPassed": "Les deux implémentations concordent dans la tolérance.",
   "workbench.crossCheckFailed":
     "Les implémentations divergent au-delà de la tolérance. Ne pas utiliser ce résultat.",
   "workbench.crossCheckUnavailable": "Contrôle WASM indisponible",
 
   "workbench.cpuFallback": "Le noyau CPU TypeScript est utilisé à la place.",
+  "workbench.webgpuFallback":
+    "WebGPU a été demandé mais est indisponible ; le chemin WASM/CPU a été utilisé",
 
   "studio.measurement": "Mesure",
   "studio.distance": "Distance",

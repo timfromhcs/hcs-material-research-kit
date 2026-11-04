@@ -1,0 +1,24 @@
+WebGPU parity — automated browser evidence
+Date: 2026-11-04
+Machine: Windows 11 x64, AMD Ryzen 7 7735HS, Radeon 680M (RDNA 2), Chrome 144 (Playwright channel)
+Command: npm run test:e2e
+Test: tests/e2e/workflow.spec.ts — "runs a single-point energy and reports units and limits"
+
+Observed in the rendered result (argon fcc 3x3x3, 108 atoms, 2916 pairs):
+  compute_backend ............ webgpu
+  provenance precision ....... float32
+  cross-check ................ passed
+  max ΔE (TS f64 vs WGSL f32)  2.83e-6 eV      (tolerance 1e-3 eV)
+  max ΔF (TS f64 vs WGSL f32)  1.93e-7 eV/Å    (tolerance 1e-2 eV/Å)
+  reference energy ........... -8.682364263 eV
+
+Notes:
+- The WebGPU path is used for single-point energy/force jobs only. MD and FIRE
+  relaxation need a synchronous kernel per step and keep the WASM/CPU path.
+- Every WebGPU energy job is cross-checked against the TypeScript f64 kernel
+  before the result is presented; the cross-check is shown in the UI and a
+  failure is visible.
+- An about:blank probe does not expose navigator.gpu; the app runs on
+  http://localhost (a secure context), where the adapter is available.
+- On a browser without an adapter, the worker falls back to WASM and records
+  the reason; forcing backend "webgpu" refuses instead of silently using CPU.

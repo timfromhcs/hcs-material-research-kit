@@ -306,14 +306,16 @@ export const de: Record<TranslationKey, string> = {
   "axis.g": "g(r)",
 
   "workbench.crossCheck": "Vergleich der Implementierungen",
-  "workbench.crossCheckDeltaE": "Energieabweichung (TS vs. WASM)",
-  "workbench.crossCheckDeltaF": "Maximale Kraftabweichung (TS vs. WASM)",
+  "workbench.crossCheckDeltaE": "Energieabweichung (TS vs. Beschleuniger)",
+  "workbench.crossCheckDeltaF": "Maximale Kraftabweichung (TS vs. Beschleuniger)",
   "workbench.crossCheckPassed": "Beide Implementierungen stimmen innerhalb der Toleranz überein.",
   "workbench.crossCheckFailed":
     "Die Implementierungen weichen über die Toleranz hinaus ab. Ergebnis nicht verwenden.",
   "workbench.crossCheckUnavailable": "WASM-Vergleich nicht verfügbar",
 
   "workbench.cpuFallback": "Stattdessen wird der TypeScript-CPU-Kernel verwendet.",
+  "workbench.webgpuFallback":
+    "WebGPU wurde angefordert, ist aber nicht verfügbar; stattdessen lief der WASM/CPU-Pfad",
 
   "studio.measurement": "Messung",
   "studio.distance": "Abstand",

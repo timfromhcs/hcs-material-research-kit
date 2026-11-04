@@ -100,7 +100,13 @@ test("runs a single-point energy and reports units and limits", async ({ page })
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Cross-implementation check" })).toBeVisible();
   await expect(page.getByText("Both implementations agree within tolerance.")).toBeVisible();
-  await expect(page.getByRole("cell", { name: "wasm", exact: true })).toBeVisible();
+  // Auto selects WebGPU when the browser exposes an adapter, otherwise WASM.
+  const backendCell = page.getByRole("cell", { name: /^(wasm|webgpu)$/ }).first();
+  await expect(backendCell).toBeVisible();
+  if ((await backendCell.textContent()) === "webgpu") {
+    // The GPU kernel is f32; provenance must not claim float64.
+    await expect(page.getByText("webgpu · float32")).toBeVisible();
+  }
 });
 
 test("runs NVE dynamics, computes the MSD and downloads a report", async ({ page }) => {

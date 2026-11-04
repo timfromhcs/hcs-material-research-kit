@@ -47,16 +47,17 @@ export interface StoredJob {
     warnings: string[];
   };
   crossCheck?: {
-    backend: "wasm";
+    backend: "wasm" | "webgpu";
     tolerance: number;
     maxDeltaEnergyEv: number;
     maxDeltaForceEvPerA: number;
-    wasmEnergyEv: number;
+    referenceEnergyEv: number;
     pairCount: number;
     passed: boolean;
   };
   crossCheckError?: string;
   wasmError?: string;
+  webgpuError?: string;
 }
 
 export interface ProjectInfo {

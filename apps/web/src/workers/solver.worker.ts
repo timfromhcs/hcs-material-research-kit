@@ -23,6 +23,8 @@ import {
   getPotentialModel,
   isLJModel,
   runJob,
+  type EnergyForces,
+  type EnergyForcesKernel,
   type JobRecord,
   type ProvenanceRecord,
   type ResultBundle,
@@ -30,6 +32,7 @@ import {
   type Structure,
 } from "@hcs-materials/core";
 import { instantiateWasmKernel, type WasmKernel } from "@hcs-materials/wasm";
+import { createWebGpuKernel, type WebGpuKernel } from "@hcs-materials/webgpu";
 import wasmUrl from "@hcs-materials/wasm/hcs_compute.wasm?url";
 
 export interface WorkerRunRequest {
@@ -55,11 +58,11 @@ export interface WorkerProgress {
 }
 
 export interface CrossCheck {
-  backend: "wasm";
+  backend: "wasm" | "webgpu";
   tolerance: number;
   maxDeltaEnergyEv: number;
   maxDeltaForceEvPerA: number;
-  wasmEnergyEv: number;
+  referenceEnergyEv: number;
   pairCount: number;
   passed: boolean;
 }
@@ -74,6 +77,7 @@ export interface WorkerResult {
   crossCheck?: CrossCheck;
   crossCheckError?: string;
   wasmError?: string;
+  webgpuError?: string;
   error?: { code: string; message: string };
 }
 
@@ -103,6 +107,7 @@ async function crossCheckEnergy(
   structure: Structure,
   spec: SimulationSpec,
   result: ResultBundle,
+  accelerated?: EnergyForces,
 ): Promise<{ check?: CrossCheck; error?: string }> {
   try {
     const model = getPotentialModel(spec.model_id ?? "lj.noble-gases.v1");
@@ -111,28 +116,41 @@ async function crossCheckEnergy(
     }
     const cutoffQuantity = result.quantities.find((quantity) => quantity.name === "cutoff");
     const cutoff = typeof cutoffQuantity?.value === "number" ? cutoffQuantity.value : model.cutoff;
-    const kernel = await wasmKernel();
-    const wasm = kernel.energyForces(structure, model, { cutoff });
     const cpu = computeEnergyForces(structure, model, { cutoff });
+
+    let reference: EnergyForces;
+    let backend: "wasm" | "webgpu";
+    let tolerance: number;
+    if (accelerated) {
+      reference = accelerated;
+      backend = "webgpu";
+      // f32 GPU arithmetic: documented, tested tolerance, not bit equality.
+      tolerance = 1e-3;
+    } else {
+      const kernel = await wasmKernel();
+      reference = kernel.energyForces(structure, model, { cutoff });
+      backend = "wasm";
+      tolerance = 1e-8;
+    }
 
     let maxDeltaForce = 0;
     for (let i = 0; i < cpu.forces.length; i++) {
       for (let axis = 0; axis < 3; axis++) {
-        const delta = Math.abs(cpu.forces[i]![axis]! - wasm.forces[i]![axis]!);
+        const delta = Math.abs(cpu.forces[i]![axis]! - reference.forces[i]![axis]!);
         if (delta > maxDeltaForce) maxDeltaForce = delta;
       }
     }
-    const tolerance = 1e-8;
-    const maxDeltaEnergy = Math.abs(cpu.energy - wasm.energy);
+    const maxDeltaEnergy = Math.abs(cpu.energy - reference.energy);
+    const forceTolerance = backend === "webgpu" ? 1e-2 : tolerance;
     return {
       check: {
-        backend: "wasm",
+        backend,
         tolerance,
         maxDeltaEnergyEv: maxDeltaEnergy,
         maxDeltaForceEvPerA: maxDeltaForce,
-        wasmEnergyEv: wasm.energy,
-        pairCount: wasm.pairCount,
-        passed: maxDeltaEnergy <= tolerance && maxDeltaForce <= tolerance,
+        referenceEnergyEv: reference.energy,
+        pairCount: reference.pairCount,
+        passed: maxDeltaEnergy <= tolerance && maxDeltaForce <= forceTolerance,
       },
     };
   } catch (error) {
@@ -152,22 +170,77 @@ async function handle(request: WorkerRequest): Promise<void> {
   if (request.type !== "run") return;
 
   try {
-    // Prefer the WASM kernel for LJ tasks; fall back to the TypeScript CPU
-    // implementation if the asset cannot be instantiated. The fallback is
-    // reported, never hidden.
     let kernel: WasmKernel | null = null;
     let wasmError: string | undefined;
-    try {
-      kernel = await wasmKernel();
-    } catch (error) {
-      wasmError = error instanceof Error ? error.message : String(error);
+    let gpuKernel: WebGpuKernel | null = null;
+    let webgpuError: string | undefined;
+    let gpuResult: EnergyForces | undefined;
+
+    const requestedBackend = request.spec.compute_policy?.backend ?? "auto";
+    const wantsGpu =
+      request.spec.task_type === "energy.evaluate" &&
+      (requestedBackend === "auto" || requestedBackend === "webgpu");
+
+    if (wantsGpu) {
+      try {
+        const model = getPotentialModel(request.spec.model_id ?? "lj.noble-gases.v1");
+        if (isLJModel(model)) {
+          gpuKernel = await createWebGpuKernel();
+          const cutoffParam = request.spec.parameters.cutoff;
+          gpuResult = await gpuKernel.energyForces(
+            request.structure,
+            model,
+            typeof cutoffParam === "number" ? { cutoff: cutoffParam } : {},
+          );
+        }
+      } catch (error) {
+        if (requestedBackend === "webgpu") {
+          webgpuError = error instanceof Error ? error.message : String(error);
+        }
+        gpuKernel?.dispose();
+        gpuKernel = null;
+        gpuResult = undefined;
+      }
     }
+
+    if (requestedBackend === "webgpu" && !gpuResult) {
+      scope.postMessage({
+        type: "error",
+        requestId: request.requestId,
+        message: `WebGPU was requested but is unavailable: ${webgpuError ?? "no result"}`,
+      } satisfies WorkerFailure);
+      return;
+    }
+
+    // WASM is the fallback and the second implementation for the cross-check.
+    if (!gpuResult) {
+      try {
+        kernel = await wasmKernel();
+      } catch (error) {
+        wasmError = error instanceof Error ? error.message : String(error);
+      }
+    }
+
+    const precomputedKernel: EnergyForcesKernel | undefined = gpuResult
+      ? (candidate) => {
+          if (candidate.structure_id !== request.structure.structure_id) {
+            throw new Error(
+              "A WebGPU single-point result is only valid for the submitted structure",
+            );
+          }
+          return gpuResult!;
+        }
+      : undefined;
 
     const outcome = runJob({
       spec: request.spec,
       structure: request.structure,
       projectId: request.projectId,
-      ...(kernel ? { energyKernel: asLennardJonesKernel(kernel.energyForces.bind(kernel)) } : {}),
+      ...(precomputedKernel
+        ? { energyKernel: precomputedKernel }
+        : kernel
+          ? { energyKernel: asLennardJonesKernel(kernel.energyForces.bind(kernel)) }
+          : {}),
       onProgress: (update) => {
         scope.postMessage({
           type: "progress",
@@ -186,10 +259,16 @@ async function handle(request: WorkerRequest): Promise<void> {
       outcome.result &&
       request.spec.task_type === "energy.evaluate"
     ) {
-      const check = await crossCheckEnergy(request.structure, request.spec, outcome.result);
+      const check = await crossCheckEnergy(
+        request.structure,
+        request.spec,
+        outcome.result,
+        gpuResult,
+      );
       crossCheck = check.check;
       crossCheckError = check.error;
     }
+    gpuKernel?.dispose();
 
     scope.postMessage({
       type: "result",
@@ -205,6 +284,7 @@ async function handle(request: WorkerRequest): Promise<void> {
       crossCheck,
       crossCheckError,
       wasmError,
+      webgpuError,
       error: outcome.error,
     } satisfies WorkerResult);
   } catch (error) {

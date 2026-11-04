@@ -64,6 +64,7 @@ export function Workbench(): JSX.Element {
   const crossCheck = live?.crossCheck ?? storedActive?.crossCheck;
   const crossCheckError = live?.crossCheckError ?? storedActive?.crossCheckError;
   const wasmError = live?.wasmError ?? storedActive?.wasmError;
+  const webgpuError = live?.webgpuError ?? storedActive?.webgpuError;
 
   // A trajectory written to OPFS is loaded on demand so the project does not
   // keep large arrays in IndexedDB.
@@ -211,6 +212,7 @@ export function Workbench(): JSX.Element {
         crossCheck: outcome.crossCheck,
         crossCheckError: outcome.crossCheckError,
         wasmError: outcome.wasmError,
+        webgpuError: outcome.webgpuError,
       };
       setLive(entry);
       if (outcome.job.state === "completed" || outcome.job.state === "failed") {
@@ -702,6 +704,14 @@ export function Workbench(): JSX.Element {
                   {t("workbench.crossCheckUnavailable")}: {wasmError}. {t("workbench.cpuFallback")}
                 </Callout>
               )}
+              {webgpuError &&
+                !result?.quantities.some(
+                  (q) => q.name === "compute_backend" && q.value === "webgpu",
+                ) && (
+                  <Callout tone="info">
+                    {t("workbench.webgpuFallback")}: {webgpuError}
+                  </Callout>
+                )}
               {(crossCheck || crossCheckError) && (
                 <section style={{ marginTop: 18 }}>
                   <div className="row" style={{ justifyContent: "space-between" }}>
@@ -729,8 +739,8 @@ export function Workbench(): JSX.Element {
                         hint={`tolerance ${crossCheck.tolerance} eV/Å`}
                       />
                       <Stat
-                        label="WASM"
-                        value={crossCheck.wasmEnergyEv.toFixed(9)}
+                        label={crossCheck.backend.toUpperCase()}
+                        value={crossCheck.referenceEnergyEv.toFixed(9)}
                         unit="eV"
                         hint={`${crossCheck.backend} · ${crossCheck.passed ? "✓" : "✗"}`}
                       />

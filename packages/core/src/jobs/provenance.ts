@@ -112,7 +112,9 @@ export function buildProvenance(input: ProvenanceInput): ProvenanceRecord {
           ? (navigator.userAgent ?? "browser")
           : `node ${process.version}`,
       backend: input.backend ?? "cpu",
-      precision: "float64",
+      // The WebGPU kernel is f32 by construction; recording f64 would be a
+      // false precision claim.
+      precision: input.backend === "webgpu" ? "float32" : "float64",
       device_name: input.deviceName,
       random_seed: input.randomSeed,
       deterministic: input.deterministic ?? true,
