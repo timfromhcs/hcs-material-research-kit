@@ -9,6 +9,11 @@ body {
   overflow-x: clip;
 }
 
+#root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 .panel-body {
   min-width: 0;
 }
@@ -45,6 +50,10 @@ body {
 .site-table {
   max-height: 320px;
   overflow: auto;
+  /* The wide atom table must not contribute its intrinsic width to the page
+     layout; otherwise a phone gets a 2 px document overflow. */
+  contain: inline-size;
+  max-width: 100%;
 }
 
 .site-table tr[aria-selected="true"] {
