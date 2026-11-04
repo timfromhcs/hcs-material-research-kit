@@ -37,7 +37,7 @@ export interface SpaceGroup {
 }
 
 export interface StructureSource {
-  format: "cif" | "poscar" | "xyz" | "extxyz" | "hcs-json" | "generated";
+  format: "cif" | "poscar" | "xyz" | "extxyz" | "hcs-json" | "generated" | "optimade";
   uri?: string;
   filename?: string;
   retrieved_at?: string;

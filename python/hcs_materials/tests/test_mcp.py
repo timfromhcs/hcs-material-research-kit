@@ -37,6 +37,9 @@ def test_tools_are_listed_and_documented(tmp_path: Path) -> None:
     names = run(scenario())
     assert names == [
         "engines_list",
+        "optimade_fetch",
+        "optimade_providers",
+        "optimade_search",
         "project_validate",
         "results_summarize",
         "simulations_run",

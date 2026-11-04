@@ -99,7 +99,9 @@
       "additionalProperties": false,
       "required": ["format"],
       "properties": {
-        "format": { "enum": ["cif", "poscar", "xyz", "extxyz", "hcs-json", "generated"] },
+        "format": {
+          "enum": ["cif", "poscar", "xyz", "extxyz", "hcs-json", "generated", "optimade"]
+        },
         "uri": { "type": "string" },
         "filename": { "type": "string" },
         "retrieved_at": { "type": "string", "format": "date-time" },

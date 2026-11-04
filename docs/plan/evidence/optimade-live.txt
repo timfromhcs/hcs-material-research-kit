@@ -1,0 +1,9 @@
+﻿OPTIMADE live check (2026-11-04)
+Provider: cod (https://www.crystallography.net/cod/optimade/v1)
+Command: hcs-materials optimade search --provider cod --filter nelements=2 --limit 3
+
+cod: 3 structure(s), cached=True
+  Al2O3  30 atoms  C:\Users\hcsme\AppData\Local\Temp\hcs-optimade-live\optimade_cod_1000017.json
+  LaNi5  6 atoms  C:\Users\hcsme\AppData\Local\Temp\hcs-optimade-live\optimade_cod_1000025.json
+  MgB2  3 atoms  C:\Users\hcsme\AppData\Local\Temp\hcs-optimade-live\optimade_cod_1000026.json
+manifest: C:\Users\hcsme\AppData\Local\Temp\hcs-optimade-live\optimade-search.json

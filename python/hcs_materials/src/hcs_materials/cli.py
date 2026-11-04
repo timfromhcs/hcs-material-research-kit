@@ -36,6 +36,7 @@ from .project import (
     write_project,
 )
 from .registry import ENGINE_REGISTRY, PLANNED_ENGINES, list_engines, require_engine
+from .optimade import PROVIDERS, OptimadeClient, OptimadeError
 from .structure import (
     cell_volume,
     density_g_per_cm3,
@@ -120,6 +121,30 @@ def build_parser() -> argparse.ArgumentParser:
     report_build.add_argument("project")
     report_build.add_argument("--out", default=None, help="output directory (default: ./hcs-report)")
     report_build.set_defaults(func=cmd_report_build)
+
+    optimade = sub.add_parser("optimade", help="import structures from OPTIMADE 1.3 providers")
+    optimade_sub = optimade.add_subparsers(dest="optimade_command", required=True)
+    optimade_providers = optimade_sub.add_parser("providers", help="list verified providers")
+    optimade_providers.set_defaults(func=cmd_optimade_providers)
+    optimade_info = optimade_sub.add_parser("info", help="read a provider's /info endpoint")
+    optimade_info.add_argument("--provider", default="cod")
+    optimade_info.add_argument("--cache-dir", default=None)
+    optimade_info.set_defaults(func=cmd_optimade_info)
+    optimade_search = optimade_sub.add_parser("search", help="query /structures and write HCS JSON")
+    optimade_search.add_argument("--provider", default="cod")
+    optimade_search.add_argument("--filter", default=None, help='OPTIMADE filter, e.g. elements HAS "Si"')
+    optimade_search.add_argument("--limit", type=int, default=10)
+    optimade_search.add_argument("--offset", type=int, default=0)
+    optimade_search.add_argument("--sort", default=None)
+    optimade_search.add_argument("--out", required=True, help="output directory")
+    optimade_search.add_argument("--cache-dir", default=None)
+    optimade_search.set_defaults(func=cmd_optimade_search)
+    optimade_fetch = optimade_sub.add_parser("fetch", help="fetch one record by id")
+    optimade_fetch.add_argument("--provider", default="cod")
+    optimade_fetch.add_argument("--id", required=True)
+    optimade_fetch.add_argument("--out", required=True, help="output .json file")
+    optimade_fetch.add_argument("--cache-dir", default=None)
+    optimade_fetch.set_defaults(func=cmd_optimade_fetch)
 
     return parser
 
@@ -376,6 +401,129 @@ footer {{ margin-top:40px; color:#7d8b92; font-size:.85rem; border-top:1px solid
     out.emit(
         {"ok": True, "output": str(target), "structures": len(result.structures), "jobs": len(result.jobs)},
         f"wrote {target}",
+    )
+    return EXIT_OK
+
+
+def cmd_optimade_providers(args: argparse.Namespace, out: Output) -> int:
+    payload = {
+        "ok": True,
+        "specification": "OPTIMADE 1.3.0",
+        "providers": [
+            {"name": provider.name, "base_url": provider.base_url, "description": provider.description}
+            for provider in sorted(PROVIDERS.values(), key=lambda item: item.name)
+        ],
+    }
+    out.emit(
+        payload,
+        "\n".join(
+            f"{item['name']:<20} {item['base_url']}\n{'':<20} {item['description']}"
+            for item in payload["providers"]
+        ),
+    )
+    return EXIT_OK
+
+
+def cmd_optimade_info(args: argparse.Namespace, out: Output) -> int:
+    try:
+        client = OptimadeClient(args.provider, cache_dir=args.cache_dir)
+        payload = client.info()
+    except OptimadeError as error:
+        return out.error(f"{error.code}: {error.message}", EXIT_UNSUPPORTED)
+    out.emit(
+        {"ok": True, **payload},
+        f"{payload['provider']} · API {payload['api_version']} · endpoints: "
+        f"{', '.join(payload['available_endpoints'])}",
+    )
+    return EXIT_OK
+
+
+def cmd_optimade_search(args: argparse.Namespace, out: Output) -> int:
+    try:
+        client = OptimadeClient(args.provider, cache_dir=args.cache_dir)
+        result = client.search(
+            filter=args.filter,
+            page_limit=args.limit,
+            page_offset=args.offset,
+            sort=args.sort,
+        )
+    except OptimadeError as error:
+        return out.error(f"{error.code}: {error.message}", EXIT_UNSUPPORTED)
+
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    written = []
+    for structure in result["structures"]:
+        document = structure.to_dict()
+        try:
+            validate_contract("structure", document)
+        except ContractViolation as error:
+            return out.error(f"provider record did not convert to a valid HCS structure: {error}")
+        path = out_dir / f"{structure.structure_id}.json"
+        path.write_text(structure.to_json(), encoding="utf-8")
+        written.append(
+            {
+                "file": str(path),
+                "structure_id": structure.structure_id,
+                "formula": document.get("composition", {}).get("reduced_formula"),
+                "atoms": len(structure.sites),
+                "provider_record_id": (structure.source or {}).get("provider_record_id"),
+                "license": (structure.source or {}).get("license"),
+            }
+        )
+    manifest = {
+        "ok": True,
+        "specification": "OPTIMADE 1.3.0",
+        "provider": result["provider"],
+        "query": result["query"],
+        "count": result["count"],
+        "cached": result["cached"],
+        "retrieved_at": result["retrieved_at"],
+        "next_offset": result["next_offset"],
+        "has_more": result["has_more"],
+        "skipped": result["skipped"],
+        "structures": written,
+        "note": "Provider terms and licences apply to the imported records; HCS records them per structure.",
+    }
+    (out_dir / "optimade-search.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    out.emit(
+        manifest,
+        "\n".join(
+            [
+                f"{result['provider']}: {result['count']} structure(s), cached={result['cached']}",
+                *(f"  {item['formula'] or '?'}  {item['atoms']} atoms  {item['file']}" for item in written),
+                *(f"  skipped {item['id']}: {item['code']}" for item in result["skipped"]),
+                f"manifest: {out_dir / 'optimade-search.json'}",
+            ]
+        ),
+    )
+    return EXIT_OK
+
+
+def cmd_optimade_fetch(args: argparse.Namespace, out: Output) -> int:
+    try:
+        client = OptimadeClient(args.provider, cache_dir=args.cache_dir)
+        structure = client.fetch(args.id)
+    except OptimadeError as error:
+        return out.error(f"{error.code}: {error.message}", EXIT_UNSUPPORTED)
+    document = structure.to_dict()
+    try:
+        validate_contract("structure", document)
+    except ContractViolation as error:
+        return out.error(f"provider record did not convert to a valid HCS structure: {error}")
+    target = Path(args.out)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(structure.to_json(), encoding="utf-8")
+    out.emit(
+        {
+            "ok": True,
+            "output": str(target),
+            "structure_id": structure.structure_id,
+            "formula": document.get("composition", {}).get("reduced_formula"),
+            "atoms": len(structure.sites),
+            "source": structure.source,
+        },
+        f"wrote {target} ({len(structure.sites)} atoms, provider {args.provider})",
     )
     return EXIT_OK
 

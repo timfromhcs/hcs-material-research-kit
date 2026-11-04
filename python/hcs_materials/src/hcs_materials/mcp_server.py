@@ -24,6 +24,7 @@ from .contracts import ContractViolation, validate_contract
 from .io import StructureIOError, read_structure, write_structure
 from .project import ProjectError, read_project, summarize_project
 from .registry import PLANNED_ENGINES, list_engines, require_engine
+from .optimade import PROVIDERS, OptimadeClient, OptimadeError
 from .structure import (
     Structure,
     base_symbol,
@@ -90,6 +91,78 @@ def create_server(root: str | Path, sim_cli: Sequence[str] | str | None = None):
     def engines_list() -> dict[str, Any]:
         """List engines that are actually implemented in this build."""
         return {"engines": list_engines(), "planned": PLANNED_ENGINES}
+
+    @server.tool()
+    def optimade_providers() -> dict[str, Any]:
+        """List the OPTIMADE 1.3 providers this build can query.
+
+        The list is an allow-list: each endpoint was verified to serve
+        /v1/structures over HTTPS. No credentials are used and no user data is
+        uploaded; OPTIMADE is an import path only.
+        """
+        return {
+            "specification": "OPTIMADE 1.3.0",
+            "providers": [
+                {
+                    "name": provider.name,
+                    "base_url": provider.base_url,
+                    "description": provider.description,
+                }
+                for provider in sorted(PROVIDERS.values(), key=lambda item: item.name)
+            ],
+        }
+
+    @server.tool()
+    def optimade_search(
+        provider: str = "cod",
+        filter: str | None = None,
+        page_limit: int = 5,
+        page_offset: int = 0,
+    ) -> dict[str, Any]:
+        """Search a public materials database via OPTIMADE (read-only, bounded).
+
+        Returns converted HCS structure documents with provider, record id, URI,
+        retrieval time and licence. `page_limit` is capped at 20 so an agent
+        cannot pull an unbounded result set in one call.
+        """
+        if not 1 <= page_limit <= 20:
+            return {"ok": False, "error": "page_limit must be between 1 and 20"}
+        if page_offset < 0:
+            return {"ok": False, "error": "page_offset must be non-negative"}
+        try:
+            client = OptimadeClient(provider)
+            result = client.search(
+                filter=filter, page_limit=page_limit, page_offset=page_offset
+            )
+        except OptimadeError as error:
+            return {"ok": False, "error_code": error.code, "error": error.message}
+        return {
+            "ok": True,
+            "provider": result["provider"],
+            "query": result["query"],
+            "count": result["count"],
+            "structures": [structure.to_dict() for structure in result["structures"]],
+            "skipped": result["skipped"],
+            "cached": result["cached"],
+            "retrieved_at": result["retrieved_at"],
+            "next_offset": result["next_offset"],
+            "has_more": result["has_more"],
+            "note": "Imported records remain subject to the provider's terms and licence.",
+        }
+
+    @server.tool()
+    def optimade_fetch(provider: str, entry_id: str) -> dict[str, Any]:
+        """Fetch one OPTIMADE record by id and return it as an HCS structure."""
+        try:
+            client = OptimadeClient(provider)
+            structure = client.fetch(entry_id)
+        except OptimadeError as error:
+            return {"ok": False, "error_code": error.code, "error": error.message}
+        return {
+            "ok": True,
+            "structure": structure.to_dict(),
+            "note": "Imported record; provider terms and licence apply.",
+        }
 
     @server.tool()
     def structures_validate(structure: dict[str, Any]) -> dict[str, Any]:
@@ -211,9 +284,10 @@ def create_server(root: str | Path, sim_cli: Sequence[str] | str | None = None):
 
         if task_type == "md.run":
             ensemble = (spec.get("thermodynamic_conditions") or {}).get("ensemble")
-            if ensemble and ensemble not in ("NVE", "none"):
+            if ensemble and ensemble not in ("NVE", "NVT", "none"):
                 issues.append(
-                    f"ensemble '{ensemble}' is not implemented; only NVE is available in this build"
+                    f"ensemble '{ensemble}' is not implemented; this build supports NVE and "
+                    "Langevin NVT, and has no barostat"
                 )
 
         return {
