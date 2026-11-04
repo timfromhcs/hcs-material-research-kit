@@ -148,7 +148,12 @@ export const fr: Record<TranslationKey, string> = {
   "workbench.taskRelax": "Relaxation FIRE",
   "workbench.taskMd": "Dynamique moléculaire NVE",
   "workbench.taskRdf": "Fonction de distribution radiale",
+  "workbench.engine": "Moteur",
   "workbench.model": "Modèle",
+  "workbench.cutoffLocked":
+    "Ce modèle définit son propre rayon de coupure ; la valeur est fixe et ne peut pas être tronquée.",
+  "workbench.cellTooSmall":
+    "Cette cellule est trop petite pour le rayon de coupure obligatoire du modèle. Construisez une supercellule plus grande (2×2×2 de la cellule diamant conventionnelle convient au silicium).",
   "workbench.params": "Paramètres",
   "workbench.maxForce": "Cible de convergence des forces (eV/Å)",
   "workbench.maxSteps": "Nombre maximal d'étapes",
@@ -170,7 +175,7 @@ export const fr: Record<TranslationKey, string> = {
   "workbench.notConverged": "Non convergé",
   "workbench.limitations": "Limites et hypothèses",
   "workbench.modelWarning":
-    "Ce moteur est une référence de potentiel de paire classique. Il ne peut pas prédire les propriétés de matériaux réels.",
+    "Chaque modèle déclare son domaine de validité ; un résultat n'est valable que dans ce domaine.",
   "workbench.provenance": "Provenance",
   "workbench.report": "Télécharger le rapport de reproductibilité",
   "workbench.msd": "Déplacement quadratique moyen",

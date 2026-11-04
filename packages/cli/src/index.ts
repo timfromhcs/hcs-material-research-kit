@@ -18,6 +18,7 @@ import { createRequire } from "node:module";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import {
+  asLennardJonesKernel,
   buildReproducibilityReport,
   cellVolume,
   densityGPerCm3,
@@ -141,7 +142,7 @@ async function loadKernel(backend: string): Promise<{ kernel?: EnergyForcesKerne
     const bytes = readFileSync(wasmPath);
     const kernel = await instantiateWasmKernel(bytes);
     return {
-      kernel: kernel.energyForces.bind(kernel),
+      kernel: asLennardJonesKernel(kernel.energyForces.bind(kernel)),
       note: `backend: wasm (ABI ${kernel.abiVersion}, ${kernel.moduleBytes} bytes)`,
     };
   } catch (error) {

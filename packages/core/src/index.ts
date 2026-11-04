@@ -19,6 +19,8 @@ export * from "./project.js";
 
 export * from "./io/index.js";
 export * from "./kernels/lj.js";
+export * from "./kernels/sw.js";
+export * from "./kernels/potential.js";
 export * from "./kernels/relax.js";
 export * from "./kernels/md.js";
 export * from "./kernels/analysis.js";

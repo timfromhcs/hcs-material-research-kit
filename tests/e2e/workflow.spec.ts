@@ -52,13 +52,30 @@ test("creates a documented crystal and validates it", async ({ page }) => {
   await expect(page.getByText("3.840", { exact: false }).first()).toBeVisible();
 });
 
-test("refuses a calculation when the model has no parameters for the element", async ({ page }) => {
+test("explains that the diamond cell is too small for the many-body cutoff", async ({ page }) => {
   await createSilicon(page);
   await page.getByRole("link", { name: "Simulation Workbench" }).click();
   await expect(
-    page.getByRole("alert").filter({ hasText: "no parameters for the selected element" }),
+    page.getByRole("alert").filter({ hasText: "too small for the model's mandatory cutoff" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Run calculation" })).toBeDisabled();
+});
+
+test("runs Stillinger–Weber silicon on a 2×2×2 supercell", async ({ page }) => {
+  await createSilicon(page);
+  await page.getByLabel("Repeat a").fill("2");
+  await page.getByLabel("Repeat b").fill("2");
+  await page.getByLabel("Repeat c").fill("2");
+  await page.getByRole("button", { name: "Build supercell" }).click();
+  await expect(page.getByText("64 atoms").first()).toBeVisible();
+  await page.getByRole("link", { name: "Simulation Workbench" }).click();
+  await expect(page.getByRole("combobox", { name: "Engine" })).toHaveValue("hcs.sw-silicon");
+  await expect(page.getByRole("combobox", { name: "Model" })).toHaveValue("sw.silicon.v1");
+  await page.getByRole("button", { name: "Run calculation" }).click();
+  await expect(page.getByText("Result stored in this project.")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("potential_energy_per_atom")).toBeVisible();
+  await expect(page.getByText("-4.33", { exact: false }).first()).toBeVisible();
+  await expect(page.getByText("sw.silicon.v1", { exact: false }).first()).toBeVisible();
 });
 
 test("runs a single-point energy and reports units and limits", async ({ page }) => {

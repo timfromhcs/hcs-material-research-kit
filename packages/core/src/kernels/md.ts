@@ -12,8 +12,8 @@
 
 import { makeGaussian, makeRng, type Vec3 } from "../linalg.js";
 import type { Structure } from "../types.js";
-import type { LJModel } from "./lj.js";
-import { computeEnergyForces } from "./lj.js";
+import type { PotentialModel } from "./potential.js";
+import { evaluatePotential } from "./potential.js";
 import type { EnergyForcesKernel } from "./relax.js";
 import {
   cartesianToFractional,
@@ -168,7 +168,7 @@ export function initialVelocities(
  * `thermostat` is intentionally absent: pass no ensemble, get NVE. The caller
  * (job layer) rejects NVT requests with an explicit unsupported message.
  */
-export function runMd(structure: Structure, model: LJModel, options: MdOptions): MdResult {
+export function runMd(structure: Structure, model: PotentialModel, options: MdOptions): MdResult {
   if (!Number.isInteger(options.steps) || options.steps <= 0) {
     throw new Error("steps must be a positive integer");
   }
@@ -237,7 +237,7 @@ export function runMd(structure: Structure, model: LJModel, options: MdOptions):
   const evaluate: EnergyForcesKernel =
     options.energyKernel ??
     ((candidate, candidateModel, evaluation) =>
-      computeEnergyForces(candidate, candidateModel, evaluation ?? { cutoff: options.cutoff }));
+      evaluatePotential(candidate, candidateModel, evaluation ?? { cutoff: options.cutoff }));
 
   let current = toStructure(positions);
   let evaluated = evaluate(current, model, { cutoff: options.cutoff });

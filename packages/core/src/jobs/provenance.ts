@@ -9,13 +9,13 @@ import { SCHEMA_VERSION } from "../types.js";
 import { hashJson, structureHash } from "../index-internal.js";
 import { CANONICAL_UNITS } from "../units.js";
 import { CORE_VERSION } from "../engines.js";
-import type { LJModel } from "../kernels/lj.js";
+import { isLJModel, type PotentialModel } from "../kernels/potential.js";
 
 export interface ProvenanceInput {
   spec: SimulationSpec;
   structure: Structure;
   engine: EngineRecord;
-  model?: LJModel;
+  model?: PotentialModel;
   backend?: "cpu" | "wasm" | "webgpu" | "vulkan" | "cuda" | "hip" | "unknown";
   deviceName?: string;
   randomSeed?: number;
@@ -50,15 +50,29 @@ export function buildProvenance(input: ProvenanceInput): ProvenanceRecord {
   let equationReference: string | undefined;
 
   if (model) {
-    methodName = `Lennard-Jones pair potential (${model.id})`;
-    equationReference =
-      "U(r) = 4ε[(σ/r)^12 - (σ/r)^6] with a cubic switching function between 0.9·r_c and r_c; Lorentz-Berthelot mixing";
-    assumptions.push(
-      "Interactions are pairwise and isotropic.",
-      `Cutoff ${model.cutoff} Å, cubically switched so potential and force vanish at r_c; no tail correction.`,
-      "Cross-species parameters follow the Lorentz-Berthelot mixing rule.",
-      "Atoms carry no charge, dipole or magnetic moment.",
-    );
+    if (isLJModel(model)) {
+      methodName = `Lennard-Jones pair potential (${model.id})`;
+      equationReference =
+        "U(r) = 4ε[(σ/r)^12 - (σ/r)^6] with a cubic switching function between 0.9·r_c and r_c; Lorentz-Berthelot mixing";
+      assumptions.push(
+        "Interactions are pairwise and isotropic.",
+        `Cutoff ${model.cutoff} Å, cubically switched so potential and force vanish at r_c; no tail correction.`,
+        "Cross-species parameters follow the Lorentz-Berthelot mixing rule.",
+        "Atoms carry no charge, dipole or magnetic moment.",
+      );
+    } else {
+      methodName = `Stillinger–Weber two- and three-body potential (${model.id})`;
+      equationReference =
+        "φ2(r) = Aε[B(σ/r)^p − (σ/r)^q]exp(σ/(r − aσ)); " +
+        "φ3 = λε[cos θ + 1/3]² exp(γσ/(r_ij − aσ)) exp(γσ/(r_ik − aσ)); " +
+        "E = Σ_{i<j} φ2 + Σ_i Σ_{j<k≠i} φ3";
+      assumptions.push(
+        "Interactions are classical two- and three-body terms with no electronic structure.",
+        `Full cutoff r_c = a·σ = ${model.cutoff.toFixed(4)} Å; the model is not truncated below it.`,
+        "The three-body term is summed over every atom as the central atom (1985 convention).",
+        "Atoms carry no charge, dipole or magnetic moment.",
+      );
+    }
     limitations.push(...model.limitations);
   }
 

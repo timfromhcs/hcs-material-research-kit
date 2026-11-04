@@ -26,6 +26,6 @@
     "@hcs-materials/core": "0.2.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.2"
+    "typescript": "^5.9.3"
   }
 }

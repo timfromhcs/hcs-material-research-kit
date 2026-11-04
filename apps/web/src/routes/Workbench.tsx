@@ -4,6 +4,11 @@ import {
   LJ_NOBLE_GASES,
   baseSymbol,
   exportStructure,
+  getEngine,
+  getPotentialModel,
+  isLJModel,
+  listEngines,
+  maxCutoffForCell,
   structureHash,
   type ResultBundle,
   type SimulationSpec,
@@ -35,6 +40,8 @@ export function Workbench(): JSX.Element {
   const storedActive = workspace.getJob(workspace.activeJobId);
   const [live, setLive] = useState<StoredJob | null>(storedActive ?? null);
   const [task, setTask] = useState<Task>("energy.evaluate");
+  const [engineId, setEngineId] = useState("hcs.lj-reference");
+  const [modelId, setModelId] = useState(LJ_NOBLE_GASES.id);
   const [maxForce, setMaxForce] = useState(0.02);
   const [maxSteps, setMaxSteps] = useState(400);
   const [steps, setSteps] = useState(200);
@@ -73,19 +80,63 @@ export function Workbench(): JSX.Element {
     };
   }, [storedActive]);
 
+  const engineOptions = useMemo(
+    () => listEngines().filter((engine) => engine.supported_tasks.includes(task)),
+    [task],
+  );
+  const selectedEngine = getEngine(engineId);
+  const modelOptions = useMemo(() => {
+    const ids = selectedEngine?.model_ids ?? [];
+    return ids.map((id) => getPotentialModel(id));
+  }, [selectedEngine]);
+  const selectedModel = modelOptions.find((model) => model.id === modelId) ?? modelOptions[0];
+
   const unsupportedSpecies = useMemo(() => {
-    if (!structure) return [];
-    return [...new Set(structure.sites.map((site) => baseSymbol(site.species)))].filter(
-      (symbol) => !(symbol in LJ_NOBLE_GASES.species),
+    if (!structure || !selectedModel) return [];
+    const supported = new Set(
+      isLJModel(selectedModel) ? Object.keys(selectedModel.species) : selectedModel.elements,
     );
-  }, [structure]);
+    return [...new Set(structure.sites.map((site) => baseSymbol(site.species)))].filter(
+      (symbol) => !supported.has(symbol),
+    );
+  }, [structure, selectedModel]);
+
+  // If the active structure cannot be described by the selected model, move to
+  // the first engine in this task that can. The switch is announced by the
+  // model field itself; nothing is hidden.
+  useEffect(() => {
+    if (!structure || !selectedModel) return;
+    if (unsupportedSpecies.length === 0) return;
+    const symbols = new Set(structure.sites.map((site) => baseSymbol(site.species)));
+    const fallback = engineOptions.find((engine) => {
+      const supported = new Set(engine.supported_elements ?? []);
+      return [...symbols].every((symbol) => supported.has(symbol));
+    });
+    if (fallback && fallback.engine_id !== engineId) {
+      setEngineId(fallback.engine_id);
+      const firstModel = fallback.model_ids?.[0];
+      if (firstModel) setModelId(firstModel);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [structure?.structure_id, task, selectedModel?.id, unsupportedSpecies.length]);
+
+  const cellTooSmall = useMemo(() => {
+    if (!structure || !selectedModel || isLJModel(selectedModel)) return false;
+    return maxCutoffForCell(structure) < selectedModel.cutoff - 1e-9;
+  }, [structure, selectedModel]);
 
   const canRun =
-    Boolean(structure) && unsupportedSpecies.length === 0 && solver.state.status !== "running";
+    Boolean(structure) &&
+    Boolean(selectedModel) &&
+    unsupportedSpecies.length === 0 &&
+    !cellTooSmall &&
+    solver.state.status !== "running";
 
   const buildSpec = (): SimulationSpec => {
     if (!structure) throw new Error(t("studio.needStructure"));
-    const parameters: Record<string, unknown> = { cutoff };
+    if (!selectedModel) throw new Error("No potential model is available for this engine");
+    const parameters: Record<string, unknown> = {};
+    if (isLJModel(selectedModel)) parameters.cutoff = cutoff;
     let requested: SimulationSpec["requested_outputs"] = ["energy", "forces"];
     if (task === "structure.relax") {
       parameters.maxForceEvPerA = maxForce;
@@ -111,8 +162,8 @@ export function Workbench(): JSX.Element {
         structure_id: structure.structure_id,
         structure_hash: structureHash(structure),
       },
-      engine_id: "hcs.lj-reference",
-      model_id: LJ_NOBLE_GASES.id,
+      engine_id: engineId,
+      model_id: selectedModel.id,
       fidelity_level: "classical_model",
       parameters,
       ...(task === "md.run"
@@ -288,15 +339,47 @@ export function Workbench(): JSX.Element {
                 </select>
               </Field>
 
-              <Field
-                label={t("workbench.model")}
-                htmlFor="wb-model"
-                hint={t("workbench.modelWarning")}
-              >
-                <select id="wb-model" className="select" value={LJ_NOBLE_GASES.id} disabled>
-                  <option value={LJ_NOBLE_GASES.id}>{LJ_NOBLE_GASES.name}</option>
-                </select>
-              </Field>
+              <div className="grid-2">
+                <Field label={t("workbench.engine")} htmlFor="wb-engine">
+                  <select
+                    id="wb-engine"
+                    className="select"
+                    value={engineId}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setEngineId(next);
+                      const firstModel = getEngine(next)?.model_ids?.[0];
+                      if (firstModel) setModelId(firstModel);
+                    }}
+                  >
+                    {engineOptions.map((engine) => (
+                      <option key={engine.engine_id} value={engine.engine_id}>
+                        {engine.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field
+                  label={t("workbench.model")}
+                  htmlFor="wb-model"
+                  hint={t("workbench.modelWarning")}
+                >
+                  <select
+                    id="wb-model"
+                    className="select"
+                    value={selectedModel?.id ?? ""}
+                    onChange={(event) => setModelId(event.target.value)}
+                  >
+                    {modelOptions.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              {selectedModel && <p className="tiny muted">{selectedModel.description}</p>}
 
               {unsupportedSpecies.length > 0 && (
                 <Callout tone="error">
@@ -304,19 +387,35 @@ export function Workbench(): JSX.Element {
                 </Callout>
               )}
 
+              {cellTooSmall && structure && selectedModel && (
+                <Callout tone="error">
+                  {t("workbench.cellTooSmall")} ({maxCutoffForCell(structure).toFixed(2)} Å &lt;{" "}
+                  {selectedModel.cutoff.toFixed(2)} Å)
+                </Callout>
+              )}
+
               <div className="grid-2">
                 <Field
                   label={t("workbench.cutoff")}
                   htmlFor="wb-cutoff"
-                  hint={t("workbench.cutoffNotice")}
+                  hint={
+                    selectedModel && isLJModel(selectedModel)
+                      ? t("workbench.cutoffNotice")
+                      : t("workbench.cutoffLocked")
+                  }
                 >
                   <NumberInput
                     id="wb-cutoff"
                     step={0.1}
                     min={1}
                     max={12}
-                    value={cutoff}
+                    value={
+                      selectedModel && isLJModel(selectedModel)
+                        ? cutoff
+                        : (selectedModel?.cutoff ?? cutoff)
+                    }
                     onChange={setCutoff}
+                    disabled={!selectedModel || !isLJModel(selectedModel)}
                   />
                 </Field>
                 <Field label={t("workbench.seed")} htmlFor="wb-seed">

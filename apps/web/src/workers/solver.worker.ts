@@ -18,8 +18,10 @@
  */
 
 import {
+  asLennardJonesKernel,
   computeEnergyForces,
-  getLJModel,
+  getPotentialModel,
+  isLJModel,
   runJob,
   type JobRecord,
   type ProvenanceRecord,
@@ -103,7 +105,10 @@ async function crossCheckEnergy(
   result: ResultBundle,
 ): Promise<{ check?: CrossCheck; error?: string }> {
   try {
-    const model = getLJModel(spec.model_id ?? "lj.noble-gases.v1");
+    const model = getPotentialModel(spec.model_id ?? "lj.noble-gases.v1");
+    if (!isLJModel(model)) {
+      return {};
+    }
     const cutoffQuantity = result.quantities.find((quantity) => quantity.name === "cutoff");
     const cutoff = typeof cutoffQuantity?.value === "number" ? cutoffQuantity.value : model.cutoff;
     const kernel = await wasmKernel();
@@ -162,7 +167,7 @@ async function handle(request: WorkerRequest): Promise<void> {
       spec: request.spec,
       structure: request.structure,
       projectId: request.projectId,
-      ...(kernel ? { energyKernel: kernel.energyForces.bind(kernel) } : {}),
+      ...(kernel ? { energyKernel: asLennardJonesKernel(kernel.energyForces.bind(kernel)) } : {}),
       onProgress: (update) => {
         scope.postMessage({
           type: "progress",

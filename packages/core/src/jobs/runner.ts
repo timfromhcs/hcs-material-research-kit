@@ -11,8 +11,6 @@ import { validate } from "@hcs-materials/contracts";
 import { JobController } from "./state.js";
 import { buildProvenance } from "./provenance.js";
 import { requireEngine } from "../engines.js";
-import { getLJModel, type LJModel } from "../kernels/lj.js";
-import { computeEnergyForces, maxCutoffForCell } from "../kernels/lj.js";
 import type { EnergyForcesKernel } from "../kernels/relax.js";
 import { relaxFire } from "../kernels/relax.js";
 import { runMd, type MdCheckpoint, type MdTrajectoryFrame } from "../kernels/md.js";
@@ -22,6 +20,14 @@ import { newId } from "../structure.js";
 import { hashJson } from "../hash.js";
 import { CANONICAL_UNITS } from "../units.js";
 import type { FidelityLevel } from "../types.js";
+import { maxCutoffForCell } from "../kernels/lj.js";
+import {
+  evaluatePotential,
+  getPotentialModelForEngine,
+  isLJModel,
+  missingElements,
+  type PotentialModel,
+} from "../kernels/potential.js";
 
 export interface ProgressUpdate {
   phase: string;
@@ -94,9 +100,8 @@ function integerParam(params: Record<string, unknown>, key: string, fallback?: n
   return value;
 }
 
-function modelFrom(spec: SimulationSpec): LJModel {
-  const modelId = spec.model_id ?? "lj.noble-gases.v1";
-  return getLJModel(modelId);
+function modelFrom(spec: SimulationSpec): PotentialModel {
+  return getPotentialModelForEngine(spec.engine_id, spec.model_id);
 }
 
 /**
@@ -280,18 +285,66 @@ export function runJob(options: RunJobOptions): JobOutcome {
       );
     }
 
-    // ---- LJ-based tasks -------------------------------------------------
+    // ---- atomistic tasks ------------------------------------------------
     const model = modelFrom(spec);
+    if (engine.model_ids && spec.model_id && !engine.model_ids.includes(spec.model_id)) {
+      return failJob(
+        controller,
+        {},
+        `Model '${spec.model_id}' is not declared by engine '${engine.engine_id}' ` +
+          `(${engine.model_ids.join(", ")}). The engine would run different physics than the label says.`,
+        "model_not_declared_by_engine",
+      );
+    }
+    const missing = missingElements(model, structure);
+    if (missing.length > 0) {
+      return failJob(
+        controller,
+        {},
+        `Model '${model.id}' has no parameters for: ${missing.join(", ")}. ` +
+          "HCS refuses to invent parameters or to drop those atoms.",
+        "unsupported_elements",
+      );
+    }
+
     const cutoffParam =
       spec.parameters.cutoff === undefined ? undefined : numberParam(spec.parameters, "cutoff");
-    const effectiveCutoff = Math.min(cutoffParam ?? model.cutoff, maxCutoffForCell(structure));
-    if (effectiveCutoff < (cutoffParam ?? model.cutoff) - 1e-9) {
-      controller.warn(
-        "lj.cutoff_reduced",
-        `Pair cutoff reduced from ${(cutoffParam ?? model.cutoff).toFixed(2)} Å to ${effectiveCutoff.toFixed(2)} Å ` +
-          "because the cell is smaller than twice the requested cutoff. Build a larger supercell for a converged result.",
-        "warning",
-      );
+    let effectiveCutoff: number;
+    if (isLJModel(model)) {
+      effectiveCutoff = Math.min(cutoffParam ?? model.cutoff, maxCutoffForCell(structure));
+      if (effectiveCutoff < (cutoffParam ?? model.cutoff) - 1e-9) {
+        controller.warn(
+          "lj.cutoff_reduced",
+          `Pair cutoff reduced from ${(cutoffParam ?? model.cutoff).toFixed(2)} Å to ${effectiveCutoff.toFixed(2)} Å ` +
+            "because the cell is smaller than twice the requested cutoff. Build a larger supercell for a converged result.",
+          "warning",
+        );
+      }
+    } else {
+      // Many-body potentials are defined with their full cutoff; truncating
+      // them would silently change the fitted model, so a too-small cell is
+      // refused instead of clamped.
+      effectiveCutoff = cutoffParam ?? model.cutoff;
+      const maxValid = maxCutoffForCell(structure);
+      if (effectiveCutoff > maxValid + 1e-9) {
+        return failJob(
+          controller,
+          {},
+          `Model '${model.id}' requires its full cutoff of ${effectiveCutoff.toFixed(3)} Å, but this cell's ` +
+            `minimum-image radius is only ${maxValid.toFixed(3)} Å. Build a larger supercell ` +
+            "(for diamond Si at a = 5.43 Å, a 2×2×2 conventional cell is the smallest valid choice).",
+          "cell_too_small",
+        );
+      }
+      if (cutoffParam !== undefined && Math.abs(cutoffParam - model.cutoff) > 1e-9) {
+        return failJob(
+          controller,
+          {},
+          `Model '${model.id}' is defined with a cutoff of ${model.cutoff.toFixed(3)} Å; ` +
+            `the spec requests ${cutoffParam.toFixed(3)} Å. Truncating a many-body potential is not supported.`,
+          "cutoff_not_supported",
+        );
+      }
     }
     controller.transition("running", `Running ${spec.task_type} with ${model.id}`);
     report("run", 0.05, `Running ${spec.task_type}`);
@@ -299,9 +352,10 @@ export function runJob(options: RunJobOptions): JobOutcome {
     // Preflight: a cell whose supported cutoff reaches no other atom has no
     // physics in it. Refusing is honest; returning E = 0 would look like data.
     const evaluate: EnergyForcesKernel =
-      options.energyKernel ??
-      ((candidate, candidateModel, evaluation) =>
-        computeEnergyForces(candidate, candidateModel, evaluation));
+      isLJModel(model) && options.energyKernel
+        ? options.energyKernel
+        : (candidate, candidateModel, evaluation) =>
+            evaluatePotential(candidate, candidateModel, evaluation ?? { cutoff: effectiveCutoff });
     const preflight = evaluate(structure, model, { cutoff: effectiveCutoff });
     const backend = preflight.backend;
     if (preflight.pairCount === 0) {
@@ -719,14 +773,19 @@ function finish(
   spec: SimulationSpec,
   structure: Structure,
   engine: ReturnType<typeof requireEngine>,
-  model: LJModel | undefined,
+  model: PotentialModel | undefined,
   options: RunJobOptions,
   now: () => Date,
   trajectory: MdTrajectoryFrame[] | undefined,
   extras: { mdCheckpoint?: MdCheckpoint; resumedFrom?: number } = {},
 ): JobOutcome {
   const backendQuantity = result.quantities.find((quantity) => quantity.name === "compute_backend");
-  const backend = backendQuantity?.value === "wasm" ? "wasm" : "cpu";
+  const backend =
+    backendQuantity?.value === "wasm"
+      ? "wasm"
+      : backendQuantity?.value === "webgpu"
+        ? "webgpu"
+        : "cpu";
   const provenance = buildProvenance({
     spec,
     structure,

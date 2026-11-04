@@ -144,7 +144,12 @@ export const en = {
   "workbench.taskRelax": "FIRE geometry relaxation",
   "workbench.taskMd": "NVE molecular dynamics",
   "workbench.taskRdf": "Radial distribution function",
+  "workbench.engine": "Engine",
   "workbench.model": "Model",
+  "workbench.cutoffLocked":
+    "This model defines its own cutoff; the value is fixed and cannot be truncated.",
+  "workbench.cellTooSmall":
+    "This cell is too small for the model's mandatory cutoff. Build a larger supercell (2×2×2 of the conventional diamond cell works for silicon).",
   "workbench.params": "Parameters",
   "workbench.maxForce": "Force convergence target (eV/Å)",
   "workbench.maxSteps": "Maximum steps",
@@ -166,7 +171,7 @@ export const en = {
   "workbench.notConverged": "Not converged",
   "workbench.limitations": "Limitations and assumptions",
   "workbench.modelWarning":
-    "This engine is a classical pair-potential reference. It cannot predict properties of real engineering materials.",
+    "Each model declares its scope and limits; a result is only valid inside that scope.",
   "workbench.provenance": "Provenance",
   "workbench.report": "Download reproducibility report",
   "workbench.msd": "Mean-square displacement",

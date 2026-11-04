@@ -34,6 +34,7 @@ export interface LJSpeciesParameter {
 }
 
 export interface LJModel {
+  kind: "lj";
   id: string;
   name: string;
   description: string;
@@ -54,6 +55,7 @@ export interface LJModel {
  * material requires an explicit parameter set with a citable source.
  */
 export const LJ_NOBLE_GASES: LJModel = {
+  kind: "lj",
   id: "lj.noble-gases.v1",
   name: "Lennard-Jones noble gases (reference parameters)",
   description:
@@ -153,7 +155,7 @@ export interface EnergyForces {
   cutoffReduced: boolean;
   modelId: string;
   /** Which implementation produced the numbers. */
-  backend: "cpu" | "wasm";
+  backend: "cpu" | "wasm" | "webgpu";
 }
 
 export interface LJEvaluationOptions {

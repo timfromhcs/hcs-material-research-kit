@@ -12,8 +12,12 @@
 
 import type { Vec3 } from "../linalg.js";
 import type { Structure } from "../types.js";
-import type { EnergyForces, LJEvaluationOptions, LJModel } from "./lj.js";
-import { computeEnergyForces } from "./lj.js";
+import type { EnergyForces } from "./lj.js";
+import {
+  evaluatePotential,
+  type PotentialEvaluationOptions,
+  type PotentialModel,
+} from "./potential.js";
 import {
   cartesianToFractional,
   compositionOf,
@@ -28,8 +32,8 @@ import {
  */
 export type EnergyForcesKernel = (
   structure: Structure,
-  model: LJModel,
-  options?: LJEvaluationOptions,
+  model: PotentialModel,
+  options?: PotentialEvaluationOptions,
 ) => EnergyForces;
 
 export interface RelaxOptions {
@@ -66,7 +70,7 @@ export interface RelaxResult {
 
 export function relaxFire(
   structure: Structure,
-  model: LJModel,
+  model: PotentialModel,
   options: RelaxOptions = {},
 ): RelaxResult {
   const maxForceTarget = options.maxForceEvPerA ?? 0.01;
@@ -114,7 +118,7 @@ export function relaxFire(
   const evaluate: EnergyForcesKernel =
     options.energyKernel ??
     ((candidate, candidateModel, evaluation) =>
-      computeEnergyForces(candidate, candidateModel, evaluation ?? { cutoff: options.cutoff }));
+      evaluatePotential(candidate, candidateModel, evaluation ?? { cutoff: options.cutoff }));
 
   for (step = 0; step < maxSteps; step++) {
     const displaced = toStructure();

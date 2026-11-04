@@ -68,6 +68,62 @@ export const BUILTIN_ENGINES: EngineRecord[] = [
   },
   {
     schema_version: SCHEMA_VERSION,
+    engine_id: "hcs.sw-silicon",
+    name: "HCS Stillinger–Weber silicon engine",
+    version: CORE_VERSION,
+    provider: "HCS (hcsmedia and timfromhcs)",
+    license: "MIT (HCS code); the 1985 parameter set is published in the cited paper",
+    supported_tasks: ["energy.evaluate", "structure.relax", "md.run", "analysis.rdf"],
+    supported_elements: ["Si"],
+    supported_phases: ["bulk (periodic cell)"],
+    platforms: ["windows", "linux", "macos", "browser"],
+    execution_backends: ["cpu"],
+    precision_modes: ["float64"],
+    model_ids: ["sw.silicon.v1"],
+    minimum_memory_mb: 64,
+    known_limits: [
+      "Silicon only: the published parameter set is not transferable.",
+      "Classical two- and three-body model; no electronic structure, charge transfer or magnetism.",
+      "Requires the full cutoff a·σ ≈ 3.771 Å, so a 1×1×1 conventional diamond cell is too small.",
+      "O(N·z²) neighbour triplets; the reference path, not a large-scale MD engine.",
+      "The original 1985 set is fitted to diamond silicon and is weakest for liquid and amorphous phases.",
+    ],
+    validation_cases: [
+      {
+        id: "sw.force-vs-gradient",
+        description:
+          "Forces equal the negative numerical gradient of the energy (central differences).",
+        status: "passing",
+        tolerance: "relative deviation < 1e-5",
+      },
+      {
+        id: "sw.three-body-reference",
+        description:
+          "The three-body term of a hand-built cluster matches an independent expression.",
+        status: "passing",
+        tolerance: "abs < 1e-12 eV",
+      },
+      {
+        id: "sw.diamond-lattice",
+        description:
+          "Relaxation from a strained diamond cell returns to the silicon lattice constant.",
+        status: "passing",
+        tolerance: "within 0.10 Å of 5.431 Å",
+      },
+      {
+        id: "sw.nve-energy-conservation",
+        description: "NVE dynamics on a 64-atom silicon cell conserves total energy.",
+        status: "passing",
+        tolerance: "< 1e-3 eV per atom drift",
+      },
+    ],
+    installation_state: "builtin",
+    installation_notes: "Compiled into the HCS core; no download required.",
+    fidelity_levels: ["classical_model"],
+    docs_url: "docs/science/stillinger-weber-silicon.md",
+  },
+  {
+    schema_version: SCHEMA_VERSION,
     engine_id: "hcs.heat1d-reference",
     name: "HCS 1D heat/diffusion reference solver",
     version: CORE_VERSION,

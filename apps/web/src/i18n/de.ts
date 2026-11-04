@@ -147,7 +147,12 @@ export const de: Record<TranslationKey, string> = {
   "workbench.taskRelax": "FIRE-Geometrieoptimierung",
   "workbench.taskMd": "NVE-Molekulardynamik",
   "workbench.taskRdf": "Radialverteilungsfunktion",
+  "workbench.engine": "Engine",
   "workbench.model": "Modell",
+  "workbench.cutoffLocked":
+    "Dieses Modell definiert seinen eigenen Cutoff; der Wert ist fest und wird nicht abgeschnitten.",
+  "workbench.cellTooSmall":
+    "Diese Zelle ist zu klein für den verbindlichen Cutoff des Modells. Baue eine größere Superzelle (für Silizium funktioniert 2×2×2 der konventionellen Diamantzelle).",
   "workbench.params": "Parameter",
   "workbench.maxForce": "Kraft-Konvergenzziel (eV/Å)",
   "workbench.maxSteps": "Maximale Schritte",
@@ -169,7 +174,7 @@ export const de: Record<TranslationKey, string> = {
   "workbench.notConverged": "Nicht konvergiert",
   "workbench.limitations": "Grenzen und Annahmen",
   "workbench.modelWarning":
-    "Diese Engine ist eine klassische Paarpotential-Referenz. Sie kann keine Eigenschaften realer Werkstoffe vorhersagen.",
+    "Jedes Modell nennt seinen Gültigkeitsbereich; ein Ergebnis gilt nur innerhalb dieses Bereichs.",
   "workbench.provenance": "Herkunft",
   "workbench.report": "Reproduzierbarkeitsbericht herunterladen",
   "workbench.msd": "Mittlere quadratische Verschiebung",
