@@ -22,14 +22,14 @@
   "dependencies": {
     "@hcs-materials/core": "0.2.0",
     "@hcs-materials/ui": "0.2.0",
-    "three": "^0.170.0"
+    "three": "^0.187.0"
   },
   "peerDependencies": {
-    "react": "^18.3.1 || ^19.0.0"
+    "react": "^19.0.0"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/three": "^0.170.0",
-    "typescript": "^5.7.2"
+    "@types/react": "^19.3.0",
+    "@types/three": "^0.187.0",
+    "typescript": "^5.9.3"
   }
 }

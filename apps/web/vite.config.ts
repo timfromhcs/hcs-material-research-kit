@@ -11,9 +11,12 @@ export default defineConfig({
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
-        manualChunks: {
-          three: ["three"],
-          react: ["react", "react-dom", "react-router-dom"],
+        // Rolldown (Vite 8) only accepts the function form. Keep the vendor
+        // split so the viewer and the shell can be cached independently.
+        manualChunks(id) {
+          if (id.includes("node_modules/three")) return "three";
+          if (id.includes("node_modules/react")) return "react";
+          return undefined;
         },
       },
     },

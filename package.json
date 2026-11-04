@@ -30,14 +30,15 @@
     "fmt": "prettier --write .",
     "fmt:check": "prettier --check .",
     "verify": "npm run fmt:check && npm run typecheck && npm run test && npm run test:rust && npm run build && npm run test:e2e",
+    "verify:full": "npm run verify && npm run test:python",
     "build:wasm": "node scripts/build-wasm.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
-    "@types/node": "^22.10.2",
+    "@types/node": "^22.19.0",
     "prettier": "^3.4.2",
     "tsx": "^4.23.15",
-    "typescript": "^5.7.2",
-    "vitest": "^4.1.11"
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.0"
   }
 }
