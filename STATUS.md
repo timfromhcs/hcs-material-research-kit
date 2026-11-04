@@ -174,7 +174,17 @@
 ## Deployment evidence
 
 - **Production URL:** https://hcs-material-research-kit.vercel.app
-- **v0.2.0 build:** deployed 2026-11-03 from `c24db2c`; smoke-tested with 7/7 Playwright tests.
-- **v0.3.0:** deployment attempted after the release commit; see the release notes for the
-  outcome and the exact URL/HTTP evidence. If the quota blocks it, the release is shipped from
-  Git and this section says so rather than claiming a URL that was not verified.
+- **v0.3.0 build:** deployed 2026-11-04 09:34 UTC from tag `v0.3.0`, Vercel CLI
+  65.9.0, project `hcsmediacorp/hcs-material-research-kit` (static build of
+  `apps/web/dist`).
+- **HTTP check:** `200 OK`, `text/html; charset=utf-8`, 1153 bytes, with
+  `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
+  `Referrer-Policy: no-referrer`, `Permissions-Policy` and HSTS present;
+  `X-Vercel-Cache: HIT`. The served HTML references the v0.3.0 bundle
+  (`/assets/index-VTRTgMDa.js`).
+- **Smoke test:** the full Playwright acceptance suite was run against the URL
+  (`HCS_E2E_BASE_URL=https://hcs-material-research-kit.vercel.app`) and passed
+  10/10 in 27.6 s, including SW silicon, WebGPU energy, NVE and NVT MD, XRD/CSV,
+  the command palette, report download and archive re-import with checksum
+  verification.
+- **v0.2.0 build:** deployed 2026-11-03 from `c24db2c`; smoke-tested 7/7.
