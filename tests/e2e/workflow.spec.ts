@@ -50,6 +50,14 @@ test("creates a documented crystal and validates it", async ({ page }) => {
   await rows.nth(1).click({ modifiers: ["Shift"] });
   await expect(page.getByText("Distance 0–1")).toBeVisible();
   await expect(page.getByText("3.840", { exact: false }).first()).toBeVisible();
+
+  // The XRD panel computes a real pattern from the same cell.
+  await expect(page.getByRole("region", { name: "Powder X-ray diffraction" })).toBeVisible();
+  await expect(page.getByText("28.4", { exact: false }).first()).toBeVisible();
+  const csvPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "CSV", exact: true }).click();
+  const csv = await csvPromise;
+  expect(csv.suggestedFilename()).toMatch(/\.csv$/);
 });
 
 test("explains that the diamond cell is too small for the many-body cutoff", async ({ page }) => {

@@ -107,6 +107,13 @@ export const fr: Record<TranslationKey, string> = {
     "Déposez un fichier CIF, POSCAR, XYZ ou HCS JSON ici, ou choisissez un fichier.",
   "studio.exportAs": "Exporter comme",
   "studio.validation": "Validation",
+  "studio.xrd": "Diffraction des rayons X sur poudre",
+  "studio.xrdHint":
+    "Diagramme cinématique de la cellule courante. Les positions des pics sont exactes ; les intensités sont relatives et sans facteur de Debye-Waller.",
+  "studio.wavelength": "Longueur d'onde (Å)",
+  "studio.twoTheta": "2θ (degrés)",
+  "studio.intensity": "Intensité relative",
+  "studio.xrdUnavailable": "XRD indisponible :",
   "studio.valid": "valide",
   "studio.warning": "avertissement",
   "studio.invalid": "invalide",

@@ -104,6 +104,13 @@ export const en = {
   "studio.dropHint": "Drop a CIF, POSCAR, XYZ or HCS JSON file here, or choose a file.",
   "studio.exportAs": "Export as",
   "studio.validation": "Validation",
+  "studio.xrd": "Powder X-ray diffraction",
+  "studio.xrdHint":
+    "Kinematic pattern for the current cell. Peak positions are exact; intensities are relative and omit the Debye–Waller factor.",
+  "studio.wavelength": "Wavelength (Å)",
+  "studio.twoTheta": "2θ (degrees)",
+  "studio.intensity": "Relative intensity",
+  "studio.xrdUnavailable": "XRD unavailable:",
   "studio.valid": "valid",
   "studio.warning": "warning",
   "studio.invalid": "invalid",

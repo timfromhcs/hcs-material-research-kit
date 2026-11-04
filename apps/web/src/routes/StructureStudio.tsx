@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from "react";
 import {
   addAtom,
+  computeXrdPattern,
   createCrystal,
   createVacancy,
+  CU_KA1_ANGSTROM,
   exportStructure,
   importStructure,
   makeSupercell,
@@ -10,12 +12,13 @@ import {
   prototypeInfo,
   setSitePosition,
   substituteSpecies,
+  xrdPeaksToCsv,
   type CrystalPrototype,
   type Structure,
   type StructureFormat,
 } from "@hcs-materials/core";
 import { Badge, Button, Callout, Field, Panel, Stat, cx } from "@hcs-materials/ui";
-import { StructureViewer } from "@hcs-materials/visualization";
+import { LinePlot, StructureViewer } from "@hcs-materials/visualization";
 import { useI18n } from "../i18n";
 import { NumberInput } from "../components/NumberInput";
 import { useWorkspace } from "../state/store";
@@ -65,6 +68,7 @@ export function StructureStudio(): JSX.Element {
   const [notice, setNotice] = useState<{ tone: "ok" | "err" | "info"; text: string } | null>(null);
   const [showBonds, setShowBonds] = useState(true);
   const [showCell, setShowCell] = useState(true);
+  const [wavelength, setWavelength] = useState(CU_KA1_ANGSTROM);
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -76,6 +80,18 @@ export function StructureStudio(): JSX.Element {
       return null;
     }
   }, [current, selected]);
+
+  const xrd = useMemo(() => {
+    if (!current) return null;
+    try {
+      return {
+        pattern: computeXrdPattern(current, { wavelengthAngstrom: wavelength }),
+        error: null,
+      };
+    } catch (error) {
+      return { pattern: null, error: error instanceof Error ? error.message : String(error) };
+    }
+  }, [current, wavelength]);
 
   const toggleSelection = (index: number | null, additive: boolean): void => {
     if (index === null) {
@@ -458,6 +474,92 @@ export function StructureStudio(): JSX.Element {
                     value={Object.keys(current.composition?.amounts ?? {}).join(" · ")}
                   />
                 </div>
+              </Panel>
+
+              <Panel
+                title={t("studio.xrd")}
+                subtitle={t("studio.xrdHint")}
+                actions={
+                  xrd?.pattern ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        downloadText(
+                          safeFilename("xrd-pattern", "csv"),
+                          xrdPeaksToCsv(xrd.pattern!),
+                        )
+                      }
+                    >
+                      CSV
+                    </Button>
+                  ) : null
+                }
+              >
+                <div className="grid-2">
+                  <Field label={t("studio.wavelength")} htmlFor="xrd-wavelength">
+                    <NumberInput
+                      id="xrd-wavelength"
+                      step={0.01}
+                      min={0.1}
+                      value={wavelength}
+                      onChange={setWavelength}
+                    />
+                  </Field>
+                  <Stat
+                    label={t("studio.wavelength")}
+                    value={wavelength.toFixed(5)}
+                    unit="Å"
+                    hint="Cu Kα1 = 1.54056 Å"
+                  />
+                </div>
+                {xrd?.error && (
+                  <Callout tone="error">
+                    {t("studio.xrdUnavailable")} {xrd.error}
+                  </Callout>
+                )}
+                {xrd?.pattern && (
+                  <div className="stack" style={{ marginTop: 12 }}>
+                    <LinePlot
+                      series={{
+                        name: "xrd",
+                        x: xrd.pattern.twoThetaDeg,
+                        y: xrd.pattern.intensity,
+                      }}
+                      xLabel={t("studio.twoTheta")}
+                      yLabel={t("studio.intensity")}
+                      xUnit="°"
+                      yUnit="1"
+                    />
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>hkl</th>
+                            <th className="num">2θ (°)</th>
+                            <th className="num">d (Å)</th>
+                            <th className="num">mult.</th>
+                            <th className="num">I (%)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {xrd.pattern.peaks.slice(0, 12).map((peak) => (
+                            <tr key={`${peak.h}-${peak.k}-${peak.l}-${peak.twoThetaDeg}`}>
+                              <td className="mono small">
+                                {peak.h} {peak.k} {peak.l}
+                              </td>
+                              <td className="num">{formatNumber(peak.twoThetaDeg, 3)}</td>
+                              <td className="num">{formatNumber(peak.dSpacingAngstrom, 4)}</td>
+                              <td className="num">{peak.multiplicity}</td>
+                              <td className="num">{formatNumber(peak.intensity, 1)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="tiny muted">{xrd.pattern.method}</p>
+                  </div>
+                )}
               </Panel>
 
               <Panel title={t("studio.measurement")} subtitle={t("studio.measureHint")}>
