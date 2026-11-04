@@ -30,7 +30,7 @@ async function createArgonRun(page: Page, task: "energy" | "md" = "energy"): Pro
   await expect(page.getByRole("heading", { name: "Simulation Workbench" })).toBeVisible();
   if (task === "md") {
     await page.getByRole("combobox", { name: "Task" }).selectOption("md.run");
-    await expect(page.getByText("NVE only. There is no thermostat")).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Ensemble" })).toHaveValue("NVE");
   }
   await page.getByRole("button", { name: "Run calculation" }).click();
   await expect(page.getByText("Result stored in this project.")).toBeVisible({ timeout: 60_000 });
@@ -113,6 +113,21 @@ test("runs NVE dynamics, computes the MSD and downloads a report", async ({ page
   expect(html).toContain("Reproducibility report");
   expect(html).toContain("classical_model");
   expect(html).toContain("not experimental proof");
+});
+
+test("runs Langevin NVT and reports the realised temperature", async ({ page }) => {
+  await page.goto("/#/");
+  await page.getByRole("button", { name: /Argon \(fcc, LJ reference\)/ }).click();
+  await page.getByRole("link", { name: "Simulation Workbench" }).click();
+  await page.getByRole("combobox", { name: "Task" }).selectOption("md.run");
+  await page.getByRole("combobox", { name: "Ensemble" }).selectOption("NVT");
+  await page.getByLabel("Target temperature (K)").fill("300");
+  await page.getByLabel("Langevin friction (1/ps)").fill("10");
+  await page.getByRole("button", { name: "Run calculation" }).click();
+  await expect(page.getByText("Result stored in this project.")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("NVT(langevin)")).toBeVisible();
+  await expect(page.getByText("target_temperature")).toBeVisible();
+  await expect(page.getByText("mean_temperature")).toBeVisible();
 });
 
 test("exports a project archive, re-imports it and verifies the checksums", async ({ page }) => {

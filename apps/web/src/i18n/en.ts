@@ -142,7 +142,7 @@ export const en = {
   "workbench.task": "Task",
   "workbench.taskEnergy": "Single-point energy and forces",
   "workbench.taskRelax": "FIRE geometry relaxation",
-  "workbench.taskMd": "NVE molecular dynamics",
+  "workbench.taskMd": "Molecular dynamics",
   "workbench.taskRdf": "Radial distribution function",
   "workbench.engine": "Engine",
   "workbench.model": "Model",
@@ -180,6 +180,13 @@ export const en = {
     "Diffusion coefficients require a diffusive regime. If the slope is not positive, HCS reports no value instead of guessing.",
   "workbench.ensembleNveOnly":
     "NVE only. There is no thermostat in this build, so NVT/NPT is refused.",
+  "workbench.ensemble": "Ensemble",
+  "workbench.ensembleNve": "NVE — constant energy",
+  "workbench.ensembleNvt": "NVT — Langevin thermostat",
+  "workbench.targetTemperature": "Target temperature (K)",
+  "workbench.friction": "Langevin friction (1/ps)",
+  "workbench.langevinNote":
+    "The thermostat uses the BAOAB splitting of Langevin dynamics; the recorded mean temperature is a result, not an input.",
   "workbench.resultStructure": "Send relaxed structure to Studio",
   "workbench.fidelity": "Fidelity",
   "workbench.method": "Method",

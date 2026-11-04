@@ -502,17 +502,31 @@ export function runJob(options: RunJobOptions): JobOutcome {
     }
 
     if (spec.task_type === "md.run") {
-      const ensemble = spec.thermodynamic_conditions?.ensemble ?? "NVE";
-      if (ensemble !== "NVE" && ensemble !== "none") {
+      const requestedEnsemble = spec.thermodynamic_conditions?.ensemble ?? "NVE";
+      if (requestedEnsemble === "NPT") {
         const message =
-          `Ensemble '${ensemble}' is not implemented. The HCS reference engine runs NVE only; ` +
-          "no thermostat or barostat exists in this build, and HCS will not silently rescale velocities to imitate one.";
+          "Ensemble 'NPT' is not implemented. HCS has a Langevin thermostat but no barostat, " +
+          "so the cell would stay fixed while the result claimed a pressure-controlled ensemble.";
         controller.transition("failed", message);
         return { job: controller.snapshot, error: { code: "unsupported_ensemble", message } };
       }
+      if (
+        requestedEnsemble !== "NVE" &&
+        requestedEnsemble !== "NVT" &&
+        requestedEnsemble !== "none"
+      ) {
+        const message = `Ensemble '${requestedEnsemble}' is not implemented in this build.`;
+        controller.transition("failed", message);
+        return { job: controller.snapshot, error: { code: "unsupported_ensemble", message } };
+      }
+      const ensemble: "NVE" | "NVT" = requestedEnsemble === "NVT" ? "NVT" : "NVE";
       const steps = integerParam(spec.parameters, "steps", 200);
       const timestep = numberParam(spec.parameters, "timestepPs", 0.001);
       const temperature = numberParam(spec.parameters, "temperatureK", 50);
+      const targetTemperatureK =
+        spec.thermodynamic_conditions?.temperature ??
+        numberParam(spec.parameters, "targetTemperatureK", temperature);
+      const frictionPerPs = numberParam(spec.parameters, "frictionPerPs", 1.0);
       const sampleInterval = integerParam(spec.parameters, "sampleInterval", 5);
       const wantTrajectory = (spec.requested_outputs ?? []).includes("trajectory");
       const trajectoryInterval = wantTrajectory ? Math.max(1, Math.floor(steps / 100)) : 0;
@@ -557,6 +571,8 @@ export function runJob(options: RunJobOptions): JobOutcome {
         steps,
         timestep,
         temperature,
+        ensemble,
+        ...(ensemble === "NVT" ? { thermostat: { targetTemperatureK, frictionPerPs } } : {}),
         seed: spec.seed ?? 12345,
         cutoff: effectiveCutoff,
         energyKernel: evaluate,
@@ -588,11 +604,20 @@ export function runJob(options: RunJobOptions): JobOutcome {
       }
 
       const driftPerAtom = md.energyDriftEvPerAtom;
-      if (Math.abs(driftPerAtom) > 1e-3) {
+      if (ensemble === "NVE" && Math.abs(driftPerAtom) > 1e-3) {
         controller.warn(
           "md.energy_drift",
           `NVE total-energy drift ${driftPerAtom.toExponential(2)} eV/atom exceeds 1e-3 eV/atom. ` +
             "Reduce the timestep or check for overlapping atoms.",
+        );
+      }
+      const temperatureError =
+        Math.abs(md.meanTemperatureK - targetTemperatureK) / targetTemperatureK;
+      if (ensemble === "NVT" && temperatureError > 0.1) {
+        controller.warn(
+          "md.temperature_not_reached",
+          `Mean temperature ${md.meanTemperatureK.toFixed(1)} K differs from the target ` +
+            `${targetTemperatureK.toFixed(1)} K by more than 10 %. Run longer or raise the friction.`,
         );
       }
 
@@ -644,19 +669,39 @@ export function runJob(options: RunJobOptions): JobOutcome {
           { name: "steps_resumed_from", value: md.initialStep, unit: "1" },
           { name: "final_step", value: md.finalStep, unit: "1" },
           { name: "timestep", value: md.timestepPs, unit: CANONICAL_UNITS.time },
-          { name: "ensemble", value: "NVE", unit: "1" },
+          { name: "ensemble", value: md.thermostate, unit: "1" },
+          ...(ensemble === "NVT"
+            ? [
+                {
+                  name: "target_temperature",
+                  value: targetTemperatureK,
+                  unit: CANONICAL_UNITS.temperature,
+                },
+                { name: "langevin_friction", value: frictionPerPs, unit: "1/ps" },
+              ]
+            : []),
           { name: "compute_backend", value: backend, unit: "1" },
         ],
         series,
-        convergence: {
-          converged: Math.abs(driftPerAtom) <= 1e-3,
-          criterion: "NVE total-energy drift <= 1e-3 eV/atom",
-          final_value: driftPerAtom,
-          threshold: 1e-3,
-        },
+        convergence:
+          ensemble === "NVE"
+            ? {
+                converged: Math.abs(driftPerAtom) <= 1e-3,
+                criterion: "NVE total-energy drift <= 1e-3 eV/atom",
+                final_value: driftPerAtom,
+                threshold: 1e-3,
+              }
+            : {
+                converged: temperatureError <= 0.1,
+                criterion: "NVT mean temperature within 10 % of the target",
+                final_value: md.meanTemperatureK,
+                threshold: targetTemperatureK,
+              },
         limitations: [
           ...model.limitations,
-          "NVE only: the sample temperature is an output of the dynamics, not a controlled variable.",
+          ensemble === "NVE"
+            ? "NVE: the sample temperature is an output of the dynamics, not a controlled variable."
+            : `NVT with a Langevin thermostat (target ${targetTemperatureK} K, friction ${frictionPerPs} 1/ps); the dynamics are stochastic, so a single trajectory is not a unique sample.`,
           "Temperature and kinetic energy oscillate because energy is exchanged with the potential; a short run does not establish an equilibrated temperature.",
           "Trajectory length is short by MD standards; transport coefficients from it are indicative at best.",
         ],

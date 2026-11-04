@@ -145,7 +145,7 @@ export const de: Record<TranslationKey, string> = {
   "workbench.task": "Aufgabe",
   "workbench.taskEnergy": "Einzelpunkt-Energie und Kräfte",
   "workbench.taskRelax": "FIRE-Geometrieoptimierung",
-  "workbench.taskMd": "NVE-Molekulardynamik",
+  "workbench.taskMd": "Molekulardynamik",
   "workbench.taskRdf": "Radialverteilungsfunktion",
   "workbench.engine": "Engine",
   "workbench.model": "Modell",
@@ -183,6 +183,13 @@ export const de: Record<TranslationKey, string> = {
     "Diffusionskoeffizienten brauchen ein diffuses Regime. Ist die Steigung nicht positiv, meldet HCS keinen Wert statt zu raten.",
   "workbench.ensembleNveOnly":
     "Nur NVE. In diesem Build gibt es keinen Thermostat, daher wird NVT/NPT abgelehnt.",
+  "workbench.ensemble": "Ensemble",
+  "workbench.ensembleNve": "NVE — konstante Energie",
+  "workbench.ensembleNvt": "NVT — Langevin-Thermostat",
+  "workbench.targetTemperature": "Zieltemperatur (K)",
+  "workbench.friction": "Langevin-Reibung (1/ps)",
+  "workbench.langevinNote":
+    "Der Thermostat nutzt die BAOAB-Zerlegung der Langevin-Dynamik; die ausgewiesene mittlere Temperatur ist ein Ergebnis, keine Eingabe.",
   "workbench.resultStructure": "Relaxierte Struktur ins Studio übernehmen",
   "workbench.fidelity": "Genauigkeitsstufe",
   "workbench.method": "Methode",

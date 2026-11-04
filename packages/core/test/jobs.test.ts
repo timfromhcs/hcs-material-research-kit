@@ -192,19 +192,41 @@ describe("runJob: relaxation and MD", () => {
     expect(structureHash(outcome.result!.result_structure!)).not.toBe(structureHash(structure));
   });
 
-  it("refuses NVT because no thermostat is implemented", () => {
+  it("refuses NPT because no barostat is implemented", () => {
     const structure = argon();
     const outcome = runJob({
       spec: spec(structure, {
         task_type: "md.run",
         parameters: { steps: 10, timestepPs: 0.001, temperatureK: 50 },
-        thermodynamic_conditions: { ensemble: "NVT", temperature: 50 },
+        thermodynamic_conditions: { ensemble: "NPT", temperature: 50 },
       }),
       structure,
     });
     expect(outcome.job.state).toBe("failed");
     expect(outcome.error?.code).toBe("unsupported_ensemble");
-    expect(outcome.error?.message).toMatch(/no thermostat/i);
+    expect(outcome.error?.message).toMatch(/barostat/i);
+  });
+
+  it("runs a Langevin NVT trajectory and reports the thermostat", () => {
+    const structure = argon(2, 5.3);
+    const outcome = runJob({
+      spec: spec(structure, {
+        task_type: "md.run",
+        parameters: { steps: 300, timestepPs: 0.001, temperatureK: 120, frictionPerPs: 20 },
+        thermodynamic_conditions: { ensemble: "NVT", temperature: 120 },
+        requested_outputs: ["energy", "thermo"],
+      }),
+      structure,
+    });
+    expect(outcome.error).toBeUndefined();
+    expect(outcome.job.state).toBe("completed");
+    const ensemble = outcome.result?.quantities.find((quantity) => quantity.name === "ensemble");
+    expect(ensemble?.value).toBe("NVT(langevin)");
+    const mean = outcome.result?.quantities.find(
+      (quantity) => quantity.name === "mean_temperature",
+    );
+    expect(Number(mean?.value)).toBeGreaterThan(60);
+    expect(Number(mean?.value)).toBeLessThan(200);
   });
 
   it("runs a real NVE trajectory and reports drift", () => {

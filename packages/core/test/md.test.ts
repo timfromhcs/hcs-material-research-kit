@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   LJ_NOBLE_GASES,
+  KB_EV_PER_K,
   computeEnergyForces,
   createCrystal,
   initialVelocities,
@@ -225,5 +226,68 @@ describe("MD checkpoint and restart", () => {
         },
       }),
     ).toThrow(/non-negative integer/);
+  });
+});
+
+describe("Langevin NVT", () => {
+  const options = {
+    steps: 3000,
+    timestep: 0.001,
+    temperature: 200,
+    ensemble: "NVT" as const,
+    thermostat: { targetTemperatureK: 200, frictionPerPs: 20 },
+    sampleInterval: 10,
+    seed: 11,
+  };
+
+  it("holds the mean temperature at the target", () => {
+    const md = runMd(argon(2), ARGON, options);
+    expect(md.thermostate).toBe("NVT(langevin)");
+    expect(md.targetTemperatureK).toBe(200);
+    expect(md.frictionPerPs).toBe(20);
+    expect(Math.abs(md.meanTemperatureK - 200) / 200).toBeLessThan(0.1);
+  });
+
+  it("satisfies equipartition within statistical error", () => {
+    const md = runMd(argon(2), ARGON, options);
+    const kinetic = md.energySeries.kineticEv.slice(10);
+    const meanKinetic = kinetic.reduce((sum, value) => sum + value, 0) / kinetic.length;
+    const perDof = meanKinetic / (3 * 32);
+    expect(perDof).toBeCloseTo(0.5 * KB_EV_PER_K * 200, 2);
+  });
+
+  it("is reproducible for a seed and stochastic across seeds", () => {
+    const a = runMd(argon(2), ARGON, options);
+    const b = runMd(argon(2), ARGON, options);
+    const c = runMd(argon(2), ARGON, { ...options, seed: 12 });
+    expect(a.finalPositions).toEqual(b.finalPositions);
+    expect(a.finalPositions).not.toEqual(c.finalPositions);
+  });
+
+  it("resumes bit-for-bit from a checkpoint", () => {
+    const structure = argon(2);
+    const continuous = runMd(structure, ARGON, { ...options, steps: 200 });
+    const first = runMd(structure, ARGON, { ...options, steps: 100 });
+    const resumed = runMd(structure, ARGON, {
+      ...options,
+      steps: 100,
+      initialState: {
+        positionsCartesian: first.finalPositions,
+        velocities: first.finalVelocities,
+        step: first.finalStep,
+      },
+    });
+    expect(resumed.finalStep).toBe(continuous.finalStep);
+    expect(resumed.finalPositions).toEqual(continuous.finalPositions);
+    expect(resumed.finalVelocities).toEqual(continuous.finalVelocities);
+  });
+
+  it("rejects a non-positive friction instead of silently running NVE", () => {
+    expect(() =>
+      runMd(argon(2), ARGON, {
+        ...options,
+        thermostat: { targetTemperatureK: 200, frictionPerPs: 0 },
+      }),
+    ).toThrow(/positive Langevin friction/);
   });
 });

@@ -47,6 +47,9 @@ export function Workbench(): JSX.Element {
   const [steps, setSteps] = useState(200);
   const [timestep, setTimestep] = useState(0.002);
   const [temperature, setTemperature] = useState(60);
+  const [ensemble, setEnsemble] = useState<"NVE" | "NVT">("NVE");
+  const [targetTemperature, setTargetTemperature] = useState(300);
+  const [friction, setFriction] = useState(5);
   const [cutoff, setCutoff] = useState(LJ_NOBLE_GASES.cutoff);
   const [bins, setBins] = useState(100);
   const [seed, setSeed] = useState(12345);
@@ -146,7 +149,11 @@ export function Workbench(): JSX.Element {
     if (task === "md.run") {
       parameters.steps = steps;
       parameters.timestepPs = timestep;
-      parameters.temperatureK = temperature;
+      parameters.temperatureK = ensemble === "NVT" ? targetTemperature : temperature;
+      if (ensemble === "NVT") {
+        parameters.targetTemperatureK = targetTemperature;
+        parameters.frictionPerPs = friction;
+      }
       parameters.sampleInterval = Math.max(1, Math.floor(steps / 40));
       requested = recordTrajectory ? ["energy", "trajectory", "thermo"] : ["energy", "thermo"];
     }
@@ -167,7 +174,12 @@ export function Workbench(): JSX.Element {
       fidelity_level: "classical_model",
       parameters,
       ...(task === "md.run"
-        ? { thermodynamic_conditions: { ensemble: "NVE" as const, temperature } }
+        ? {
+            thermodynamic_conditions: {
+              ensemble,
+              temperature: ensemble === "NVT" ? targetTemperature : temperature,
+            },
+          }
         : {}),
       seed,
       requested_outputs: requested,
@@ -454,7 +466,17 @@ export function Workbench(): JSX.Element {
 
               {task === "md.run" && (
                 <>
-                  <Callout tone="warn">{t("workbench.ensembleNveOnly")}</Callout>
+                  <Field label={t("workbench.ensemble")} htmlFor="wb-ensemble">
+                    <select
+                      id="wb-ensemble"
+                      className="select"
+                      value={ensemble}
+                      onChange={(event) => setEnsemble(event.target.value as "NVE" | "NVT")}
+                    >
+                      <option value="NVE">{t("workbench.ensembleNve")}</option>
+                      <option value="NVT">{t("workbench.ensembleNvt")}</option>
+                    </select>
+                  </Field>
                   <div className="grid-3">
                     <Field label={t("workbench.steps")} htmlFor="wb-steps">
                       <NumberInput
@@ -474,16 +496,44 @@ export function Workbench(): JSX.Element {
                         onChange={setTimestep}
                       />
                     </Field>
-                    <Field label={t("workbench.temperature")} htmlFor="wb-temp">
-                      <NumberInput
-                        id="wb-temp"
-                        step={10}
-                        min={1}
-                        value={temperature}
-                        onChange={setTemperature}
-                      />
-                    </Field>
+                    {ensemble === "NVE" ? (
+                      <Field label={t("workbench.temperature")} htmlFor="wb-temp">
+                        <NumberInput
+                          id="wb-temp"
+                          step={10}
+                          min={1}
+                          value={temperature}
+                          onChange={setTemperature}
+                        />
+                      </Field>
+                    ) : (
+                      <Field label={t("workbench.targetTemperature")} htmlFor="wb-target-temp">
+                        <NumberInput
+                          id="wb-target-temp"
+                          step={10}
+                          min={1}
+                          value={targetTemperature}
+                          onChange={setTargetTemperature}
+                        />
+                      </Field>
+                    )}
                   </div>
+                  {ensemble === "NVT" && (
+                    <div className="grid-2">
+                      <Field label={t("workbench.friction")} htmlFor="wb-friction">
+                        <NumberInput
+                          id="wb-friction"
+                          step={1}
+                          min={0.01}
+                          value={friction}
+                          onChange={setFriction}
+                        />
+                      </Field>
+                      <p className="tiny muted" style={{ alignSelf: "end" }}>
+                        {t("workbench.langevinNote")}
+                      </p>
+                    </div>
+                  )}
                   <label className="checkbox">
                     <input
                       type="checkbox"

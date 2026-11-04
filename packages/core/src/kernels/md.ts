@@ -46,6 +46,19 @@ export interface MdOptions {
   /** Optional alternative implementation (e.g. WASM); must match the CPU contract. */
   energyKernel?: EnergyForcesKernel;
   /**
+   * Ensemble. NVE is the plain velocity-Verlet integrator. NVT uses the BAOAB
+   * splitting of Langevin dynamics (Leimkuhler & Matthews), which has a
+   * well-defined stationary distribution at the requested temperature.
+   * NPT is not implemented and must be rejected by the caller.
+   */
+  ensemble?: "NVE" | "NVT";
+  thermostat?: {
+    /** Target temperature in K; defaults to `temperature`. */
+    targetTemperatureK?: number;
+    /** Langevin friction γ in 1/ps; must be positive. */
+    frictionPerPs?: number;
+  };
+  /**
    * Resume from a checkpoint instead of drawing fresh velocities. Positions and
    * velocities are Cartesian (Å and Å/ps); `step` is the number of steps already
    * completed, so time-series entries carry the correct absolute time.
@@ -120,7 +133,11 @@ export interface MdResult {
   /** Unwrapped cartesian positions per frame, for MSD. */
   unwrapped: Vec3[][];
   cancelled: boolean;
-  thermostate: "NVE";
+  thermostate: "NVE" | "NVT(langevin)";
+  /** Target temperature for a thermostatted run; absent for NVE. */
+  targetTemperatureK?: number;
+  /** Langevin friction used, in 1/ps; absent for NVE. */
+  frictionPerPs?: number;
 }
 
 export function initialVelocities(
@@ -176,6 +193,17 @@ export function runMd(structure: Structure, model: PotentialModel, options: MdOp
   const sampleInterval = Math.max(1, options.sampleInterval ?? 10);
   const trajectoryInterval = Math.max(0, options.trajectoryInterval ?? 0);
   const seed = options.seed ?? 12345;
+  const ensemble = options.ensemble ?? "NVE";
+  const targetTemperatureK = options.thermostat?.targetTemperatureK ?? options.temperature;
+  const frictionPerPs = options.thermostat?.frictionPerPs ?? 1;
+  if (ensemble === "NVT") {
+    if (!(targetTemperatureK > 0)) {
+      throw new Error("NVT requires a positive target temperature");
+    }
+    if (!(frictionPerPs > 0)) {
+      throw new Error("NVT requires a positive Langevin friction (1/ps)");
+    }
+  }
 
   if (structure.sites.length > 5000) {
     throw new Error(
@@ -209,6 +237,10 @@ export function runMd(structure: Structure, model: PotentialModel, options: MdOp
     ? resumed.velocities.map((velocity) => [...velocity] as Vec3)
     : initialVelocities(structure, options.temperature, seed).velocities;
   const initialStep = resumed?.step ?? 0;
+  // NVE conserves total momentum, so three degrees of freedom are removed.
+  // Langevin NVT does not, so all 3N count.
+  const degreesOfFreedom =
+    ensemble === "NVE" ? Math.max(1, 3 * positions.length - 3) : Math.max(1, 3 * positions.length);
 
   const kineticOf = (vel: Vec3[]): number => {
     let kinetic = 0;
@@ -260,7 +292,6 @@ export function runMd(structure: Structure, model: PotentialModel, options: MdOp
 
   const record = (stepIndex: number, kinetic: number, potential: number): void => {
     const timePs = stepIndex * options.timestep;
-    const degreesOfFreedom = Math.max(1, 3 * positions.length - 3);
     const temperatureK = (2 * kinetic) / (degreesOfFreedom * KB_EV_PER_K);
     temperatureSeries.timePs.push(timePs);
     temperatureSeries.temperatureK.push(temperatureK);
@@ -282,34 +313,86 @@ export function runMd(structure: Structure, model: PotentialModel, options: MdOp
 
   const dt = options.timestep;
   let forces = evaluated.forces;
+  const c1 = ensemble === "NVT" ? Math.exp(-frictionPerPs * dt) : 1;
+  const ouSigmaScale = Math.sqrt(1 - c1 * c1);
 
   while (step < targetStep) {
     step++;
-    // Half-kick with the current forces, then drift.
-    for (let i = 0; i < positions.length; i++) {
-      const v = velocities[i]!;
-      const f = forces[i]!;
-      const m = masses[i]!;
-      v[0] += 0.5 * dt * accelerationFromForce(f[0], m);
-      v[1] += 0.5 * dt * accelerationFromForce(f[1], m);
-      v[2] += 0.5 * dt * accelerationFromForce(f[2], m);
-      const p = positions[i]!;
-      p[0] += v[0] * dt;
-      p[1] += v[1] * dt;
-      p[2] += v[2] * dt;
-    }
+    if (ensemble === "NVE") {
+      // Velocity-Verlet: half-kick with the current forces, then drift.
+      for (let i = 0; i < positions.length; i++) {
+        const v = velocities[i]!;
+        const f = forces[i]!;
+        const m = masses[i]!;
+        v[0] += 0.5 * dt * accelerationFromForce(f[0], m);
+        v[1] += 0.5 * dt * accelerationFromForce(f[1], m);
+        v[2] += 0.5 * dt * accelerationFromForce(f[2], m);
+        const p = positions[i]!;
+        p[0] += v[0] * dt;
+        p[1] += v[1] * dt;
+        p[2] += v[2] * dt;
+      }
 
-    current = toStructure(positions);
-    evaluated = evaluate(current, model, { cutoff: options.cutoff });
-    forces = evaluated.forces;
+      current = toStructure(positions);
+      evaluated = evaluate(current, model, { cutoff: options.cutoff });
+      forces = evaluated.forces;
 
-    for (let i = 0; i < positions.length; i++) {
-      const v = velocities[i]!;
-      const f = evaluated.forces[i]!;
-      const m = masses[i]!;
-      v[0] += 0.5 * dt * accelerationFromForce(f[0], m);
-      v[1] += 0.5 * dt * accelerationFromForce(f[1], m);
-      v[2] += 0.5 * dt * accelerationFromForce(f[2], m);
+      for (let i = 0; i < positions.length; i++) {
+        const v = velocities[i]!;
+        const f = evaluated.forces[i]!;
+        const m = masses[i]!;
+        v[0] += 0.5 * dt * accelerationFromForce(f[0], m);
+        v[1] += 0.5 * dt * accelerationFromForce(f[1], m);
+        v[2] += 0.5 * dt * accelerationFromForce(f[2], m);
+      }
+    } else {
+      // BAOAB splitting of Langevin dynamics:
+      //   B(dt/2) A(dt/2) O(dt) A(dt/2) B(dt/2)
+      // The O step is the exact Ornstein–Uhlenbeck update, so the stationary
+      // distribution is the Maxwell–Boltzmann distribution at the target T.
+      for (let i = 0; i < positions.length; i++) {
+        const v = velocities[i]!;
+        const f = forces[i]!;
+        const m = masses[i]!;
+        v[0] += 0.5 * dt * accelerationFromForce(f[0], m);
+        v[1] += 0.5 * dt * accelerationFromForce(f[1], m);
+        v[2] += 0.5 * dt * accelerationFromForce(f[2], m);
+        const p = positions[i]!;
+        p[0] += 0.5 * dt * v[0];
+        p[1] += 0.5 * dt * v[1];
+        p[2] += 0.5 * dt * v[2];
+      }
+
+      // Counter-based RNG: the draw depends only on (seed, absolute step), so a
+      // resumed run reproduces the continuous run bit for bit.
+      const gaussian = makeGaussian(
+        makeRng((Math.imul(seed ^ step, 0x9e3779b1) ^ (step * 0x85ebca6b)) >>> 0),
+      );
+      for (let i = 0; i < positions.length; i++) {
+        const v = velocities[i]!;
+        const m = masses[i]!;
+        const sigma = Math.sqrt((KB_EV_PER_K * targetTemperatureK) / m) * SQRT_EV_PER_U_TO_A_PER_PS;
+        v[0] = c1 * v[0] + ouSigmaScale * sigma * gaussian();
+        v[1] = c1 * v[1] + ouSigmaScale * sigma * gaussian();
+        v[2] = c1 * v[2] + ouSigmaScale * sigma * gaussian();
+        const p = positions[i]!;
+        p[0] += 0.5 * dt * v[0];
+        p[1] += 0.5 * dt * v[1];
+        p[2] += 0.5 * dt * v[2];
+      }
+
+      current = toStructure(positions);
+      evaluated = evaluate(current, model, { cutoff: options.cutoff });
+      forces = evaluated.forces;
+
+      for (let i = 0; i < positions.length; i++) {
+        const v = velocities[i]!;
+        const f = evaluated.forces[i]!;
+        const m = masses[i]!;
+        v[0] += 0.5 * dt * accelerationFromForce(f[0], m);
+        v[1] += 0.5 * dt * accelerationFromForce(f[1], m);
+        v[2] += 0.5 * dt * accelerationFromForce(f[2], m);
+      }
     }
 
     // Cartesian positions are never wrapped during the run, so they remain
@@ -325,7 +408,7 @@ export function runMd(structure: Structure, model: PotentialModel, options: MdOp
           kineticEv: kinetic,
           potentialEv: evaluated.energy,
           totalEv: kinetic + evaluated.energy,
-          temperatureK: (2 * kinetic) / (Math.max(1, 3 * positions.length - 3) * KB_EV_PER_K),
+          temperatureK: (2 * kinetic) / (degreesOfFreedom * KB_EV_PER_K),
         });
         if (keep === false) {
           cancelled = true;
@@ -353,7 +436,7 @@ export function runMd(structure: Structure, model: PotentialModel, options: MdOp
     ? temperatures.reduce((a, b) => a + b, 0) / temperatures.length
     : options.temperature;
   const initialTemperatureK = resumed
-    ? (2 * initialKineticEv) / (Math.max(1, 3 * positions.length - 3) * KB_EV_PER_K)
+    ? (2 * initialKineticEv) / (degreesOfFreedom * KB_EV_PER_K)
     : options.temperature;
 
   return {
@@ -378,6 +461,7 @@ export function runMd(structure: Structure, model: PotentialModel, options: MdOp
     trajectory,
     unwrapped,
     cancelled,
-    thermostate: "NVE",
+    thermostate: ensemble === "NVE" ? "NVE" : "NVT(langevin)",
+    ...(ensemble === "NVT" ? { targetTemperatureK, frictionPerPs } : {}),
   };
 }

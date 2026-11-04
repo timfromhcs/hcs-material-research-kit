@@ -31,7 +31,7 @@ export const BUILTIN_ENGINES: EngineRecord[] = [
       "Parameters exist only for He, Ne, Ar, Kr and Xe at this revision.",
       "O(N²) pair loop: not suited to more than a few thousand atoms.",
       "Cubically switched between 0.9·r_c and r_c; no long-range tail correction.",
-      "NVE only — no thermostat is implemented, so NVT/NPT requests are rejected.",
+      "NVE or Langevin NVT; there is no barostat, so NPT requests are rejected.",
       "Not valid for predicting properties of real engineering materials.",
     ],
     validation_cases: [
@@ -86,6 +86,7 @@ export const BUILTIN_ENGINES: EngineRecord[] = [
       "Classical two- and three-body model; no electronic structure, charge transfer or magnetism.",
       "Requires the full cutoff a·σ ≈ 3.771 Å, so a 1×1×1 conventional diamond cell is too small.",
       "O(N·z²) neighbour triplets; the reference path, not a large-scale MD engine.",
+      "NVE or Langevin NVT; there is no barostat, so NPT requests are rejected.",
       "The original 1985 set is fitted to diamond silicon and is weakest for liquid and amorphous phases.",
     ],
     validation_cases: [

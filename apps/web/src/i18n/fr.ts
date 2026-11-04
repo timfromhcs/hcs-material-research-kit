@@ -146,7 +146,7 @@ export const fr: Record<TranslationKey, string> = {
   "workbench.task": "Tâche",
   "workbench.taskEnergy": "Énergie et forces en un point",
   "workbench.taskRelax": "Relaxation FIRE",
-  "workbench.taskMd": "Dynamique moléculaire NVE",
+  "workbench.taskMd": "Dynamique moléculaire",
   "workbench.taskRdf": "Fonction de distribution radiale",
   "workbench.engine": "Moteur",
   "workbench.model": "Modèle",
@@ -184,6 +184,13 @@ export const fr: Record<TranslationKey, string> = {
     "Un coefficient de diffusion exige un régime diffusif. Si la pente n'est pas positive, HCS ne rapporte aucune valeur.",
   "workbench.ensembleNveOnly":
     "NVE uniquement. Ce build n'a pas de thermostat, donc NVT/NPT est refusé.",
+  "workbench.ensemble": "Ensemble",
+  "workbench.ensembleNve": "NVE — énergie constante",
+  "workbench.ensembleNvt": "NVT — thermostat de Langevin",
+  "workbench.targetTemperature": "Température cible (K)",
+  "workbench.friction": "Friction de Langevin (1/ps)",
+  "workbench.langevinNote":
+    "Le thermostat utilise la décomposition BAOAB de la dynamique de Langevin ; la température moyenne affichée est un résultat, pas une entrée.",
   "workbench.resultStructure": "Envoyer la structure relaxée au studio",
   "workbench.fidelity": "Niveau de fidélité",
   "workbench.method": "Méthode",
