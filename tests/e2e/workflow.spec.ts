@@ -198,6 +198,7 @@ test.describe("mobile", () => {
       const html = document.documentElement;
       const offenders: Array<Record<string, unknown>> = [];
       for (const element of document.querySelectorAll("body *")) {
+        if (element.closest(".site-table")) continue;
         const rect = element.getBoundingClientRect();
         if (rect.right > html.clientWidth + 0.5 || rect.left < -0.5) {
           offenders.push({
@@ -213,7 +214,10 @@ test.describe("mobile", () => {
         value: html.scrollWidth - html.clientWidth,
         scrollWidth: html.scrollWidth,
         clientWidth: html.clientWidth,
-        offenders: offenders.slice(0, 8),
+        bodyScrollWidth: document.body.scrollWidth,
+        rootScrollWidth: document.querySelector("#root")?.scrollWidth,
+        shellScrollWidth: document.querySelector(".app-shell")?.scrollWidth,
+        offenders: offenders.slice(0, 20),
       };
     });
     console.log("MOBILE-OVERFLOW", JSON.stringify(overflow));
