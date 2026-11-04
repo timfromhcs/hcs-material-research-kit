@@ -410,3 +410,98 @@ def test_simulations_run_passes_through_the_cli_record(tmp_path: Path) -> None:
     assert "explicitly approved" in payload["note"]
 
 
+
+def _free_port() -> int:
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def _wait_for_port(port: int, timeout: float = 20.0) -> None:
+    import socket
+    import time
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(0.5)
+            if sock.connect_ex(("127.0.0.1", port)) == 0:
+                return
+        time.sleep(0.2)
+    raise AssertionError(f"server did not open port {port}")
+
+
+def test_streamable_http_round_trip_with_token(tmp_path: Path) -> None:
+    import subprocess
+    import sys
+
+    port = _free_port()
+    token = "test-token-123"
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "hcs_materials.mcp_server",
+            "--root",
+            str(tmp_path),
+            "--transport",
+            "streamable-http",
+            "--port",
+            str(port),
+            "--token",
+            token,
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    try:
+        _wait_for_port(port)
+
+        async def scenario() -> list[str]:
+            async with Client(f"http://127.0.0.1:{port}/mcp?token={token}") as client:
+                result = await client.list_tools()
+                return sorted(tool.name for tool in result.tools)
+
+        names = run(scenario())
+        assert "engines_list" in names
+        assert "optimade_search" in names
+
+        async def rejected() -> None:
+            async with Client(f"http://127.0.0.1:{port}/mcp?token=wrong") as client:
+                await client.list_tools()
+
+        with pytest.raises(Exception):
+            run(rejected())
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:  # pragma: no cover
+            process.kill()
+
+
+def test_http_refuses_non_loopback_without_override(tmp_path: Path) -> None:
+    import subprocess
+    import sys
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "hcs_materials.mcp_server",
+            "--root",
+            str(tmp_path),
+            "--transport",
+            "streamable-http",
+            "--host",
+            "0.0.0.0",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert completed.returncode == 2
+    assert "non-loopback" in (completed.stderr + completed.stdout)

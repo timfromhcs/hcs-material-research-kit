@@ -12,12 +12,16 @@ Run:  hcs-materials-mcp --root <project-directory>
 from __future__ import annotations
 
 import argparse
+import hmac
+import ipaddress
 import json
 import os
+import secrets
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Sequence
+from urllib.parse import parse_qs
 
 from . import __version__
 from .contracts import ContractViolation, validate_contract
@@ -603,8 +607,61 @@ def create_server(root: str | Path, sim_cli: Sequence[str] | str | None = None):
     return server
 
 
+def _is_loopback(host: str) -> bool:
+    if host in ("localhost",):
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _run_streamable_http(server, host: str, port: int, token: str) -> None:
+    """Serve the MCP app over loopback Streamable HTTP with a bearer token.
+
+    The token is accepted either as ``Authorization: Bearer <token>`` or as a
+    ``?token=`` query parameter, so the official SDK client (which takes a URL)
+    can connect without a custom transport. Loopback binding is enforced by the
+    caller unless explicitly overridden.
+    """
+    import uvicorn
+    from starlette.responses import JSONResponse
+
+    app = server.streamable_http_app(
+        stateless_http=True,
+        json_response=True,
+        max_request_body_size=1_000_000,
+        host=host,
+    )
+    expected = f"Bearer {token}".encode("utf-8")
+
+    async def guarded(scope, receive, send):  # type: ignore[no-untyped-def]
+        if scope["type"] != "http":
+            await app(scope, receive, send)
+            return
+        headers = {key.decode("latin-1").lower(): value.decode("latin-1") for key, value in scope["headers"]}
+        authorization = headers.get("authorization", "")
+        query = parse_qs(scope.get("query_string", b"").decode("latin-1"))
+        supplied = authorization.encode("utf-8")
+        if not hmac.compare_digest(supplied, expected) and not (
+            query.get("token") and hmac.compare_digest(query["token"][0], token)
+        ):
+            await JSONResponse({"error": "unauthorized"}, status_code=401)(scope, receive, send)
+            return
+        length = headers.get("content-length")
+        if length and length.isdigit() and int(length) > 1_000_000:
+            await JSONResponse({"error": "payload too large"}, status_code=413)(scope, receive, send)
+            return
+        await app(scope, receive, send)
+
+    uvicorn.run(guarded, host=host, port=port, log_level="warning")
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="hcs-materials-mcp", description="HCS MCP server (stdio)")
+    parser = argparse.ArgumentParser(
+        prog="hcs-materials-mcp",
+        description="HCS MCP server (stdio or loopback Streamable HTTP)",
+    )
     parser.add_argument("--root", default=".", help="workspace root for project access")
     parser.add_argument(
         "--sim-cli",
@@ -614,17 +671,57 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--transport",
         default="stdio",
-        choices=["stdio"],
-        help="stdio only in this build; loopback HTTP is not implemented yet",
+        choices=["stdio", "streamable-http"],
+        help="stdio (default) or loopback Streamable HTTP",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="HTTP bind address (loopback by default)")
+    parser.add_argument("--port", type=int, default=8765, help="HTTP port")
+    parser.add_argument(
+        "--token",
+        default=None,
+        help="bearer token for HTTP; generated and printed once when omitted",
+    )
+    parser.add_argument(
+        "--allow-non-loopback",
+        action="store_true",
+        help="allow binding HTTP to a non-loopback address (not recommended)",
     )
     args = parser.parse_args(argv)
+
+    if args.transport == "streamable-http":
+        if not _is_loopback(args.host) and not args.allow_non_loopback:
+            print(
+                "error: refusing to bind a non-loopback address without --allow-non-loopback",
+                file=sys.stderr,
+            )
+            return 2
+        if not 1 <= args.port <= 65535:
+            print("error: --port must be between 1 and 65535", file=sys.stderr)
+            return 2
+
     try:
         server = create_server(args.root, sim_cli=args.sim_cli)
     except Exception as error:  # noqa: BLE001
         print(f"error: {error}", file=sys.stderr)
         return 4
-    print(f"HCS Material Research Kit {__version__} MCP server on stdio", file=sys.stderr)
-    server.run(transport=args.transport)
+
+    if args.transport == "stdio":
+        print(f"HCS Material Research Kit {__version__} MCP server on stdio", file=sys.stderr)
+        server.run(transport="stdio")
+        return 0
+
+    token = args.token or secrets.token_urlsafe(32)
+    print(
+        f"HCS Material Research Kit {__version__} MCP server on "
+        f"http://{args.host}:{args.port}/mcp",
+        file=sys.stderr,
+    )
+    print(f"Authorization: Bearer {token}", file=sys.stderr)
+    print(
+        "The token is printed once. Use the header or append ?token=<token> to the URL.",
+        file=sys.stderr,
+    )
+    _run_streamable_http(server, args.host, args.port, token)
     return 0
 
 
