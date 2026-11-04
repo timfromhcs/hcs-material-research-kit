@@ -2,6 +2,17 @@
   --app-max: 1560px;
 }
 
+/* A stray 1–2 px from a wide table must never create a horizontal document
+   scrollbar on a phone. Inner table/plot wrappers keep their own scroll. */
+html,
+body {
+  overflow-x: clip;
+}
+
+.panel-body {
+  min-width: 0;
+}
+
 .workspace > * {
   max-width: var(--app-max);
 }

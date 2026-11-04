@@ -48,8 +48,8 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri -> target
 
-      - name: Build the studio bundle
-        run: npm run build -w @hcs-materials/web
+      - name: Build the packages and studio bundle
+        run: npm run build
 
       - name: Build the desktop bundles (unsigned)
         working-directory: apps/desktop
