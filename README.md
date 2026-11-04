@@ -73,7 +73,7 @@ npm run build
 npm run dev            # studio at http://localhost:5173
 
 npm test               # 169 TypeScript tests
-npm run test:rust      # 9 Rust tests (kernels + desktop command)
+npm run test:rust      # 8 Rust kernel tests (the desktop command test is separate)
 npm run test:python    # 53 Python/MCP tests (finds .venv automatically)
 npm run test:e2e       # 10 Playwright acceptance tests
 ```
@@ -152,7 +152,8 @@ Current local evidence (Windows 11, Node 22.23, Python 3.14, Rust 1.96, Chrome 1
 
 ```text
 TypeScript  169 tests passing   vitest run (incl. SW, NVT, XRD, WebGPU, WASM parity)
-Rust          9 tests passing   cargo test (5 core + 3 wasm + 1 desktop)
+Rust          8 tests passing   cargo test -p hcs-compute-core -p hcs-compute-wasm
+Rust          1 test  passing   cargo test in apps/desktop/src-tauri (app_info)
 Python       53 tests passing   pytest (OPTIMADE, MCP stdio + HTTP, archives)
 Playwright   10 tests passing   production bundle, Chrome, WASM/WebGPU backends
 Web build    vite build ok      ~381 kB app + 559 kB three + 236 kB worker + 58 kB wasm
