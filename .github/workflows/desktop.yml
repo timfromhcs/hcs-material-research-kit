@@ -11,9 +11,6 @@ concurrency:
   group: desktop-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NPM_VERSION: "11"
-
 jobs:
   bundle:
     name: Tauri bundle (${{ matrix.os }})
@@ -34,7 +31,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install -g npm@$NPM_VERSION
+      - run: npm install -g npm@11
       - run: npm ci
 
       - name: Install Linux WebView and bundling dependencies

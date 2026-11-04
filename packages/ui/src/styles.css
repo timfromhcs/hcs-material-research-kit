@@ -942,8 +942,9 @@ button.list-item:hover {
   .topbar {
     display: flex;
     flex-wrap: nowrap;
-    gap: var(--s-2);
-    padding: 6px var(--s-3);
+    gap: 6px;
+    padding: 6px 10px;
+    overflow: hidden;
   }
   .topbar-context .secondary,
   .topbar-context .muted,
@@ -952,10 +953,25 @@ button.list-item:hover {
     display: none;
   }
   .topbar-title {
-    max-width: 110px;
+    max-width: 82px;
+  }
+  .topbar > .row {
+    gap: 4px;
+    min-width: 0;
+  }
+  .palette-trigger {
+    padding: 0 7px;
+  }
+  .lang-switch button {
+    padding: 3px 5px;
   }
   .palette-trigger kbd {
     display: none;
+  }
+  .rail,
+  .status-bar {
+    max-width: 100%;
+    overflow-x: hidden;
   }
   .rail {
     flex-direction: row;
