@@ -244,10 +244,15 @@ pre.code-block {
   position: absolute;
   width: 1px;
   height: 1px;
+  /* A <table> with auto layout ignores a 1px width and grows to its
+     min-content width, which used to add 2px to the phone viewport. */
+  max-width: 1px;
+  table-layout: fixed;
   padding: 0;
   margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }
