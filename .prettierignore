@@ -29,6 +29,9 @@ benchmarks/results/
 # Committed build artefact and its manifest (produced by npm run build:wasm).
 packages/wasm/wasm/
 
+# Local editor/agent tool state, never part of the project.
+.serena/
+
 # Tool-managed lockfiles.
 package-lock.json
 Cargo.lock
